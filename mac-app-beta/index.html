@@ -10951,7 +10951,7 @@
           <h1 class="app-brand-title">MagicTouchBar</h1>
 
           <!-- Versão sem destaque algum -->
-          <div class="app-version-plain">1.0.9 (Build 10)</div>
+          <div class="app-version-plain">1.0.10 (Build 11)</div>
 
           <!-- Status Card: Ativo/Desconectado, IP e Porta -->
           <div class="magic-status-card">
@@ -14563,28 +14563,37 @@
       if (btn) btn.classList.add('checking');
       if (txt) txt.textContent = 'Buscando...';
 
-      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.macNative) {
-        window.webkit.messageHandlers.macNative.postMessage({ action: 'checkForUpdates' });
-      } else {
-        setTimeout(() => {
-          if (btn) btn.classList.remove('checking');
+      if (window._updateCheckTimeout) {
+        clearTimeout(window._updateCheckTimeout);
+      }
+      window._updateCheckTimeout = setTimeout(() => {
+        if (btn && btn.classList.contains('checking')) {
+          btn.classList.remove('checking');
           if (txt) {
-            txt.textContent = 'Versão Mais Recente (1.0.9)';
+            txt.textContent = 'Versão Mais Recente (1.0.10)';
             setTimeout(() => { txt.textContent = 'Buscar Atualizações'; }, 3000);
           }
-        }, 1200);
+        }
+      }, 3500);
+
+      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.macNative) {
+        window.webkit.messageHandlers.macNative.postMessage({ action: 'checkForUpdates' });
       }
     }
 
     window.onUpdateStatus = function(info) {
+      if (window._updateCheckTimeout) {
+        clearTimeout(window._updateCheckTimeout);
+        window._updateCheckTimeout = null;
+      }
       const btn = document.getElementById('btnCheckUpdate');
       const txt = document.getElementById('txtUpdateBtn');
       if (btn) btn.classList.remove('checking');
       if (txt) {
-        if (info.hasUpdate) {
+        if (info && info.hasUpdate) {
           txt.textContent = `Nova versão disponível (${info.latestVersion})`;
         } else {
-          txt.textContent = 'Versão Mais Recente';
+          txt.textContent = 'Versão Mais Recente (1.0.10)';
           setTimeout(() => { txt.textContent = 'Buscar Atualizações'; }, 3000);
         }
       }

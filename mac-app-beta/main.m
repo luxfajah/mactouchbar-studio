@@ -92,7 +92,7 @@
 
 @end
 
-@interface BetaAppDelegate : NSObject <NSApplicationDelegate, WKScriptMessageHandler, WKNavigationDelegate, NSWindowDelegate>
+@interface BetaAppDelegate : NSObject <NSApplicationDelegate, WKScriptMessageHandler, WKNavigationDelegate, NSWindowDelegate, SPUUpdaterDelegate>
 @property (nonatomic, strong) NSWindow *window;
 @property (nonatomic, strong) WKWebView *webView;
 @property (nonatomic, copy) NSString *lastWallpaperPath;
@@ -107,9 +107,9 @@ static BetaAppDelegate *gDelegate = nil;
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
     NSLog(@"[MacTouchBarBeta] Iniciando MacTouchBar Studio (Apple HIG)...");
     
-    // Sparkle Updater Initialization
+    // Sparkle Updater Initialization with delegate
     self.updaterController = [[SPUStandardUpdaterController alloc] initWithStartingUpdater:YES
-                                                                            updaterDelegate:nil
+                                                                            updaterDelegate:self
                                                                          userDriverDelegate:nil];
     [self setupMainMenu];
     
@@ -610,8 +610,29 @@ static BetaAppDelegate *gDelegate = nil;
     }];
 }
 
-- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender {
-    return YES;
+#pragma mark - SPUUpdaterDelegate
+
+- (void)updater:(SPUUpdater *)updater didFindValidUpdate:(SUAppcastItem *)item {
+    NSLog(@"[MacTouchBarBeta] Sparkle: Nova versão encontrada: %@", item.displayVersionString);
+    NSString *version = item.displayVersionString ?: @"Nova Versão";
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSString *js = [NSString stringWithFormat:@"window.onUpdateStatus && window.onUpdateStatus({ hasUpdate: true, latestVersion: '%@' });", version];
+        [self.webView evaluateJavaScript:js completionHandler:nil];
+    });
+}
+
+- (void)updaterDidNotFindUpdate:(SPUUpdater *)updater error:(NSError *)error {
+    NSLog(@"[MacTouchBarBeta] Sparkle: Nenhuma nova atualização encontrada (Erro: %@)", error);
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.webView evaluateJavaScript:@"window.onUpdateStatus && window.onUpdateStatus({ hasUpdate: false, latestVersion: '1.0.10' });" completionHandler:nil];
+    });
+}
+
+- (void)updater:(SPUUpdater *)updater didAbortWithError:(NSError *)error {
+    NSLog(@"[MacTouchBarBeta] Sparkle: Erro ou cancelamento na busca de atualizações: %@", error);
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.webView evaluateJavaScript:@"window.onUpdateStatus && window.onUpdateStatus({ hasUpdate: false, latestVersion: '1.0.10' });" completionHandler:nil];
+    });
 }
 
 @end
