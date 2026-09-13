@@ -245,40 +245,8 @@ static BetaAppDelegate *gDelegate = nil;
     }];
 }
 
-- (void)captureSequenceStep1 {
-    [self.webView evaluateJavaScript:@"if (typeof switchSimScreen === 'function') switchSimScreen(4);" completionHandler:nil];
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        [self saveSnapshotToPath:@"/Volumes/Work/APP TESTE/screenshot_sim_illustrator.png"];
-        [self captureSequenceStep2];
-    });
-}
-
-- (void)captureSequenceStep2 {
-    [self.webView evaluateJavaScript:@"if (typeof switchSimScreen === 'function') switchSimScreen(5);" completionHandler:nil];
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        [self saveSnapshotToPath:@"/Volumes/Work/APP TESTE/screenshot_sim_photoshop.png"];
-        [self captureSequenceStep3];
-    });
-}
-
-- (void)captureSequenceStep3 {
-    [self.webView evaluateJavaScript:@"if (typeof navigateTo === 'function') navigateTo('pane-extensions'); setTimeout(() => { if (typeof openExtensionConfig === 'function') openExtensionConfig('addon-illustrator'); }, 200);" completionHandler:nil];
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        [self saveSnapshotToPath:@"/Volumes/Work/APP TESTE/screenshot_addon_illustrator_modal.png"];
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.8 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [self.webView evaluateJavaScript:@"if (typeof closeExtensionConfig === 'function') closeExtensionConfig(); if (typeof navigateTo === 'function') navigateTo('pane-overview'); if (typeof switchSimScreen === 'function') switchSimScreen(1);" completionHandler:nil];
-        });
-    });
-}
-
 - (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
     [self sendSystemInfoToUI];
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        [self saveSnapshotToPath:@"/Volumes/Work/APP TESTE/screenshot_webview.png"];
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [self captureSequenceStep1];
-        });
-    });
 }
 
 - (NSString *)getLocalIPAddress {
@@ -624,14 +592,14 @@ static BetaAppDelegate *gDelegate = nil;
 - (void)updaterDidNotFindUpdate:(SPUUpdater *)updater error:(NSError *)error {
     NSLog(@"[MacTouchBarBeta] Sparkle: Nenhuma nova atualização encontrada (Erro: %@)", error);
     dispatch_async(dispatch_get_main_queue(), ^{
-        [self.webView evaluateJavaScript:@"window.onUpdateStatus && window.onUpdateStatus({ hasUpdate: false, latestVersion: '1.0.10' });" completionHandler:nil];
+        [self.webView evaluateJavaScript:@"window.onUpdateStatus && window.onUpdateStatus({ hasUpdate: false, latestVersion: '1.0.11' });" completionHandler:nil];
     });
 }
 
 - (void)updater:(SPUUpdater *)updater didAbortWithError:(NSError *)error {
     NSLog(@"[MacTouchBarBeta] Sparkle: Erro ou cancelamento na busca de atualizações: %@", error);
     dispatch_async(dispatch_get_main_queue(), ^{
-        [self.webView evaluateJavaScript:@"window.onUpdateStatus && window.onUpdateStatus({ hasUpdate: false, latestVersion: '1.0.10' });" completionHandler:nil];
+        [self.webView evaluateJavaScript:@"window.onUpdateStatus && window.onUpdateStatus({ hasUpdate: false, latestVersion: '1.0.11' });" completionHandler:nil];
     });
 }
 
