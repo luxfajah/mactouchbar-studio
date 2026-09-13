@@ -143,11 +143,11 @@
   // ==========================================================================
   function goToScreen(index) {
     const screens = document.querySelectorAll('.carousel-screen');
-    const totalScreens = Math.max(screens.length, 6);
+    const totalScreens = Math.max(screens.length, 4);
     if (index < 0 || index >= totalScreens) return;
     state.currentScreen = index;
 
-    // Shift Carousel Track dynamically: 0 -> 0%, 1 -> -16.67%, etc.
+    // Shift Carousel Track dynamically: 0 -> 0%, 1 -> -25%, 2 -> -50%, 3 -> -75%
     const translatePercent = -(index * (100 / totalScreens));
     const track = el.track || getEl('carousel-track');
     if (track) {
@@ -164,14 +164,12 @@
       }
     }
 
-    // Update Minimalist Apple Page Dots (0 to 5)
+    // Update Minimalist Apple Page Dots (0 to 3)
     const dots = [
       el.dotPage0 || getEl('dot-page-0'),
       el.dotPage1 || getEl('dot-page-1'),
       el.dotPage2 || getEl('dot-page-2'),
-      el.dotPage3 || getEl('dot-page-3'),
-      getEl('dot-page-4'),
-      getEl('dot-page-5')
+      el.dotPage3 || getEl('dot-page-3')
     ];
     dots.forEach((dot, i) => {
       if (dot) {
@@ -195,6 +193,53 @@
     triggerHaptic();
   }
   window.goToScreen = goToScreen;
+
+  // Vertical Sub-Page Scrolling for Modular Add-ons (e.g. Illustrator with 3 sub-pages)
+  function scrollAddonSubPage(containerId, subPageIndex) {
+    const rawEl = getEl(containerId);
+    if (!rawEl) return;
+    const scrollContainer = rawEl.classList.contains('addon-vertical-scroll') ? rawEl : rawEl.querySelector('.addon-vertical-scroll') || rawEl;
+    const subPages = (scrollContainer || rawEl).querySelectorAll('.addon-sub-page');
+    if (subPageIndex < 0 || subPageIndex >= subPages.length) return;
+    
+    const targetPage = subPages[subPageIndex];
+    if (targetPage) {
+      if (typeof scrollContainer.scrollTo === 'function') {
+        const topOffset = targetPage.offsetTop || (subPageIndex * scrollContainer.clientHeight);
+        scrollContainer.scrollTo({ top: topOffset, behavior: 'smooth' });
+      } else {
+        targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      triggerHaptic();
+    }
+  }
+  window.scrollAddonSubPage = scrollAddonSubPage;
+
+  function initVerticalAddonScrollTracking() {
+    const scrollContainers = document.querySelectorAll('.addon-vertical-scroll');
+    scrollContainers.forEach(container => {
+      const containerId = container.id;
+      const indicatorId = containerId.replace('-scroll', '-indicator');
+      const indicator = getEl(indicatorId) || (container.parentElement ? container.parentElement.querySelector('.addon-vertical-indicator') : null);
+      if (!indicator) return;
+
+      const dots = indicator.querySelectorAll('.addon-vdot');
+
+      container.addEventListener('scroll', () => {
+        const scrollTop = container.scrollTop;
+        const pageHeight = container.clientHeight || 1;
+        const activeIndex = Math.min(dots.length - 1, Math.max(0, Math.round(scrollTop / pageHeight)));
+
+        dots.forEach((dot, i) => {
+          if (i === activeIndex) {
+            dot.classList.add('active');
+          } else {
+            dot.classList.remove('active');
+          }
+        });
+      }, { passive: true });
+    });
+  }
 
   // Control Center Pull-Down Overlay Controls
   function openControlCenter() {
@@ -2665,6 +2710,7 @@
     });
     renderRecentIllustratorColors();
     updateMicUI();
+    initVerticalAddonScrollTracking();
 
     // Initialize preferred Color Picker Mode
     setColorPickerMode(aiState.pickerMode);

@@ -143,11 +143,11 @@
   // ==========================================================================
   function goToScreen(index) {
     const screens = document.querySelectorAll('.carousel-screen');
-    const totalScreens = Math.max(screens.length, 6);
+    const totalScreens = Math.max(screens.length, 4);
     if (index < 0 || index >= totalScreens) return;
     state.currentScreen = index;
 
-    // Shift Carousel Track dynamically: 0 -> 0%, 1 -> -16.67%, etc.
+    // Shift Carousel Track dynamically: 0 -> 0%, 1 -> -25%, 2 -> -50%, 3 -> -75%
     const translatePercent = -(index * (100 / totalScreens));
     const track = el.track || getEl('carousel-track');
     if (track) {
@@ -164,14 +164,12 @@
       }
     }
 
-    // Update Minimalist Apple Page Dots (0 to 5)
+    // Update Minimalist Apple Page Dots (0 to 3)
     const dots = [
       el.dotPage0 || getEl('dot-page-0'),
       el.dotPage1 || getEl('dot-page-1'),
       el.dotPage2 || getEl('dot-page-2'),
-      el.dotPage3 || getEl('dot-page-3'),
-      getEl('dot-page-4'),
-      getEl('dot-page-5')
+      el.dotPage3 || getEl('dot-page-3')
     ];
     dots.forEach((dot, i) => {
       if (dot) {
@@ -195,6 +193,53 @@
     triggerHaptic();
   }
   window.goToScreen = goToScreen;
+
+  // Vertical Sub-Page Scrolling for Modular Add-ons (e.g. Illustrator with 3 sub-pages)
+  function scrollAddonSubPage(containerId, subPageIndex) {
+    const rawEl = getEl(containerId);
+    if (!rawEl) return;
+    const scrollContainer = rawEl.classList.contains('addon-vertical-scroll') ? rawEl : rawEl.querySelector('.addon-vertical-scroll') || rawEl;
+    const subPages = (scrollContainer || rawEl).querySelectorAll('.addon-sub-page');
+    if (subPageIndex < 0 || subPageIndex >= subPages.length) return;
+    
+    const targetPage = subPages[subPageIndex];
+    if (targetPage) {
+      if (typeof scrollContainer.scrollTo === 'function') {
+        const topOffset = targetPage.offsetTop || (subPageIndex * scrollContainer.clientHeight);
+        scrollContainer.scrollTo({ top: topOffset, behavior: 'smooth' });
+      } else {
+        targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      triggerHaptic();
+    }
+  }
+  window.scrollAddonSubPage = scrollAddonSubPage;
+
+  function initVerticalAddonScrollTracking() {
+    const scrollContainers = document.querySelectorAll('.addon-vertical-scroll');
+    scrollContainers.forEach(container => {
+      const containerId = container.id;
+      const indicatorId = containerId.replace('-scroll', '-indicator');
+      const indicator = getEl(indicatorId) || (container.parentElement ? container.parentElement.querySelector('.addon-vertical-indicator') : null);
+      if (!indicator) return;
+
+      const dots = indicator.querySelectorAll('.addon-vdot');
+
+      container.addEventListener('scroll', () => {
+        const scrollTop = container.scrollTop;
+        const pageHeight = container.clientHeight || 1;
+        const activeIndex = Math.min(dots.length - 1, Math.max(0, Math.round(scrollTop / pageHeight)));
+
+        dots.forEach((dot, i) => {
+          if (i === activeIndex) {
+            dot.classList.add('active');
+          } else {
+            dot.classList.remove('active');
+          }
+        });
+      }, { passive: true });
+    });
+  }
 
   // Control Center Pull-Down Overlay Controls
   function openControlCenter() {
@@ -265,7 +310,7 @@
       );
     }
 
-    // 1. Global Listener for Pull Down to open Control Center
+    // 1. Global Listener for Pull Down to open Control Center (Only from Top Bar / Handle)
     window.addEventListener('touchstart', (e) => {
       if (!e.touches || e.touches.length === 0) return;
       const startY = e.touches[0].clientY;
@@ -275,56 +320,36 @@
       touchStartY = startY;
       touchStartX = startX;
 
-      // Top Edge Zone (Top 95px or 18% screen height or anywhere on top nav / handle)
-      const topBoundary = Math.max(95, window.innerHeight * 0.18);
-      const isTopNav = !!target.closest('.top-nav-bar, .top-cc-handle-pill, .cc-pull-notch, .battery-shell, .nav-left, .nav-right');
-
-      if (startY <= topBoundary || isTopNav) {
+      // Top Edge Zone: Strictly top status bar (30px) or clicking the top handle / notch
+      const isTopNav = !!target.closest('.top-nav-bar, .top-cc-handle-pill, .cc-pull-notch');
+      if (startY <= 32 || isTopNav) {
         isPullingFromTopEdge = true;
-        isPullingGeneralDown = false;
-      } else if (startY < window.innerHeight * 0.35 && !isInteractiveControl(target)) {
-        // Upper zone general pull-down (outside interactive components)
-        isPullingFromTopEdge = false;
-        isPullingGeneralDown = true;
       } else {
         isPullingFromTopEdge = false;
-        isPullingGeneralDown = false;
       }
     }, { passive: true });
 
     window.addEventListener('touchmove', (e) => {
-      if ((!isPullingFromTopEdge && !isPullingGeneralDown) || !e.touches || e.touches.length === 0) return;
+      if (!isPullingFromTopEdge || !e.touches || e.touches.length === 0) return;
       const currentY = e.touches[0].clientY;
       const currentX = e.touches[0].clientX;
       const deltaY = currentY - touchStartY;
       const deltaX = Math.abs(currentX - touchStartX);
 
-      // Trigger Control Center open when pulled down
-      if (isPullingFromTopEdge) {
-        // Highly responsive, natural downward swipe from top edge (22px)
-        if (deltaY > 22 && deltaY > deltaX * 0.5) {
-          isPullingFromTopEdge = false;
-          triggerHaptic();
-          openControlCenter();
-        }
-      } else if (isPullingGeneralDown) {
-        // Upper screen downward pull
-        if (deltaY > 45 && deltaY > deltaX * 1.3) {
-          isPullingGeneralDown = false;
-          triggerHaptic();
-          openControlCenter();
-        }
+      // Trigger Control Center open when pulled down from top edge
+      if (deltaY > 28 && deltaY > deltaX * 0.7) {
+        isPullingFromTopEdge = false;
+        triggerHaptic();
+        openControlCenter();
       }
     }, { passive: true });
 
     window.addEventListener('touchend', () => {
       isPullingFromTopEdge = false;
-      isPullingGeneralDown = false;
     }, { passive: true });
 
     window.addEventListener('touchcancel', () => {
       isPullingFromTopEdge = false;
-      isPullingGeneralDown = false;
     }, { passive: true });
 
     // Click/tap on top handle directly toggles Control Center
@@ -353,7 +378,7 @@
         const currentX = e.touches[0].clientX;
         const deltaY = currentY - ccStartY;
         const deltaX = Math.abs(currentX - ccStartX);
-        if (deltaY < -24 && Math.abs(deltaY) > deltaX * 0.6) {
+        if (deltaY < -32 && Math.abs(deltaY) > deltaX * 0.8) {
           triggerHaptic();
           closeControlCenter();
         }
@@ -374,8 +399,7 @@
           return;
         }
 
-        // Never allow carousel swipe if touch started on any interactive control:
-        // Color picker, swatches, wheel, triangle, square, sliders, inputs, etc.
+        // Never allow carousel swipe if touch started on any interactive control
         if (isInteractiveControl(e.target)) {
           isSwipingCarousel = false;
           return;
@@ -384,9 +408,8 @@
         carouselStartX = e.touches[0].clientX;
         carouselStartY = e.touches[0].clientY;
 
-        // Don't swipe carousel if starting near top edge (reserved for Control Center)
-        const topBoundary = Math.max(90, window.innerHeight * 0.18);
-        if (carouselStartY > topBoundary) {
+        // Swipe anywhere below the top status bar (30px)
+        if (carouselStartY > 30) {
           isSwipingCarousel = true;
         } else {
           isSwipingCarousel = false;
@@ -414,10 +437,10 @@
         const deltaX = touchEndX - carouselStartX;
         const deltaY = touchEndY - carouselStartY;
 
-        // Ensure horizontal drag is dominant and deliberate (minimum 70px)
-        if (Math.abs(deltaX) > Math.abs(deltaY) * 1.5 && Math.abs(deltaX) > 70) {
+        // Ensure horizontal drag is natural and responsive (45px)
+        if (Math.abs(deltaX) > Math.abs(deltaY) * 1.2 && Math.abs(deltaX) > 45) {
           const screens = document.querySelectorAll('.carousel-screen');
-          const totalScreens = Math.max(screens.length, 6);
+          const totalScreens = Math.max(screens.length, 4);
           if (deltaX < 0) {
             // Drag Left -> Move to Next Screen
             if (state.currentScreen < totalScreens - 1) goToScreen(state.currentScreen + 1);
@@ -2665,6 +2688,7 @@
     });
     renderRecentIllustratorColors();
     updateMicUI();
+    initVerticalAddonScrollTracking();
 
     // Initialize preferred Color Picker Mode
     setColorPickerMode(aiState.pickerMode);
