@@ -15315,9 +15315,24 @@
     // Simulator Screen Switcher (Início Dashboard)
     function switchSimScreen(screenIndex, btn) {
       const simFrame = document.getElementById('simAppFrame');
-      if (simFrame && simFrame.contentWindow && typeof simFrame.contentWindow.goToScreen === 'function') {
+      if (simFrame && simFrame.contentWindow) {
         try {
-          simFrame.contentWindow.goToScreen(screenIndex);
+          if (screenIndex === 0) {
+            if (typeof simFrame.contentWindow.goToScreen === 'function') simFrame.contentWindow.goToScreen(0);
+          } else if (screenIndex === 1) {
+            if (typeof simFrame.contentWindow.goToScreen === 'function') simFrame.contentWindow.goToScreen(1);
+          } else if (screenIndex === 2) {
+            if (typeof simFrame.contentWindow.goToScreen === 'function') simFrame.contentWindow.goToScreen(2);
+            if (typeof simFrame.contentWindow.scrollAddonSubPage === 'function') simFrame.contentWindow.scrollAddonSubPage('ai-vertical-scroll', 0);
+          } else if (screenIndex === 3) {
+            if (typeof simFrame.contentWindow.goToScreen === 'function') simFrame.contentWindow.goToScreen(2);
+            if (typeof simFrame.contentWindow.scrollAddonSubPage === 'function') simFrame.contentWindow.scrollAddonSubPage('ai-vertical-scroll', 1);
+          } else if (screenIndex === 4) {
+            if (typeof simFrame.contentWindow.goToScreen === 'function') simFrame.contentWindow.goToScreen(2);
+            if (typeof simFrame.contentWindow.scrollAddonSubPage === 'function') simFrame.contentWindow.scrollAddonSubPage('ai-vertical-scroll', 2);
+          } else if (screenIndex === 5) {
+            if (typeof simFrame.contentWindow.goToScreen === 'function') simFrame.contentWindow.goToScreen(3);
+          }
         } catch (e) {
           console.warn('Simulator goToScreen error:', e);
         }

@@ -310,7 +310,7 @@
       );
     }
 
-    // 1. Global Listener for Pull Down to open Control Center
+    // 1. Global Listener for Pull Down to open Control Center (Only from Top Bar / Handle)
     window.addEventListener('touchstart', (e) => {
       if (!e.touches || e.touches.length === 0) return;
       const startY = e.touches[0].clientY;
@@ -320,56 +320,36 @@
       touchStartY = startY;
       touchStartX = startX;
 
-      // Top Edge Zone (Top 95px or 18% screen height or anywhere on top nav / handle)
-      const topBoundary = Math.max(95, window.innerHeight * 0.18);
-      const isTopNav = !!target.closest('.top-nav-bar, .top-cc-handle-pill, .cc-pull-notch, .battery-shell, .nav-left, .nav-right');
-
-      if (startY <= topBoundary || isTopNav) {
+      // Top Edge Zone: Strictly top status bar (30px) or clicking the top handle / notch
+      const isTopNav = !!target.closest('.top-nav-bar, .top-cc-handle-pill, .cc-pull-notch');
+      if (startY <= 32 || isTopNav) {
         isPullingFromTopEdge = true;
-        isPullingGeneralDown = false;
-      } else if (startY < window.innerHeight * 0.35 && !isInteractiveControl(target)) {
-        // Upper zone general pull-down (outside interactive components)
-        isPullingFromTopEdge = false;
-        isPullingGeneralDown = true;
       } else {
         isPullingFromTopEdge = false;
-        isPullingGeneralDown = false;
       }
     }, { passive: true });
 
     window.addEventListener('touchmove', (e) => {
-      if ((!isPullingFromTopEdge && !isPullingGeneralDown) || !e.touches || e.touches.length === 0) return;
+      if (!isPullingFromTopEdge || !e.touches || e.touches.length === 0) return;
       const currentY = e.touches[0].clientY;
       const currentX = e.touches[0].clientX;
       const deltaY = currentY - touchStartY;
       const deltaX = Math.abs(currentX - touchStartX);
 
-      // Trigger Control Center open when pulled down
-      if (isPullingFromTopEdge) {
-        // Highly responsive, natural downward swipe from top edge (22px)
-        if (deltaY > 22 && deltaY > deltaX * 0.5) {
-          isPullingFromTopEdge = false;
-          triggerHaptic();
-          openControlCenter();
-        }
-      } else if (isPullingGeneralDown) {
-        // Upper screen downward pull
-        if (deltaY > 45 && deltaY > deltaX * 1.3) {
-          isPullingGeneralDown = false;
-          triggerHaptic();
-          openControlCenter();
-        }
+      // Trigger Control Center open when pulled down from top edge
+      if (deltaY > 28 && deltaY > deltaX * 0.7) {
+        isPullingFromTopEdge = false;
+        triggerHaptic();
+        openControlCenter();
       }
     }, { passive: true });
 
     window.addEventListener('touchend', () => {
       isPullingFromTopEdge = false;
-      isPullingGeneralDown = false;
     }, { passive: true });
 
     window.addEventListener('touchcancel', () => {
       isPullingFromTopEdge = false;
-      isPullingGeneralDown = false;
     }, { passive: true });
 
     // Click/tap on top handle directly toggles Control Center
@@ -398,7 +378,7 @@
         const currentX = e.touches[0].clientX;
         const deltaY = currentY - ccStartY;
         const deltaX = Math.abs(currentX - ccStartX);
-        if (deltaY < -24 && Math.abs(deltaY) > deltaX * 0.6) {
+        if (deltaY < -32 && Math.abs(deltaY) > deltaX * 0.8) {
           triggerHaptic();
           closeControlCenter();
         }
@@ -419,8 +399,7 @@
           return;
         }
 
-        // Never allow carousel swipe if touch started on any interactive control:
-        // Color picker, swatches, wheel, triangle, square, sliders, inputs, etc.
+        // Never allow carousel swipe if touch started on any interactive control
         if (isInteractiveControl(e.target)) {
           isSwipingCarousel = false;
           return;
@@ -429,9 +408,8 @@
         carouselStartX = e.touches[0].clientX;
         carouselStartY = e.touches[0].clientY;
 
-        // Don't swipe carousel if starting near top edge (reserved for Control Center)
-        const topBoundary = Math.max(90, window.innerHeight * 0.18);
-        if (carouselStartY > topBoundary) {
+        // Swipe anywhere below the top status bar (30px)
+        if (carouselStartY > 30) {
           isSwipingCarousel = true;
         } else {
           isSwipingCarousel = false;
@@ -459,10 +437,10 @@
         const deltaX = touchEndX - carouselStartX;
         const deltaY = touchEndY - carouselStartY;
 
-        // Ensure horizontal drag is dominant and deliberate (minimum 70px)
-        if (Math.abs(deltaX) > Math.abs(deltaY) * 1.5 && Math.abs(deltaX) > 70) {
+        // Ensure horizontal drag is natural and responsive (45px)
+        if (Math.abs(deltaX) > Math.abs(deltaY) * 1.2 && Math.abs(deltaX) > 45) {
           const screens = document.querySelectorAll('.carousel-screen');
-          const totalScreens = Math.max(screens.length, 6);
+          const totalScreens = Math.max(screens.length, 4);
           if (deltaX < 0) {
             // Drag Left -> Move to Next Screen
             if (state.currentScreen < totalScreens - 1) goToScreen(state.currentScreen + 1);
