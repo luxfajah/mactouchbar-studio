@@ -21,8 +21,8 @@ android {
         applicationId = "io.github.luxfajah.touchbar"
         minSdk = 26
         targetSdk = 34
-        versionCode = 100
-        versionName = "1.0.0-Hackintosh"
+        versionCode = 109
+        versionName = "1.0.9"
         signingConfig = signingConfigs.getByName("debug")
     }
 
