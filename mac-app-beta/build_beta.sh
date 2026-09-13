@@ -17,6 +17,7 @@ echo ""
 
 # ── 1. Preparar estrutura do bundle ──────────────────
 echo "📁 Preparando bundle..."
+rm -rf "$APP_BUNDLE"
 mkdir -p "$MACOS_DIR"
 mkdir -p "$RESOURCES_DIR"
 mkdir -p "$FRAMEWORKS_DIR"
@@ -31,7 +32,7 @@ fi
 [ -d "$ROOT_DIR/icons" ]          && cp -rf "$ROOT_DIR/icons"          "$RESOURCES_DIR/icons"
 [ -d "$ROOT_DIR/fonts" ]          && cp -rf "$ROOT_DIR/fonts"          "$RESOURCES_DIR/fonts"
 [ -f "$ROOT_DIR/wallpaper.jpg" ]  && cp -f  "$ROOT_DIR/wallpaper.jpg"  "$RESOURCES_DIR/wallpaper.jpg"
-[ -d "$ROOT_DIR/ipados-preview" ] && cp -rf "$ROOT_DIR/ipados-preview" "$RESOURCES_DIR/ipados-preview"
+[ -d "$DIR/ipados-preview" ]      && cp -rf "$DIR/ipados-preview"      "$RESOURCES_DIR/ipados-preview"
 
 # Copiar Sparkle.framework se existir
 if [ -d "$DIR/Frameworks/Sparkle.framework" ]; then

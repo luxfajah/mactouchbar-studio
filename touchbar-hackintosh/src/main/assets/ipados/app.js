@@ -10,19 +10,26 @@
   'use strict';
 
   // Determine intelligent default IP
-  let defaultIp = '192.168.1.6';
+  let defaultIp = '127.0.0.1';
   if (typeof window !== 'undefined' && window.location && window.location.hostname) {
     if (window.location.hostname !== '' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
       defaultIp = window.location.hostname;
     }
   }
 
+  const isLocalHost = (typeof window !== 'undefined' && (
+    window.location.protocol === 'file:' || 
+    window.location.hostname === 'localhost' || 
+    window.location.hostname === '127.0.0.1' || 
+    !window.location.hostname
+  ));
+
   // Global App State
   const state = {
     currentScreen: 1, // 0: Music, 1: Deck 2x6 (Center), 2: Control Center
     connected: false,
     connecting: false,
-    macIp: localStorage.getItem('mac_touchbar_ip') || defaultIp,
+    macIp: isLocalHost ? '127.0.0.1' : (localStorage.getItem('mac_touchbar_ip') || defaultIp),
     macPort: localStorage.getItem('mac_touchbar_port') || '9876',
     ws: null,
     reconnectTimer: null,
