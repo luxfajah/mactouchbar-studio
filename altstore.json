@@ -5,11 +5,14 @@
   "description": "Repositório oficial do MacTouchBar Studio para AltStore e SideStore. Transforme seu iPhone ou iPad em uma Touch Bar tátil de baixa latência para macOS.",
   "iconURL": "https://raw.githubusercontent.com/luxfajah/mactouchbar-studio/main/docs/screenshots/icon.png",
   "website": "https://github.com/luxfajah/mactouchbar-studio",
+  "marketplaceID": "com.altstore.marketplace",
   "apps": [
     {
       "name": "MacTouchBar Studio",
       "bundleIdentifier": "com.luxfajah.mactouchbar.ios",
+      "appID": "com.luxfajah.mactouchbar.ios",
       "developerName": "luxfajah",
+      "marketplaceID": "com.altstore.marketplace",
       "version": "1.0.0",
       "versionDate": "2026-09-13T04:00:00-03:00",
       "versionDescription": "Versão inicial com suporte a perfis de apps contextuais, iPad Pro 120Hz ProMotion, gestos multitoque e feedback tátil.",
