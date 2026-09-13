@@ -12,7 +12,7 @@
             <sparkle:shortVersionString>1.0.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
             <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <enclosure url="https://github.com/luxfajah/mactouchbar-studio/releases/download/v1.0.1/MacTouchBarBeta.zip" length="13287307" type="application/octet-stream" sparkle:edSignature="lRjuGlO8LUMz7L5bBsLb8y+/7OTrnG064uKsexRFVgZlrGJHjyXHKn4eljOqHvTwe35YK2gGAK5vEmbKLiXPAA=="/>
+            <enclosure url="https://github.com/luxfajah/mactouchbar-studio/releases/download/v1.0.1/MacTouchBarBeta.zip" length="13369682" type="application/octet-stream" sparkle:edSignature="WzSEY9o//DoIao+DJlME3xySVF/krqAxUMCSgUKxon2MSOfy+0SCudululoQ7+pqA5BaphU2fdbPYKJ+/OIPCw=="/>
         </item>
     </channel>
 </rss>
