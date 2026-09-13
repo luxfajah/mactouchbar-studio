@@ -7,6 +7,7 @@ APP_BUNDLE="$ROOT_DIR/MacTouchBarBeta.app"
 CONTENTS_DIR="$APP_BUNDLE/Contents"
 MACOS_DIR="$CONTENTS_DIR/MacOS"
 RESOURCES_DIR="$CONTENTS_DIR/Resources"
+FRAMEWORKS_DIR="$CONTENTS_DIR/Frameworks"
 INSTALL_DIR="/Applications/MacTouchBarBeta.app"
 
 echo "╔══════════════════════════════════════════════╗"
@@ -18,6 +19,7 @@ echo ""
 echo "📁 Preparando bundle..."
 mkdir -p "$MACOS_DIR"
 mkdir -p "$RESOURCES_DIR"
+mkdir -p "$FRAMEWORKS_DIR"
 
 cp -f "$DIR/Info.plist"   "$CONTENTS_DIR/Info.plist"
 cp -f "$DIR/index.html"   "$RESOURCES_DIR/index.html"
@@ -31,18 +33,30 @@ fi
 [ -f "$ROOT_DIR/wallpaper.jpg" ]  && cp -f  "$ROOT_DIR/wallpaper.jpg"  "$RESOURCES_DIR/wallpaper.jpg"
 [ -d "$ROOT_DIR/ipados-preview" ] && cp -rf "$ROOT_DIR/ipados-preview" "$RESOURCES_DIR/ipados-preview"
 
+# Copiar Sparkle.framework se existir
+if [ -d "$DIR/Frameworks/Sparkle.framework" ]; then
+    echo "✨ Copiando Sparkle.framework..."
+    cp -Rf "$DIR/Frameworks/Sparkle.framework" "$FRAMEWORKS_DIR/"
+fi
+
 # ── 2. Compilar binário nativo ────────────────────────
-echo "🔨 Compilando com clang (Cocoa + WebKit + Carbon)..."
+echo "🔨 Compilando com clang (Cocoa + WebKit + Carbon + Sparkle)..."
 clang -fobjc-arc -O2 \
+    -F "$DIR/Frameworks" \
     -framework Cocoa \
     -framework WebKit \
     -framework Carbon \
     -framework UniformTypeIdentifiers \
+    -framework Sparkle \
+    -rpath @executable_path/../Frameworks \
     "$DIR/main.m" \
     -o "$MACOS_DIR/MacTouchBarBeta"
 
-# ── 3. Assinar bundle ────────────────────────────────
+# ── 3. Assinar bundle e frameworks ───────────────────
 echo "🔏 Assinando bundle..."
+if [ -d "$FRAMEWORKS_DIR/Sparkle.framework" ]; then
+    codesign --force --deep --sign - "$FRAMEWORKS_DIR/Sparkle.framework"
+fi
 codesign --force --deep --sign - "$APP_BUNDLE"
 
 echo ""

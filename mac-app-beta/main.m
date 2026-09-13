@@ -2,6 +2,7 @@
 #import <WebKit/WebKit.h>
 #import <Carbon/Carbon.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
+#import <Sparkle/Sparkle.h>
 #import <ifaddrs.h>
 #import <arpa/inet.h>
 
@@ -96,6 +97,7 @@
 @property (nonatomic, strong) WKWebView *webView;
 @property (nonatomic, copy) NSString *lastWallpaperPath;
 @property (nonatomic, strong) NSTimer *wallpaperTimer;
+@property (nonatomic, strong) SPUStandardUpdaterController *updaterController;
 @end
 
 static BetaAppDelegate *gDelegate = nil;
@@ -104,6 +106,12 @@ static BetaAppDelegate *gDelegate = nil;
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
     NSLog(@"[MacTouchBarBeta] Iniciando MacTouchBar Studio (Apple HIG)...");
+    
+    // Sparkle Updater Initialization
+    self.updaterController = [[SPUStandardUpdaterController alloc] initWithStartingUpdater:YES
+                                                                            updaterDelegate:nil
+                                                                         userDriverDelegate:nil];
+    [self setupMainMenu];
     
     // Window creation with solid Apple dark appearance
     NSRect screenRect = [[NSScreen mainScreen] visibleFrame];
@@ -465,14 +473,65 @@ static BetaAppDelegate *gDelegate = nil;
     } else if ([action isEqualToString:@"saveConfig"]) {
         NSLog(@"[MacTouchBarBeta] Ajustes salvos: %@", body);
     } else if ([action isEqualToString:@"checkForUpdates"]) {
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            NSString *js = @"if (window.onUpdateStatus) window.onUpdateStatus({hasUpdate: false, latestVersion: '1.0.0'});";
-            [self.webView evaluateJavaScript:js completionHandler:nil];
+        NSLog(@"[MacTouchBarBeta] Sparkle: Verificando atualizações...");
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.updaterController checkForUpdates:nil];
         });
     } else if ([action isEqualToString:@"takeSnapshot"]) {
         NSString *dest = body[@"path"] ?: @"/Volumes/Work/APP TESTE/screenshot_webview.png";
         [self saveSnapshotToPath:dest];
     }
+}
+
+- (void)setupMainMenu {
+    NSMenu *mainMenu = [[NSMenu alloc] init];
+    
+    // App Menu
+    NSMenuItem *appMenuItem = [[NSMenuItem alloc] init];
+    NSMenu *appMenu = [[NSMenu alloc] initWithTitle:@"MacTouchBar Beta"];
+    
+    [appMenu addItemWithTitle:@"Sobre o MacTouchBar Studio" action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:@""];
+    
+    NSMenuItem *checkUpdatesItem = [[NSMenuItem alloc] initWithTitle:@"Verificar Atualizações..." action:@selector(checkForUpdates:) keyEquivalent:@""];
+    [checkUpdatesItem setTarget:self.updaterController];
+    [appMenu addItem:checkUpdatesItem];
+    
+    [appMenu addItem:[NSMenuItem separatorItem]];
+    [appMenu addItemWithTitle:@"Ocultar MacTouchBar Studio" action:@selector(hide:) keyEquivalent:@"h"];
+    
+    NSMenuItem *hideOthersItem = [[NSMenuItem alloc] initWithTitle:@"Ocultar Outros" action:@selector(hideOtherApplications:) keyEquivalent:@"h"];
+    [hideOthersItem setKeyEquivalentModifierMask:(NSEventModifierFlagOption | NSEventModifierFlagCommand)];
+    [appMenu addItem:hideOthersItem];
+    
+    [appMenu addItemWithTitle:@"Mostrar Todos" action:@selector(unhideAllApplications:) keyEquivalent:@""];
+    [appMenu addItem:[NSMenuItem separatorItem]];
+    [appMenu addItemWithTitle:@"Encerrar MacTouchBar Studio" action:@selector(terminate:) keyEquivalent:@"q"];
+    
+    [appMenuItem setSubmenu:appMenu];
+    [mainMenu addItem:appMenuItem];
+    
+    // Edit Menu (para comandos normais de clipboard)
+    NSMenuItem *editMenuItem = [[NSMenuItem alloc] init];
+    NSMenu *editMenu = [[NSMenu alloc] initWithTitle:@"Editar"];
+    [editMenu addItemWithTitle:@"Desfazer" action:@selector(undo:) keyEquivalent:@"z"];
+    [editMenu addItemWithTitle:@"Refazer" action:@selector(redo:) keyEquivalent:@"Z"];
+    [editMenu addItem:[NSMenuItem separatorItem]];
+    [editMenu addItemWithTitle:@"Recortar" action:@selector(cut:) keyEquivalent:@"x"];
+    [editMenu addItemWithTitle:@"Copiar" action:@selector(copy:) keyEquivalent:@"c"];
+    [editMenu addItemWithTitle:@"Colar" action:@selector(paste:) keyEquivalent:@"v"];
+    [editMenu addItemWithTitle:@"Selecionar Tudo" action:@selector(selectAll:) keyEquivalent:@"a"];
+    [editMenuItem setSubmenu:editMenu];
+    [mainMenu addItem:editMenuItem];
+    
+    // Window Menu
+    NSMenuItem *windowMenuItem = [[NSMenuItem alloc] init];
+    NSMenu *windowMenu = [[NSMenu alloc] initWithTitle:@"Janela"];
+    [windowMenu addItemWithTitle:@"Minimizar" action:@selector(performMiniaturize:) keyEquivalent:@"m"];
+    [windowMenu addItemWithTitle:@"Zoom" action:@selector(performZoom:) keyEquivalent:@""];
+    [windowMenuItem setSubmenu:windowMenu];
+    [mainMenu addItem:windowMenuItem];
+    
+    [NSApp setMainMenu:mainMenu];
 }
 
 - (BOOL)isAccessibilityGranted {

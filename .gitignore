@@ -4,7 +4,8 @@
 ._*
 .Spotlight-V100
 .Trashes
-Icon?
+.claude/
+!icons/
 ehthumbs.db
 Thumbs.db
 

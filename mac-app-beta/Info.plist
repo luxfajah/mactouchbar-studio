@@ -15,14 +15,24 @@
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0.0-beta</string>
+    <string>1.0.1</string>
     <key>CFBundleVersion</key>
-    <string>1</string>
+    <string>2</string>
     <key>LSMinimumSystemVersion</key>
     <string>13.0</string>
     <key>NSAppleEventsUsageDescription</key>
     <string>O MagicTouchBar precisa de permissão para controlar reprodução de mídia, atalhos do sistema e abrir aplicativos.</string>
     <key>NSSystemAdministrationUsageDescription</key>
     <string>O MagicTouchBar requer acesso para gerenciar o daemon e sincronizar comandos.</string>
+    <key>SUFeedURL</key>
+    <string>https://raw.githubusercontent.com/luxfajah/mactouchbar-studio/main/appcast.xml</string>
+    <key>SUPublicEDKey</key>
+    <string>lsWFnkUT4o8EjHyt1+dl3yxXhqrjKHZHew6Hg8SKnfE=</string>
+    <key>SUEnableAutomaticChecks</key>
+    <true/>
+    <key>SUScheduledCheckInterval</key>
+    <integer>86400</integer>
+    <key>SUAllowsAutomaticUpdates</key>
+    <true/>
 </dict>
 </plist>

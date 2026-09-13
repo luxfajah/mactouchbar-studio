@@ -1,0 +1,74 @@
+name: Release Mac App Beta (Sparkle)
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build MacTouchBar Beta App
+        run: |
+          chmod +x mac-app-beta/build_beta.sh
+          ./mac-app-beta/build_beta.sh
+
+      - name: Create Release Archive (ZIP)
+        run: |
+          mkdir -p release_artifacts
+          ditto -c -k --keepParent MacTouchBarBeta.app release_artifacts/MacTouchBarBeta.zip
+
+      - name: Generate Sparkle AppCast Feed
+        env:
+          SPARKLE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          chmod +x mac-app-beta/tools/bin/generate_appcast
+          TAG_NAME="${{ github.ref_name }}"
+          if [ -z "$TAG_NAME" ] || [ "$TAG_NAME" = "main" ]; then
+            TAG_NAME="v1.0.0-beta"
+          fi
+          
+          DOWNLOAD_URL="https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}/"
+          
+          if [ -n "$SPARKLE_KEY" ]; then
+            echo "$SPARKLE_KEY" | ./mac-app-beta/tools/bin/generate_appcast \
+              --ed-key-file - \
+              --download-url-prefix "$DOWNLOAD_URL" \
+              -o appcast.xml \
+              release_artifacts/
+          else
+            echo "⚠️ AVISO: SPARKLE_PRIVATE_KEY não configurada nos Secrets do repositório."
+            ./mac-app-beta/tools/bin/generate_appcast \
+              --download-url-prefix "$DOWNLOAD_URL" \
+              -o appcast.xml \
+              release_artifacts/ || true
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: release_artifacts/MacTouchBarBeta.zip
+          body: |
+            ## MacTouchBar Studio Beta — Atualização Automática
+            - Compilado via GitHub Actions com suporte nativo ao Sparkle 2.
+            - Validação criptográfica EdDSA ativa.
+          generate_release_notes: true
+
+      - name: Commit updated appcast.xml to main
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add appcast.xml
+          git diff --staged --quiet || (git commit -m "chore(sparkle): update appcast.xml feed [skip ci]" && git push origin HEAD:main)

@@ -1,0 +1,3236 @@
+/* ==========================================================================
+   Apple iOS & macOS Native System Stylesheet
+   - Authentic macOS SF Pro Font Integration
+   - Realistic Liquid Glassmorphism (Vibrancy Material, Less Ice)
+   - Tiny Camera Green LED Privacy/Connection Dot
+   - Centered Bottom Screen Page Indicator Dots
+   - Huge Dock Icons (2x Size) with Ultra-Tight Borders
+   - Expanded Control Center (Touch-Friendly Scale)
+   ========================================================================== */
+
+/* Authentic Apple SF Pro Typography from macOS */
+@font-face {
+  font-family: 'SF Pro';
+  src: url('fonts/SFPro.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'SF Pro Display';
+  src: url('fonts/SFPro.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'SF Pro Rounded';
+  src: url('fonts/SFProRounded.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --apple-font: 'SF Pro Display', 'SF Pro', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --apple-mono: 'SF Mono', Menlo, Monaco, monospace;
+
+  /* Global Wallpaper Variable (Sincronizado automaticamente em todas as telas) */
+  --app-wallpaper: url('wallpaper.jpg');
+
+  /* Realistic Liquid Glass (Translúcido Natural, Vidro Escuro sem Gelo Branco) */
+  --glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0.04) 100%);
+  --glass-bg-hover: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.07) 100%);
+  --glass-border: 0.5px solid rgba(255, 255, 255, 0.22);
+  --glass-shadow: 0 16px 36px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+  --glass-blur: blur(28px) saturate(185%);
+
+  --apple-blue: #007AFF;
+  --apple-green: #34C759;
+  --apple-orange: #FF9500;
+  --apple-red: #FF3B30;
+
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.82);
+  --text-tertiary: rgba(255, 255, 255, 0.5);
+
+  --spring: cubic-bezier(0.19, 1, 0.22, 1);
+  --apple-bounce: cubic-bezier(0.175, 0.885, 0.32, 1.25);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  font-family: var(--apple-font);
+  color: var(--text-primary);
+  background-color: #000000;
+  background-image: var(--app-wallpaper);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: high-quality;
+  transition: background-image 0.4s ease-in-out;
+  touch-action: pan-y pinch-zoom;
+}
+
+#app-viewport {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 6px max(38px, env(safe-area-inset-right)) 6px max(38px, env(safe-area-inset-left));
+  overflow: hidden;
+  z-index: 2;
+}
+
+.screen-backdrop-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: rgba(0, 0, 0, 0);
+  opacity: 0;
+  backdrop-filter: blur(0px) saturate(100%);
+  -webkit-backdrop-filter: blur(0px) saturate(100%);
+  transition: opacity 0.5s var(--spring), background 0.8s ease, backdrop-filter 0.5s var(--spring), -webkit-backdrop-filter 0.5s var(--spring);
+}
+
+.screen-backdrop-overlay.active-cc {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(40px) saturate(190%) brightness(0.85);
+  -webkit-backdrop-filter: blur(40px) saturate(190%) brightness(0.85);
+}
+
+.screen-backdrop-overlay.active-music {
+  opacity: 1;
+  background:
+    radial-gradient(circle at 18% 30%, rgba(var(--m-r1, 55), var(--m-g1, 80), var(--m-b1, 140), 0.52) 0%, transparent 55%),
+    radial-gradient(circle at 82% 72%, rgba(var(--m-r2, 25), var(--m-g2, 40), var(--m-b2, 75), 0.42) 0%, transparent 55%),
+    radial-gradient(circle at 50% 50%, rgba(var(--m-r3, 12), var(--m-g3, 18), var(--m-b3, 30), 0.85) 0%, #06080C 100%);
+  background-color: #06080C;
+}
+
+/* 1. Top Navigation Bar (Discreet Camera Green LED & Clean Battery) */
+.top-nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 20px;
+  padding: 0 4px;
+  z-index: 20;
+}
+
+.camera-led-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 6px;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.camera-led-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 59, 48, 0.4);
+  transition: all 0.3s var(--spring);
+}
+
+.camera-led-dot.connected {
+  background: var(--apple-green);
+  box-shadow: 0 0 5px var(--apple-green), 0 0 10px rgba(52, 199, 89, 0.8);
+}
+
+.camera-led-dot.connecting {
+  background: var(--apple-orange);
+  box-shadow: 0 0 5px var(--apple-orange), 0 0 10px rgba(255, 149, 0, 0.8);
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.battery-shell {
+  width: 20px;
+  height: 10px;
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  border-radius: 3px;
+  padding: 1px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.battery-shell::after {
+  content: '';
+  position: absolute;
+  right: -3px;
+  top: 2px;
+  width: 2px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 0 1px 1px 0;
+}
+
+.battery-level {
+  width: 100%;
+  height: 100%;
+  background: var(--apple-green);
+  border-radius: 1px;
+  transition: width 0.3s;
+}
+
+/* 2. Horizontal 3-Screen Carousel Viewport */
+.carousel-viewport {
+  flex: 1;
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  height: calc(100vh - 32px);
+  overflow: hidden;
+  min-height: 0;
+  transition: opacity 0.25s ease;
+}
+
+.carousel-track {
+  display: flex;
+  width: 400%;
+  height: 100%;
+  transform: translateX(-25%);
+  transition: transform 0.32s var(--spring);
+  will-change: transform;
+}
+
+.carousel-screen {
+  width: 25%;
+  height: 100%;
+  padding: 0 6px calc(38px + env(safe-area-inset-bottom, 6px)) 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* Addon Modular Screens with Vertical Stacking & Vertical Scrolling */
+.addon-screen {
+  padding: 0 !important;
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+  width: 25%;
+}
+
+.addon-vertical-scroll {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  touch-action: pan-y;
+}
+
+.addon-vertical-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.addon-sub-page {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  max-height: 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 0 6px calc(38px + env(safe-area-inset-bottom, 6px)) 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Vertical Pagination Indicator on Right Edge */
+.addon-vertical-indicator {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 5px;
+  background: rgba(18, 20, 26, 0.65);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 0.5px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+  z-index: 25;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.addon-vdot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  transition: all 0.28s var(--spring);
+}
+
+.addon-vdot:hover {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.addon-vdot.active {
+  background: #FFFFFF;
+  height: 16px;
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+/* TELA 2: StandBy Apple Music Player (Clean Centered Apple Layout) */
+.music-standby-stage {
+  width: 100%;
+  max-width: 960px;
+  height: 100%;
+  max-height: calc(100vh - 46px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(24px, 4.5vw, 48px);
+  padding: 4px 36px 8px 36px;
+  position: relative;
+  box-sizing: border-box;
+}
+
+/* Floating Left Album Cover */
+.music-cover-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  flex-shrink: 0;
+  z-index: 5;
+}
+
+.music-art-floating {
+  height: min(74vh, 235px);
+  width: min(74vh, 235px);
+  aspect-ratio: 1 / 1;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.65), 0 2px 12px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.music-art-floating img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 24px;
+  opacity: 1;
+  transform: scale(1);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease, filter 0.3s ease;
+  will-change: transform, opacity;
+}
+
+/* Right Controls Pane */
+.music-controls-wrapper {
+  flex: 1;
+  min-width: 0;
+  height: min(74vh, 235px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 4px 0 2px clamp(24px, 4.5vw, 48px);
+  z-index: 5;
+}
+
+/* Top Accessories */
+.music-top-accessory-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.btn-accessory-icon {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  transition: transform 0.15s, color 0.15s;
+}
+
+.btn-accessory-icon:active {
+  transform: scale(0.9);
+  color: #FFFFFF;
+}
+
+.btn-accessory-icon.favorited {
+  color: #FFD60A;
+}
+
+/* Center Meta (Title & Artist) */
+.music-center-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  overflow: hidden;
+  padding: 0 8px;
+}
+
+.music-meta-title {
+  font-size: clamp(20px, 3.2vw, 26px);
+  font-weight: 700;
+  color: #FFFFFF;
+  letter-spacing: -0.4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  line-height: 1.15;
+}
+
+.music-meta-artist {
+  font-size: clamp(14px, 2.2vw, 17px);
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.72);
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  margin-top: 3px;
+}
+
+/* Playback Glyphs Row */
+.music-playback-glyphs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(32px, 6vw, 54px);
+}
+
+.btn-glyph-action {
+  background: none;
+  border: none;
+  color: #FFFFFF;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.12s, opacity 0.12s;
+  opacity: 0.95;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.45));
+}
+
+.btn-glyph-action:active {
+  transform: scale(0.88);
+  opacity: 0.7;
+}
+
+.btn-glyph-play {
+  opacity: 1;
+}
+
+/* Scrubber Capsule Bar */
+.music-scrubber-capsule-wrap {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  padding-top: 4px;
+}
+
+.scrubber-capsule-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.28);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.scrubber-capsule-fill {
+  width: 0%;
+  height: 100%;
+  background: #FFFFFF;
+  border-radius: 4px;
+  transition: width 0.1s linear;
+}
+
+.music-scrubber-times {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.65);
+  font-variant-numeric: tabular-nums;
+  margin-top: 5px;
+  padding: 0 1px;
+}
+
+/* TELA 2: Deck 2x6 (Ícones com Dobro de Tamanho, Bordas Mínimas e Vidro Líquido Realista) */
+.deck-screen-container {
+  width: 100%;
+  max-width: 950px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.deck-grid-surface {
+  width: 98%;
+  height: auto;
+  max-height: calc(100vh - 68px);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  border-radius: 26px;
+  padding: 6px 12px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 2px 6px;
+  box-shadow: var(--glass-shadow);
+  align-items: center;
+}
+
+.app-tile-btn {
+  position: relative;
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  cursor: pointer;
+  transition: transform 0.16s var(--apple-bounce);
+  overflow: visible;
+}
+
+.app-tile-btn:active {
+  transform: scale(0.9);
+}
+
+/* Double Size Icon Container (Ícones com o dobro do tamanho) */
+.app-icon-squircle {
+  width: 82px;
+  height: 82px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.app-icon-squircle img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.65));
+  border-radius: 18px;
+  transition: transform 0.15s ease;
+}
+
+.app-tile-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #FFFFFF;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 95%;
+  letter-spacing: -0.2px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.95);
+  margin-top: 1px;
+}
+
+.app-running-dot {
+  width: 4.5px;
+  height: 4.5px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 1);
+  margin-top: 2px;
+  opacity: 0;
+  transform: scale(0.3);
+  transition: all 0.25s var(--spring);
+}
+
+.app-tile-btn.running .app-running-dot {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ==========================================================================
+   TELA 3: Central de Controle (Autêntica Apple iOS Landscape Control Center)
+   ========================================================================== */
+.cc-sheet-content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  margin: auto;
+}
+
+/* Master Grid 12 Columns x 4 Rows (4 Fileiras Perfeitas) */
+.cc-grid-12x4 {
+  display: grid;
+  grid-template-columns: repeat(12, 60px);
+  grid-template-rows: repeat(4, 60px);
+  gap: 8px;
+  width: 808px;
+  height: 264px;
+  box-sizing: border-box;
+  margin: auto;
+  align-items: stretch;
+  justify-content: center;
+}
+
+/* Common Apple Liquid Glassmorphism Base Tile (Autêntico Translúcido) */
+.cc-tile {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  box-sizing: border-box;
+  transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), background 0.18s ease;
+}
+
+/* 1. Pod Conectividade (2x2: 128px x 128px) */
+.cc-tile-pod2x2 {
+  border-radius: 20px;
+  padding: 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 8px;
+  width: 128px;
+  height: 128px;
+}
+
+.cc-circle-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  border: 0.5px solid rgba(255, 255, 255, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  cursor: pointer;
+  transition: transform 0.12s, background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.cc-circle-btn:active {
+  transform: scale(0.92);
+}
+
+.cc-circle-btn.active-blue {
+  background: #007AFF;
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 14px rgba(0, 122, 255, 0.55);
+}
+
+.cc-circle-btn.active-green {
+  background: #34C759;
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 14px rgba(52, 199, 89, 0.55);
+}
+
+.cc-circle-btn.active-orange {
+  background: #FF9500;
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 14px rgba(255, 149, 0, 0.55);
+}
+
+.cc-native-glyph-img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4));
+}
+
+/* 2. Apple 4-Ring Battery Widget (4x2: 264px x 128px - Celular + AirPods L, R e Case) */
+.cc-tile-battery4 {
+  border-radius: 22px;
+  padding: 10px 8px 8px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  width: 264px;
+  height: 128px;
+}
+
+.cc-battery-ring-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.cc-ring-gauge-wrap {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cc-ring-svg {
+  width: 54px;
+  height: 54px;
+  transform: rotate(-90deg);
+}
+
+.cc-ring-bg-circle {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.16);
+  stroke-width: 4.5;
+}
+
+.cc-ring-progress-circle {
+  fill: none;
+  stroke: #34C759;
+  stroke-width: 4.5;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.4s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.3s;
+}
+
+.cc-ring-center-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.cc-ring-icon-img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
+}
+
+.cc-ring-bolt-icon {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: #FFFFFF;
+  filter: drop-shadow(0 0 4px #FFFFFF);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.cc-ring-val {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #FFFFFF;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.3px;
+  margin-top: 5px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+/* 3. Sliders 1x4 (Brilho & Volume - 4 Blocos de Altura: 60px x 264px) */
+.cc-tile-slider1x4 {
+  width: 60px;
+  height: 264px;
+  border-radius: 22px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  padding-bottom: 16px;
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+}
+
+.cc-slider-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #FFFFFF;
+  border-radius: 0 0 22px 22px;
+  transition: height 0.08s ease-out;
+  pointer-events: none;
+}
+
+.cc-slider-glyph-wrap {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  mix-blend-mode: difference;
+  pointer-events: none;
+}
+
+.cc-slider-icon-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+/* 4. Microfone Sem Fio 4x3 (3 Blocos de Altura x 4 de Largura: 264px x 196px) */
+.cc-tile-mic4x3 {
+  width: 264px;
+  height: 196px;
+  border-radius: 22px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.cc-mic-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.cc-mic-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cc-mic-icon-pill {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 0.5px solid rgba(255, 255, 255, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.cc-mic-icon-pill img,
+.cc-mic-header-icon-img {
+  width: 16px;
+  height: 16px;
+  max-width: 16px;
+  max-height: 16px;
+  object-fit: contain;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.cc-tile-mic4x3.streaming .cc-mic-icon-pill {
+  background: rgba(255, 149, 0, 0.3);
+  border-color: rgba(255, 149, 0, 0.5);
+  box-shadow: 0 0 12px rgba(255, 149, 0, 0.5);
+}
+
+.cc-mic-card-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #FFFFFF;
+  line-height: 1.1;
+}
+
+.cc-mic-card-sub {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.65);
+  font-weight: 500;
+}
+
+.cc-mic-action-btn {
+  padding: 4px 11px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 0.5px solid rgba(255, 255, 255, 0.25);
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cc-mic-action-btn:active {
+  transform: scale(0.94);
+}
+
+.cc-tile-mic4x3.streaming .cc-mic-action-btn {
+  background: #FF9500;
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #000000;
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(255, 149, 0, 0.5);
+}
+
+.cc-mic-vu-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+}
+
+.cc-mic-vu-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.cc-mic-vu-track {
+  flex: 1;
+  height: 6px;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 0.5px solid rgba(255, 255, 255, 0.15);
+  overflow: hidden;
+  position: relative;
+}
+
+.cc-mic-vu-progress {
+  height: 100%;
+  width: 0%;
+  border-radius: 9999px;
+  background: linear-gradient(to right, #34C759 0%, #30D158 55%, #FFD60A 78%, #FF9500 88%, #FF3B30 100%);
+  transition: width 0.04s ease-out;
+}
+
+.cc-mic-vu-text {
+  font-family: var(--apple-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  min-width: 28px;
+  text-align: right;
+}
+
+.cc-mic-gain-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+}
+
+.cc-mic-gain-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cc-mic-section-lbl {
+  font-size: 8.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.cc-mic-gain-val-badge {
+  font-family: var(--apple-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1px 5px;
+  border-radius: 5px;
+  border: 0.5px solid rgba(255, 255, 255, 0.15);
+}
+
+.cc-mic-slider-track-wrap {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 3px 6px;
+  border-radius: 8px;
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
+}
+
+.cc-mic-range-input {
+  flex: 1;
+  height: 4px;
+  accent-color: #FF9500;
+  cursor: pointer;
+}
+
+.cc-mic-bottom-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.cc-mic-mini-chip {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 0.5px solid rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cc-mic-mini-chip:active {
+  transform: scale(0.94);
+}
+
+.cc-mic-mini-chip.muted {
+  background: rgba(255, 59, 48, 0.25);
+  color: #FF8077;
+  border-color: rgba(255, 59, 48, 0.4);
+}
+
+.cc-mic-dsp-box {
+  flex: 1.1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 6px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 0.5px solid rgba(255, 255, 255, 0.18);
+}
+
+.cc-mic-dsp-text {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* 5. Squircle 1x1 Buttons (60px x 60px) */
+.cc-squircle-btn {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  cursor: pointer;
+  border: var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
+  transition: transform 0.12s, background 0.15s;
+}
+
+.cc-squircle-btn:active {
+  transform: scale(0.92);
+  background: var(--glass-bg-hover);
+}
+
+.cc-squircle-btn.record-squircle:active {
+  background: rgba(255, 59, 48, 0.35);
+}
+
+.cc-squircle-btn.power-squircle:active {
+  background: rgba(255, 59, 48, 0.35);
+}
+
+.cc-squircle-icon-img,
+.cc-squircle-btn img {
+  width: 22px;
+  height: 22px;
+  max-width: 22px;
+  max-height: 22px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
+  pointer-events: none;
+}
+
+.cc-squircle-btn svg {
+  width: 22px;
+  height: 22px;
+  max-width: 22px;
+  max-height: 22px;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+/* 6. Capsule 2x1 Buttons (Espelhar Tela: 128px x 60px) */
+.cc-capsule-2x1-btn {
+  width: 128px;
+  height: 60px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #FFFFFF;
+  cursor: pointer;
+  border: var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
+  transition: transform 0.12s, background 0.15s;
+}
+
+.cc-capsule-2x1-btn img,
+.cc-capsule-icon-img {
+  width: 20px;
+  height: 20px;
+  max-width: 20px;
+  max-height: 20px;
+  object-fit: contain;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.cc-capsule-2x1-btn:active {
+  transform: scale(0.92);
+  background: var(--glass-bg-hover);
+}
+
+.cc-btn-label-text {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #FFFFFF;
+  letter-spacing: -0.2px;
+}
+
+.cc-action-card:active {
+  transform: scale(0.94);
+  background: var(--glass-bg-hover);
+}
+
+.cc-action-icon-wrap {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.cc-action-icon-wrap.record-wrap {
+  background: rgba(255, 59, 48, 0.2);
+  border: 0.5px solid rgba(255, 59, 48, 0.4);
+}
+
+.cc-action-icon-wrap.power-wrap {
+  background: rgba(255, 59, 48, 0.25);
+  border: 0.5px solid rgba(255, 59, 48, 0.5);
+  color: #FF3B30;
+}
+
+.cc-action-info {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  line-height: 1.15;
+  overflow: hidden;
+}
+
+.cc-action-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #FFFFFF;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cc-action-hotkey {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-family: var(--apple-mono);
+  letter-spacing: -0.2px;
+}
+
+/* 3. Bottom Navigation Bar (Page Indicator Dots with Bottom & Top Safety Margins) */
+.bottom-nav-bar {
+  position: absolute;
+  bottom: max(10px, calc(6px + env(safe-area-inset-bottom, 6px)));
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+  pointer-events: none;
+  padding: 0 16px;
+}
+
+.screen-page-dots {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: rgba(18, 22, 32, 0.58);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 0.5px solid rgba(255, 255, 255, 0.24);
+  padding: 5px 14px;
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), inset 0 0.5px 0 rgba(255, 255, 255, 0.38);
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.page-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.page-dot:hover {
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.page-dot.active {
+  width: 20px;
+  border-radius: 5px;
+  background: #FFFFFF;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.95);
+}
+
+/* Modals & Overlays */
+.overlay-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(35px);
+  -webkit-backdrop-filter: blur(35px);
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.overlay-modal.active {
+  display: flex;
+  opacity: 1;
+}
+
+.setup-dialog {
+  width: 420px;
+  background: rgba(35, 38, 50, 0.92);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 0.5px solid rgba(255, 255, 255, 0.3);
+  border-radius: 26px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
+}
+
+.radar-circle {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(0, 122, 255, 0.2);
+  border: 1px solid var(--apple-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-bottom: 12px;
+}
+
+.setup-inputs-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  margin: 16px 0;
+}
+
+.setup-field {
+  flex: 1;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 0.5px solid rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  color: #FFFFFF;
+  font-size: 14px;
+  font-family: var(--apple-font);
+  text-align: center;
+  outline: none;
+}
+
+.setup-field:focus {
+  border-color: var(--apple-blue);
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.btn-primary-action {
+  width: 100%;
+  height: 44px;
+  background: var(--apple-blue);
+  border: none;
+  border-radius: 14px;
+  color: #FFFFFF;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 122, 255, 0.5);
+  transition: transform 0.15s, opacity 0.15s;
+}
+
+.btn-primary-action:active {
+  transform: scale(0.96);
+  opacity: 0.9;
+}
+
+/* Toast Bubble */
+.toast-bubble {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  background: rgba(30, 30, 35, 0.88);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 0.5px solid rgba(255, 255, 255, 0.3);
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #FFFFFF;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  opacity: 0;
+  transition: all 0.25s var(--spring);
+  z-index: 200;
+}
+
+.toast-bubble.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ==========================================================================
+   TELA STUDIO DO ADOBE ILLUSTRATOR & RODA CROMÁTICA
+   ========================================================================== */
+
+/* Top Nav Contextual Badge (Monograma TB em Vidro Translúcido) */
+.nav-illustrator-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 0.5px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 12px;
+  padding: 2px 10px;
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 0.5px 0 rgba(255, 255, 255, 0.4);
+  transition: all 0.2s ease;
+}
+
+.nav-illustrator-badge:active {
+  transform: scale(0.92);
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.nav-illustrator-badge.hidden {
+  display: none;
+}
+
+.nav-ai-icon {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+}
+
+/* ==========================================================================
+   TELA STUDIO DO ADOBE ILLUSTRATOR & RODA CROMÁTICA GLASSMORPHISM
+   (Design Idêntico à Central de Controle e Dock: Papel de Parede Desfocado & Liquid Glass)
+   ========================================================================== */
+
+/* Color Disc Conical Gradient */
+.color-disc {
+  background: conic-gradient(
+    from 0deg,
+    #ff0000 0deg,
+    #ffff00 60deg,
+    #00ff00 120deg,
+    #00ffff 180deg,
+    #0000ff 240deg,
+    #ff00ff 300deg,
+    #ff0000 360deg
+  );
+}
+
+/* Glass Panel (Exatamente idêntico ao deck-grid-surface e cc-pod-2x2) */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: 24px;
+  color: #FFFFFF;
+}
+
+/* Glass Button (Exatamente idêntico aos botões da Central de Controle) */
+.glass-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 0.5px solid rgba(255, 255, 255, 0.18);
+  border-radius: 16px;
+  color: #FFFFFF;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15), inset 0 0.5px 0 rgba(255, 255, 255, 0.3);
+  transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.glass-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.32);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25), inset 0 0.5px 0 rgba(255, 255, 255, 0.45);
+}
+
+.glass-btn:active {
+  transform: scale(0.94);
+  background: rgba(255, 255, 255, 0.24);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Layout Principal do Studio */
+.ai-studio-main {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 980px;
+  height: 100%;
+  max-height: calc(100vh - 46px);
+  display: flex;
+  gap: 10px;
+  user-select: none;
+  -webkit-user-select: none;
+  box-sizing: border-box;
+}
+
+.ai-block-file {
+  width: 26%;
+  border-radius: 22px;
+  padding: 8px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 6px;
+  box-sizing: border-box;
+}
+
+.ai-block-center {
+  width: 37%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  box-sizing: border-box;
+}
+
+.ai-block-color {
+  width: 37%;
+  border-radius: 22px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   TELA 3: Adobe Illustrator Typography & Text Studio
+   ========================================================================== */
+.ai-text-studio-main {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 980px;
+  height: 100%;
+  max-height: calc(100vh - 46px);
+  display: flex;
+  gap: 10px;
+  margin: auto;
+  user-select: none;
+  -webkit-user-select: none;
+  box-sizing: border-box;
+}
+
+/* BLOCO 1: Bloco Unificado de Tipografia (Tamanho, Entrelinha e Estilo - Estilo Atalhos Tela 1) */
+.ai-block-left-typography {
+  width: 26%;
+  border-radius: 22px;
+  padding: 8px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 6px;
+  box-sizing: border-box;
+  align-self: stretch;
+}
+
+.ai-block-palette {
+  width: 37%;
+  border-radius: 22px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  box-sizing: border-box;
+}
+
+.ai-param-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.ai-param-badge {
+  font-size: 8px;
+  font-family: var(--apple-mono);
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.12);
+  padding: 1px 4px;
+  border-radius: 5px;
+  border: 0.5px solid rgba(255, 255, 255, 0.2);
+}
+
+.ai-stepper-row {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+  flex: 1;
+  align-items: stretch;
+}
+
+.ai-stepper-btn {
+  flex: 1;
+  min-height: 24px;
+  height: 26px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  font-weight: 700;
+  transition: all 0.15s var(--apple-bounce);
+}
+
+.ai-stepper-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+}
+
+.ai-stepper-btn:active {
+  transform: scale(0.94);
+}
+
+.ai-caps-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 3px;
+  flex: 1;
+}
+
+.ai-caps-btn {
+  min-height: 20px;
+  height: 22px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  transition: all 0.15s var(--apple-bounce);
+}
+
+.ai-caps-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+}
+
+.ai-caps-btn:active {
+  transform: scale(0.94);
+}
+
+
+
+/* BLOCO DE VIDRO 2: Alinhamento de Parágrafo (3 Linhas de Botões) */
+.ai-panel-paragraph {
+  border-radius: 20px;
+  padding: 7px 9px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 5px;
+  box-sizing: border-box;
+  flex: 1.15;
+}
+
+.ai-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2px;
+}
+
+.ai-section-title {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.ai-section-badge {
+  font-size: 8px;
+  font-family: var(--apple-mono);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.12);
+  padding: 1px 4px;
+  border-radius: 5px;
+  border: 0.5px solid rgba(255, 255, 255, 0.2);
+}
+
+/* 3 Linhas de Alinhamento de Parágrafo */
+.ai-para-grid-3rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  justify-content: space-between;
+}
+
+.ai-para-row {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+  flex: 1;
+}
+
+.ai-para-large-btn {
+  flex: 1;
+  min-height: 27px;
+  height: 29px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #FFFFFF;
+  transition: all 0.15s var(--apple-bounce);
+}
+
+.ai-para-large-btn:hover {
+  background: rgba(255, 255, 255, 0.24);
+  transform: translateY(-1px);
+}
+
+.ai-para-large-btn:active {
+  transform: scale(0.94);
+}
+
+.ai-para-full-btn {
+  justify-content: center;
+  padding: 0 8px;
+}
+
+/* LINHA INFERIOR COM 2 BLOCOS DE VIDRO DEDICADOS (Vertical + Listas) */
+.ai-bottom-glass-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  flex: 1;
+}
+
+/* BLOCO DE VIDRO 3: Alinhamento Vertical na Área (2 Linhas) */
+.ai-panel-vertical {
+  flex: 1;
+  border-radius: 18px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 4px;
+  box-sizing: border-box;
+}
+
+/* BLOCO DE VIDRO 4: Marcadores & Listas (2 Linhas + Hífen) */
+.ai-panel-lists {
+  flex: 1;
+  border-radius: 18px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 4px;
+  box-sizing: border-box;
+}
+
+.ai-v-align-grid-2rows,
+.ai-list-grid-2rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  justify-content: space-between;
+}
+
+.ai-v-row,
+.ai-list-row {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+  flex: 1;
+}
+
+.ai-v-btn {
+  flex: 1;
+  min-height: 24px;
+  height: 26px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: #FFFFFF;
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 0 4px;
+  transition: all 0.15s var(--apple-bounce);
+}
+
+.ai-v-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+}
+
+.ai-v-btn:active {
+  transform: scale(0.94);
+}
+
+.ai-list-btn {
+  flex: 1;
+  min-height: 24px;
+  height: 26px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #FFFFFF;
+  padding: 0 4px;
+  transition: all 0.15s var(--apple-bounce);
+}
+
+.ai-list-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+}
+
+.ai-list-btn:active {
+  transform: scale(0.93);
+}
+
+/* Apple Style Toggle Switch */
+.apple-toggle-label {
+  position: relative;
+  display: inline-block;
+  width: 32px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.apple-toggle-label input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.apple-toggle-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.2);
+  border: 0.5px solid rgba(255, 255, 255, 0.3);
+  transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 20px;
+}
+
+.apple-toggle-slider::before {
+  position: absolute;
+  content: "";
+  height: 12px;
+  width: 12px;
+  left: 3px;
+  bottom: 2.5px;
+  background-color: #FFFFFF;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 50%;
+}
+
+.apple-toggle-label input:checked + .apple-toggle-slider {
+  background-color: var(--apple-green);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.apple-toggle-label input:checked + .apple-toggle-slider::before {
+  transform: translateX(14px);
+}
+
+/* Bloco da Direita: Paleta de Cores Recentes e Criar Contornos */
+.ai-palette-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.ai-fill-stroke-capsule {
+  display: flex;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px;
+  border-radius: 14px;
+  border: 0.5px solid rgba(255, 255, 255, 0.2);
+}
+
+.ai-fs-tab {
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 11px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ai-fs-tab.active {
+  background: rgba(255, 255, 255, 0.28);
+  color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.ai-sync-swatches-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #FFFFFF;
+  border-radius: 11px;
+}
+
+.ai-selected-color-tag {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 7px;
+  border-radius: 12px;
+  border: 0.5px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Botões de Cores Recentes (Tela 1: 4 Cores) */
+.ai-recent-color-btn {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  border-radius: 10px !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.6) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.15s ease, box-shadow 0.15s ease;
+  padding: 0 !important;
+  display: block;
+}
+
+.ai-recent-color-btn:hover {
+  transform: scale(1.12);
+  border-color: #FFFFFF !important;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8) !important;
+}
+
+.ai-recent-color-btn:active {
+  transform: scale(0.92);
+}
+
+.ai-recent-color-btn.active-color {
+  border-color: #FFFFFF !important;
+  box-shadow: 0 0 10px #FFFFFF, 0 2px 8px rgba(0, 0, 0, 0.5) !important;
+  transform: scale(1.12);
+}
+
+/* Grid de 10 Cores Recentes do Illustrator (Tela 2: 5x2) */
+.ai-swatch-grid-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  width: 100%;
+}
+
+.ai-swatch-grid-20,
+.ai-swatch-grid-10 {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 8px;
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+}
+
+.ai-swatch-cell {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  min-height: 34px;
+  background-color: var(--swatch-color) !important;
+  border-radius: 12px !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.45) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), inset 0 0.5px 0 rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: transform 0.14s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.14s ease, border-color 0.14s ease;
+  position: relative;
+  display: block;
+  padding: 0 !important;
+}
+
+.ai-swatch-cell:hover {
+  transform: scale(1.12);
+  border-color: #FFFFFF !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), inset 0 0.5px 0 rgba(255, 255, 255, 0.8);
+  z-index: 5;
+}
+
+.ai-swatch-cell:active {
+  transform: scale(0.92);
+}
+
+.ai-swatch-cell.active-swatch::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 12px;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.95);
+  pointer-events: none;
+}
+
+.btn-create-outlines {
+  width: 100%;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.08) 100%);
+  border: 0.5px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3), inset 0 0.5px 0 rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.15s var(--apple-bounce);
+}
+
+.btn-create-outlines:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.14) 100%);
+  transform: translateY(-1px);
+}
+
+.btn-create-outlines:active {
+  transform: scale(0.96);
+}
+
+/* Modos de Seletor de Cor: Círculo / Pirâmide / Quadrado */
+.ai-picker-mode-tabs {
+  display: flex;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px;
+  border-radius: 11px;
+  border: 0.5px solid rgba(255, 255, 255, 0.2);
+}
+
+.ai-mode-tab {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  font-size: 9px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ai-mode-tab.active {
+  background: rgba(255, 255, 255, 0.28);
+  color: #FFFFFF;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+.ai-picker-viewport {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.96);
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ai-picker-viewport.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1);
+}
+
+/* Top Nav Center Group & CC Pull Pill */
+.top-nav-center-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.top-cc-handle-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 24px;
+  min-height: 28px;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s, transform 0.15s;
+  touch-action: none;
+}
+
+.top-cc-handle-pill:hover,
+.top-cc-handle-pill:active {
+  opacity: 1;
+  transform: scale(0.95);
+}
+
+.cc-pull-notch {
+  width: 44px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.65);
+  border-radius: 3px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* ==========================================================================
+   CENTRAL DE CONTROLE PULL-DOWN OVERLAY SHEET
+   (Abre ao puxar de cima para baixo a partir da borda superior em qualquer tela)
+   ========================================================================== */
+.cc-overlay-sheet {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: max(6px, env(safe-area-inset-top, 6px));
+  padding-bottom: max(6px, env(safe-area-inset-bottom, 6px));
+  padding-left: max(10px, env(safe-area-inset-left, 10px));
+  padding-right: max(10px, env(safe-area-inset-right, 10px));
+  transform: translateY(-105%);
+  transition: transform 0.36s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+  box-sizing: border-box;
+  background-color: transparent;
+  background-image: var(--app-wallpaper);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Camada 1: Papel de parede do sistema com desfoque e saturação vibrante */
+.cc-overlay-sheet::before {
+  content: '';
+  position: absolute;
+  inset: -24px;
+  background: var(--app-wallpaper) center/cover no-repeat;
+  filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  transform: scale(1.08);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Camada 2: Vidro Translúcido Natural */
+.cc-overlay-sheet::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.22);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.cc-overlay-sheet.active {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.cc-sheet-content {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+/* Drag Handle / Barra de Fechar Inferior na CC */
+.cc-drag-handle-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px 0 2px 0;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+  z-index: 30;
+  width: 100%;
+}
+
+.cc-drag-handle-bar:active {
+  opacity: 1;
+}
+
+.cc-drag-pill {
+  width: 44px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.65);
+  border-radius: 3px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* ==========================================================================
+   WIRELESS STUDIO MICROPHONE (Android -> Mac)
+   ========================================================================== */
+.mic-nav-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4.5px;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 0.5px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  cursor: pointer;
+  transition: all 0.25s var(--spring);
+}
+
+.mic-nav-pill:active {
+  transform: scale(0.94);
+}
+
+.mic-nav-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.mic-nav-label {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: rgba(255, 255, 255, 0.6);
+  transition: color 0.3s ease;
+}
+
+/* Streaming state (Active Orange) */
+.mic-nav-pill.streaming {
+  background: rgba(255, 149, 0, 0.18);
+  border-color: rgba(255, 149, 0, 0.45);
+  box-shadow: 0 0 10px rgba(255, 149, 0, 0.3);
+}
+
+.mic-nav-pill.streaming .mic-nav-dot {
+  background-color: #FF9500;
+  box-shadow: 0 0 8px #FF9500;
+  animation: pulse-orange 1.8s infinite;
+}
+
+.mic-nav-pill.streaming .mic-nav-label {
+  color: #FFA526;
+}
+
+/* Muted state */
+.mic-nav-pill.muted {
+  background: rgba(255, 59, 48, 0.16);
+  border-color: rgba(255, 59, 48, 0.4);
+}
+
+.mic-nav-pill.muted .mic-nav-dot {
+  background-color: #FF3B30;
+  box-shadow: 0 0 6px #FF3B30;
+}
+
+.mic-nav-pill.muted .mic-nav-label {
+  color: #FF6961;
+}
+
+@keyframes pulse-orange {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; filter: drop-shadow(0 0 4px #FF9500); }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+/* ==========================================================================
+   ROBUST SAFEGUARDS & ICON CONSTRAINTS (ILLUSTRATOR & CONTROL CENTER)
+   ========================================================================== */
+
+/* Universal SVG safety: SVGs must never overflow flex containers */
+svg {
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+img {
+  box-sizing: border-box;
+}
+
+/* 1. Illustrator File Actions (Salvar, Novo, Salvar Como, Abrir, Exportar, Prancheta) */
+.ai-block-file .glass-btn {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 6px 4px !important;
+  border-radius: 14px !important;
+}
+
+.ai-block-file .glass-btn > div:first-child {
+  width: 32px !important;
+  height: 32px !important;
+  max-width: 32px !important;
+  max-height: 32px !important;
+  border-radius: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-bottom: 2px !important;
+  flex-shrink: 0 !important;
+}
+
+.ai-block-file .glass-btn svg {
+  width: 17px !important;
+  height: 17px !important;
+  max-width: 17px !important;
+  max-height: 17px !important;
+  flex-shrink: 0 !important;
+}
+
+.ai-block-file .glass-btn span {
+  font-size: 10px !important;
+  line-height: 1.1 !important;
+  white-space: nowrap !important;
+}
+
+/* 2. Illustrator Center Grids (Alinhamento 3x2 e Pathfinder 3x2 quando aplicável) */
+.ai-block-center .glass-panel:not(.ai-panel-paragraph-v2):not(.ai-panel-align-v2):not(.ai-panel-pathfinder-v2) {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  grid-template-rows: repeat(2, 1fr) !important;
+  gap: 8px !important;
+  padding: 10px !important;
+}
+
+/* Painéis com Linha 1: 3 botões | Linha 2: 4 botões (Parágrafo Tela 2, Alinhamento Tela 1, Pathfinder Tela 1) */
+.ai-panel-paragraph-v2,
+.ai-panel-align-v2,
+.ai-panel-pathfinder-v2 {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  padding: 10px !important;
+  border-radius: 24px !important;
+  flex: 1 !important;
+  box-sizing: border-box !important;
+}
+
+.ai-para-row-main {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 8px !important;
+  flex: 1 !important;
+  width: 100% !important;
+}
+
+.ai-para-row-justified {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 6px !important;
+  flex: 1 !important;
+  width: 100% !important;
+}
+
+.ai-block-center .glass-btn,
+.ai-panel-paragraph-v2 .glass-btn,
+.ai-panel-align-v2 .glass-btn,
+.ai-panel-pathfinder-v2 .glass-btn {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  padding: 6px 4px !important;
+  border-radius: 14px !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.ai-block-center .glass-btn svg,
+.ai-para-row-main .glass-btn svg {
+  width: 20px !important;
+  height: 20px !important;
+  max-width: 20px !important;
+  max-height: 20px !important;
+  flex-shrink: 0 !important;
+}
+
+.ai-para-row-justified .glass-btn svg {
+  width: 18px !important;
+  height: 18px !important;
+  max-width: 18px !important;
+  max-height: 18px !important;
+  flex-shrink: 0 !important;
+}
+
+.ai-para-row-main .glass-btn span,
+.ai-block-center .glass-btn span {
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  line-height: 1.1 !important;
+  white-space: nowrap !important;
+}
+
+.ai-para-row-justified .glass-btn span {
+  font-size: 9.5px !important;
+  font-weight: 600 !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  line-height: 1.1 !important;
+  white-space: nowrap !important;
+}
+
+/* 3. Illustrator Color Picker Mode Tabs & Controls */
+.ai-mode-tab svg {
+  width: 12px !important;
+  height: 12px !important;
+  max-width: 12px !important;
+  max-height: 12px !important;
+  flex-shrink: 0 !important;
+}
+
+.ai-block-color .glass-btn svg {
+  width: 14px !important;
+  height: 14px !important;
+  max-width: 14px !important;
+  max-height: 14px !important;
+  flex-shrink: 0 !important;
+}
+
+/* 4. Illustrator Typography Steppers & Buttons */
+.ai-stepper-btn svg {
+  width: 14px !important;
+  height: 14px !important;
+  max-width: 14px !important;
+  max-height: 14px !important;
+  flex-shrink: 0 !important;
+}
+
+.ai-para-large-btn svg {
+  width: 16px !important;
+  height: 16px !important;
+  max-width: 16px !important;
+  max-height: 16px !important;
+  flex-shrink: 0 !important;
+}
+
+.ai-v-btn svg {
+  width: 14px !important;
+  height: 14px !important;
+  max-width: 14px !important;
+  max-height: 14px !important;
+  flex-shrink: 0 !important;
+}
+
+.ai-list-btn svg {
+  width: 14px !important;
+  height: 14px !important;
+  max-width: 14px !important;
+  max-height: 14px !important;
+  flex-shrink: 0 !important;
+}
+
+.ai-sync-swatches-btn svg {
+  width: 14px !important;
+  height: 14px !important;
+  max-width: 14px !important;
+  max-height: 14px !important;
+  flex-shrink: 0 !important;
+}
+
+.ai-swatch-cell svg {
+  width: 14px !important;
+  height: 14px !important;
+  max-width: 14px !important;
+  max-height: 14px !important;
+  flex-shrink: 0 !important;
+}
+
+/* 5. Essential Dimension Fallbacks (In case Tailwind JIT is delayed or throttled) */
+.w-3 { width: 12px !important; }
+.h-3 { height: 12px !important; }
+.w-3\.5, .w-\[14px\] { width: 14px !important; }
+.h-3\.5, .h-\[14px\] { height: 14px !important; }
+.w-4 { width: 16px !important; }
+.h-4 { height: 16px !important; }
+.w-5 { width: 20px !important; }
+.h-5 { height: 20px !important; }
+.w-6 { width: 24px !important; }
+.h-6 { height: 24px !important; }
+.w-7 { width: 28px !important; }
+.h-7 { height: 28px !important; }
+.w-8 { width: 32px !important; }
+.h-8 { height: 32px !important; }
+.w-10 { width: 40px !important; }
+.h-10 { height: 40px !important; }
+.w-12 { width: 48px !important; }
+.h-12 { height: 48px !important; }
+.w-13 { width: 52px !important; }
+.h-13 { height: 52px !important; }
+.w-14 { width: 56px !important; }
+.h-14 { height: 56px !important; }
+.w-16 { width: 64px !important; }
+.h-16 { height: 64px !important; }
+.object-contain { object-fit: contain !important; }
+
+
+
+
+
+
+/* ==========================================================================
+   ETAPA 1: CONTROLES ANALÓGICOS & SLIDERS TÁTEIS (ILLUSTRATOR PRECISION)
+   ========================================================================== */
+.carousel-track.screens-5 {
+  width: 500% !important;
+}
+
+.carousel-screen.screens-5 {
+  width: 20% !important;
+}
+
+.ai-sliders-stage {
+  width: 100%;
+  max-width: 960px;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 12px;
+  box-sizing: border-box;
+  padding: 4px 8px;
+}
+
+/* Painel Esquerdo: Sliders de Precisão */
+.ai-sliders-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+  height: 100%;
+}
+
+.ai-slider-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 8px 12px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ai-slider-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ai-slider-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #EBEBF5;
+}
+
+.ai-slider-val-badge {
+  font-family: var(--font-mono, monospace);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 2px 7px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  min-width: 48px;
+  text-align: center;
+}
+
+/* Custom Tactile Slider Track */
+.tactile-slider-wrap {
+  position: relative;
+  width: 100%;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  cursor: pointer;
+}
+
+.tactile-slider-track {
+  width: 100%;
+  height: 10px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.tactile-slider-fill {
+  height: 100%;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #FF9F0A, #FF6B00);
+  width: 32%;
+  transition: width 0.04s linear;
+}
+
+.tactile-slider-thumb {
+  position: absolute;
+  top: 50%;
+  left: 32%;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 2px solid rgba(0, 0, 0, 0.25);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition: left 0.04s linear, transform 0.15s ease;
+}
+
+.tactile-slider-wrap:active .tactile-slider-thumb {
+  transform: translate(-50%, -50%) scale(1.18);
+  box-shadow: 0 4px 14px rgba(255, 159, 10, 0.6);
+}
+
+/* Presets Rápidos */
+.ai-slider-presets {
+  display: flex;
+  gap: 5px;
+}
+
+.ai-preset-btn {
+  flex: 1;
+  padding: 3px 4px;
+  font-size: 9.5px;
+  font-weight: 600;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  color: var(--text-secondary);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.ai-preset-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+}
+
+/* Painel Direito: Rotary Jog-Wheel & Paleta */
+.ai-wheel-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+  height: 100%;
+}
+
+.ai-wheel-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+}
+
+.rotary-wheel-container {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  cursor: grab;
+}
+
+.rotary-wheel-container:active {
+  cursor: grabbing;
+}
+
+.rotary-wheel-ring {
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #2A2D35 0%, #121418 70%);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7), inset 0 2px 4px rgba(255, 255, 255, 0.18);
+  position: relative;
+  transition: transform 0.03s linear;
+}
+
+.rotary-wheel-pip {
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #FF9F0A;
+  box-shadow: 0 0 8px rgba(255, 159, 10, 0.9);
+}
+
+.rotary-wheel-center {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #0D0E12;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.rotary-wheel-angle {
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.rotary-wheel-sub {
+  font-size: 8.5px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.wheel-step-actions {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.wheel-step-btn {
+  flex: 1;
+  padding: 5px;
+  font-size: 10.5px;
+  font-weight: 600;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.wheel-step-btn:hover {
+  background: rgba(0, 122, 255, 0.22);
+  border-color: var(--apple-blue);
+}
+
+.ai-quick-tools-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 5px;
+  width: 100%;
+}
+
+.ai-tool-pill-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 2px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  color: #FFFFFF;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ai-tool-pill-btn:hover {
+  background: rgba(255, 159, 10, 0.2);
+  border-color: #FF9F0A;
+}
+
+.ai-tool-key {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ai-tool-name {
+  font-size: 8px;
+  color: var(--text-secondary);
+}
+
+/* ==========================================================================
+   TELA 4 & 5: DEDICATED STUDIOS (ILLUSTRATOR VECTOR & PHOTOSHOP MASTER)
+   ========================================================================== */
+.ai-vector-studio-main,
+.ps-studio-main {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 980px;
+  height: 100%;
+  max-height: calc(100vh - 46px);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: auto;
+  user-select: none;
+  -webkit-user-select: none;
+  box-sizing: border-box;
+}
+
+.studio-col-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: 20px;
+  padding: 8px 7px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  color: #FFFFFF;
+  box-sizing: border-box;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.studio-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 3px 5px 3px;
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.12);
+  margin-bottom: 6px;
+  flex-shrink: 0;
+}
+
+.studio-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.studio-panel-badge {
+  font-size: 7.5px;
+  font-family: var(--apple-mono, monospace);
+  padding: 1.5px 5px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 600;
+}
+
+.studio-grid-2x4 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 5px;
+  flex: 1;
+  min-height: 0;
+}
+
+.studio-grid-2x3 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 6px;
+  flex: 1;
+  min-height: 0;
+}
+
+.studio-grid-3x3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 4px;
+  flex: 1;
+  min-height: 0;
+}
+
+.studio-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 2px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 0.5px solid rgba(255, 255, 255, 0.16);
+  color: #FFFFFF;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  -webkit-user-select: none;
+  min-height: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.studio-action-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: translateY(-1px);
+}
+
+.studio-action-btn:active {
+  transform: scale(0.94);
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.studio-action-icon {
+  width: 17px;
+  height: 17px;
+  margin-bottom: 2px;
+  flex-shrink: 0;
+}
+
+.studio-action-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: -0.1px;
+  color: rgba(255, 255, 255, 0.95);
+  text-align: center;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.studio-action-key {
+  font-size: 7.5px;
+  font-family: var(--apple-mono, monospace);
+  color: rgba(255, 255, 255, 0.55);
+  margin-top: 1px;
+}
+
+/* Photoshop Blend Modes Horizontal Segment */
+.ps-blend-row {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 5px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+  padding: 1px 0;
+}
+
+.ps-blend-row::-webkit-scrollbar {
+  display: none;
+}
+
+.ps-blend-pill {
+  padding: 3px 5px;
+  border-radius: 7px;
+  font-size: 8px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.08);
+  border: 0.5px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  flex: 1;
+  text-align: center;
+}
+
+.ps-blend-pill:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #FFFFFF;
+}
+
+.ps-blend-pill.active {
+  background: #31A8FF;
+  border-color: #31A8FF;
+  color: #FFFFFF;
+  box-shadow: 0 0 8px rgba(49, 168, 255, 0.5);
+}
+
+/* Tactile Analog Controls in Studio Col 4 */
+.studio-tactile-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  justify-content: space-around;
+}
+
+.studio-tactile-card {
+  background: rgba(0, 0, 0, 0.22);
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 5px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.studio-tactile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.studio-tactile-title {
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.2px;
+}
+
+.studio-tactile-val {
+  font-size: 8.5px;
+  font-family: var(--apple-mono, monospace);
+  font-weight: 700;
+  color: #FF9A00;
+}
+
+.studio-jog-compact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 4px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
+}
+
+
+/* ==========================================================================
+   COCKPIT TELEMETRY PILL & COMMUNITY PROFILES (APPLE HIG)
+   ========================================================================== */
+.cockpit-telem-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 3px 8px;
+  border-radius: 9999px;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 600;
+  color: #EBEBF5;
+  user-select: none;
+}
+
+.cockpit-telem-item {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  letter-spacing: 0.2px;
+}
+
+.cockpit-telem-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #34C759;
+  box-shadow: 0 0 5px rgba(52, 199, 89, 0.8);
+}
+
+.cockpit-val {
+  color: #FFFFFF;
+  font-weight: 700;
+}
+
+.cockpit-telem-sep {
+  opacity: 0.35;
+  font-size: 9px;
+}
+
+/* Modal Comunidade */
+.community-presets-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.community-preset-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.community-preset-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.24);
+  transform: translateY(-2px);
+}
+
+.community-preset-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.community-preset-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.community-preset-badge {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgba(0, 122, 255, 0.2);
+  color: #0A84FF;
+  border: 1px solid rgba(10, 132, 255, 0.3);
+}
+
+.community-preset-desc {
+  font-size: 12px;
+  color: rgba(235, 235, 245, 0.65);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.community-preset-apps {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.community-preset-app-pill {
+  font-size: 10.5px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 2px 6px;
+  border-radius: 6px;
+  color: #EBEBF5;
+}
+
+.community-preset-apply-btn {
+  margin-top: auto;
+  padding: 8px 12px;
+  background: #007AFF;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.community-preset-apply-btn:hover {
+  opacity: 0.9;
+}
