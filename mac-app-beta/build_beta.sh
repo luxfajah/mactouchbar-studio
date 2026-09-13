@@ -40,10 +40,12 @@ if [ -d "$DIR/Frameworks/Sparkle.framework" ]; then
 fi
 
 # ── 2. Compilar binário nativo ────────────────────────
-echo "🔨 Compilando com clang Universal Binary (arm64 + x86_64)..."
+export MACOSX_DEPLOYMENT_TARGET=13.0
+echo "🔨 Compilando com clang Universal Binary (arm64 + x86_64, macOS 13.0+)..."
 clang -fobjc-arc -O2 \
     -arch arm64 \
     -arch x86_64 \
+    -mmacosx-version-min=13.0 \
     -F "$DIR/Frameworks" \
     -framework Cocoa \
     -framework WebKit \
