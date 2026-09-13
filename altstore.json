@@ -13,6 +13,7 @@
     {
       "name": "MacTouchBar Studio",
       "bundleIdentifier": "com.luxfajah.mactouchbar.ios",
+      "marketplaceID": "6475892013",
       "developerName": "luxfajah",
       "subtitle": "Touch Bar e Mac Deck para iPhone e iPad",
       "localizedDescription": "O MacTouchBar Studio transforma seu iPhone ou iPad em uma superfície de controle profissional para Mac com atalhos dinâmicos, monitor de sistema e módulos para Illustrator, Photoshop e Figma.",
