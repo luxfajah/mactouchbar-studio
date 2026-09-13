@@ -40,8 +40,10 @@ if [ -d "$DIR/Frameworks/Sparkle.framework" ]; then
 fi
 
 # ── 2. Compilar binário nativo ────────────────────────
-echo "🔨 Compilando com clang (Cocoa + WebKit + Carbon + Sparkle)..."
+echo "🔨 Compilando com clang Universal Binary (arm64 + x86_64)..."
 clang -fobjc-arc -O2 \
+    -arch arm64 \
+    -arch x86_64 \
     -F "$DIR/Frameworks" \
     -framework Cocoa \
     -framework WebKit \
