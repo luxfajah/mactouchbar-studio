@@ -274,25 +274,27 @@ def get_deck_buttons() -> List[Dict]:
             payload = b.get("payload", "")
             actionType = b.get("actionType", "launch_app")
             label = b.get("label", "App")
+            icon_url = b.get("iconUrl") or f"icons/{label.lower()}.png"
 
             # Determine running state
             is_running = False
-            if actionType == "launch_app" and payload:
+            if actionType in ("launch_app", "open_app") and payload:
                 app_name = os.path.basename(payload).replace(".app", "")
                 if app_name.lower() == "finder" or any(app_name.lower() in r.lower() for r in running) or any(label.lower() in r.lower() for r in running):
                     is_running = True
 
             # Extract Base64 icon
-            icon_b64 = ""
-            if actionType == "launch_app" and payload:
-                icon_b64 = get_icon_base64_for_path(payload, label.lower())
-            elif actionType == "hotkey" or actionType == "system":
-                icon_b64 = get_icon_base64_for_path(payload, label.lower())
+            icon_b64 = b.get("iconBase64", "")
+            if not icon_b64:
+                if actionType in ("launch_app", "open_app") and payload:
+                    icon_b64 = get_icon_base64_for_path(payload, label.lower())
+                elif actionType in ("hotkey", "system"):
+                    icon_b64 = get_icon_base64_for_path(payload, label.lower())
 
             result.append({
                 "id": b.get("id", f"btn_{len(result)+1}"),
                 "label": label,
-                "iconUrl": f"icons/{label.lower()}.png",
+                "iconUrl": icon_url,
                 "iconBase64": icon_b64,
                 "actionType": actionType,
                 "payload": payload,
@@ -316,6 +318,28 @@ def get_deck_buttons() -> List[Dict]:
                 "colorHex": "#1F1F24"
             })
         return result
+
+
+def get_deck_config_full() -> Dict:
+    """Return full deck configuration including rows, cols, and buttons."""
+    rows = 2
+    cols = 6
+    if os.path.exists(DECK_CONFIG_FILE):
+        try:
+            with open(DECK_CONFIG_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, dict):
+                    rows = data.get("rows", 2)
+                    cols = data.get("cols", 6)
+        except Exception:
+            pass
+    buttons = get_deck_buttons()
+    return {
+        "type": "deck_config_update",
+        "rows": rows,
+        "cols": cols,
+        "buttons": buttons
+    }
 
     # Fallback Default 12 Apps
     def check_running(app_id: str, app_names: List[str]) -> bool:
@@ -686,13 +710,14 @@ async def push_immediate_status(delay: float = 0.18):
             pass
 
 
-async def push_immediate_deck_update(delay: float = 0.05):
+async def push_immediate_deck_update(delay: float = 0.02):
     """Push updated deck shortcuts with high-res Base64 icons immediately to all connected clients."""
-    await asyncio.sleep(delay)
+    if delay > 0:
+        await asyncio.sleep(delay)
     if connected_clients:
         try:
-            deck = await asyncio.to_thread(get_deck_buttons)
-            frame = encode_ws_frame(json.dumps({"type": "deck_config_update", "buttons": deck}))
+            deck_data = await asyncio.to_thread(get_deck_config_full)
+            frame = encode_ws_frame(json.dumps(deck_data))
             to_remove = []
             for client in connected_clients:
                 try:
@@ -702,8 +727,8 @@ async def push_immediate_deck_update(delay: float = 0.05):
                     to_remove.append(client)
             for c in to_remove:
                 connected_clients.discard(c)
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"⚠️ Error pushing deck update: {e}")
 
 
 def handle_action_fast(action: str, params: Dict):
@@ -925,18 +950,23 @@ def handle_action_fast(action: str, params: Dict):
         if target_url:
             subprocess.Popen(["open", target_url])
 
-    elif action in ("save_deck_config", "set_deck_buttons", "update_deck_buttons"):
+    elif action in ("save_deck_config", "set_deck_buttons", "update_deck_buttons", "deck_config_update"):
         new_buttons = params.get("buttons", [])
+        rows = params.get("rows", 2)
+        cols = params.get("cols", 6)
         if new_buttons:
             try:
                 with open(DECK_CONFIG_FILE, "w", encoding="utf-8") as f:
-                    json.dump({"rows": 2, "cols": 6, "buttons": new_buttons}, f, indent=2, ensure_ascii=False)
+                    json.dump({"rows": rows, "cols": cols, "buttons": new_buttons}, f, indent=2, ensure_ascii=False)
                 print(f"💾 Saved {len(new_buttons)} deck buttons to {DECK_CONFIG_FILE}")
             except Exception as e:
                 print(f"⚠️ Failed to write deck config: {e}")
             
             # Immediately broadcast new configuration to all connected clients
-            asyncio.create_task(push_immediate_deck_update(0.02))
+            asyncio.create_task(push_immediate_deck_update(0.01))
+
+    elif action in ("get_deck_config", "get_deck_buttons"):
+        asyncio.create_task(push_immediate_deck_update(0.01))
 
     elif action in ("set_mic_dsp", "toggle_mic_dsp"):
         enabled = params.get("enabled", True)
@@ -1092,11 +1122,7 @@ async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWrit
             writer.write(encode_ws_frame(json.dumps(initial_status)))
 
             # 2. Send deck config with high-res Base64 icons & running app states
-            deck_buttons = await asyncio.to_thread(get_deck_buttons)
-            deck_config = {
-                "type": "deck_config_update",
-                "buttons": deck_buttons
-            }
+            deck_config = await asyncio.to_thread(get_deck_config_full)
             writer.write(encode_ws_frame(json.dumps(deck_config)))
 
             # 3. Send current Mac wallpaper Base64
@@ -1133,14 +1159,17 @@ async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWrit
                     elif opcode == 0x01:
                         try:
                             msg_json = json.loads(payload.decode('utf-8'))
-                            action = msg_json.get("action", "")
+                            msg_type = msg_json.get("type", "")
+                            action = msg_json.get("action", "") or msg_type
                             params = msg_json.get("params", {})
+                            if not params and (msg_json.get("buttons") or msg_json.get("rows")):
+                                params = msg_json
                             
                             # Execute action instantly (< 1ms)
                             handle_action_fast(action, params)
 
-                            # Broadcast client-to-client control messages (like simulator navigation)
-                            if msg_json.get("type") in ("switch_sim_screen", "eval_js") or action in ("switch_sim_screen", "eval_js"):
+                            # Broadcast client-to-client control messages (like simulator navigation or deck layout sync)
+                            if msg_type in ("switch_sim_screen", "eval_js", "deck_config_update") or action in ("switch_sim_screen", "eval_js", "deck_config_update", "save_deck_config"):
                                 forward_frame = encode_ws_frame(json.dumps(msg_json))
                                 for other_client in connected_clients:
                                     if other_client != writer:

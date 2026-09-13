@@ -10951,7 +10951,7 @@
           <h1 class="app-brand-title">MagicTouchBar</h1>
 
           <!-- Versão sem destaque algum -->
-          <div class="app-version-plain">1.0.0</div>
+          <div class="app-version-plain">1.0.4</div>
 
           <!-- Status Card: Ativo/Desconectado, IP e Porta -->
           <div class="magic-status-card">
@@ -11412,9 +11412,15 @@
         if (window.wsMonitor && window.wsMonitor.readyState === WebSocket.OPEN) {
           window.wsMonitor.send(JSON.stringify({
             type: 'deck_config_update',
+            action: 'save_deck_config',
             rows: dockRows,
             cols: 6,
-            buttons: dockButtons
+            buttons: dockButtons,
+            params: {
+              rows: dockRows,
+              cols: 6,
+              buttons: dockButtons
+            }
           }));
         }
       } catch (e) {
@@ -14522,7 +14528,7 @@
         setTimeout(() => {
           if (btn) btn.classList.remove('checking');
           if (txt) {
-            txt.textContent = 'Versão Mais Recente (1.0.0)';
+            txt.textContent = 'Versão Mais Recente (1.0.4)';
             setTimeout(() => { txt.textContent = 'Buscar Atualizações'; }, 3000);
           }
         }, 1200);
@@ -14723,7 +14729,14 @@
     function connectMonitor() {
       try {
         ws = new WebSocket('ws://127.0.0.1:9876');
+        window.wsMonitor = ws;
         ws.onopen = function() {
+          window.wsMonitor = ws;
+          // Request current deck layout from daemon/server
+          try {
+            ws.send(JSON.stringify({ action: 'get_deck_config' }));
+          } catch(e) {}
+
           // Toolbar Status Pill
           const badge = document.getElementById('badgeServerStatus');
           if (badge) badge.innerHTML = '<span class="dot-green"></span><span id="txtServerStatus">Conectado</span>';
@@ -14828,8 +14841,27 @@
                 const fill = document.getElementById('simCcBrightnessFill');
                 if (fill) fill.style.height = `${data.brightness}%`;
               }
-            } else if (data.type === 'deck_config_update' && data.buttons) {
-              renderSimDeck(data.buttons);
+            } else if (data.type === 'deck_config_update' && data.buttons && Array.isArray(data.buttons)) {
+              dockButtons = data.buttons;
+              if (data.rows) dockRows = data.rows;
+              try {
+                localStorage.setItem('mactouchbar_deck_config', JSON.stringify({
+                  rows: dockRows,
+                  cols: 6,
+                  buttons: dockButtons
+                }));
+              } catch(e) {}
+              renderDockEditor();
+              renderSimDeck(dockButtons);
+              const frame = document.getElementById('simAppFrame');
+              if (frame && frame.contentWindow) {
+                frame.contentWindow.postMessage({
+                  type: 'deck_config_update',
+                  rows: dockRows,
+                  cols: 6,
+                  buttons: dockButtons
+                }, '*');
+              }
             } else if (data.type === 'switch_sim_screen' && typeof data.index === 'number') {
               switchSimScreen(data.index);
             } else if (data.type === 'eval_js' && data.code) {
