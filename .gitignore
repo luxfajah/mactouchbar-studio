@@ -1,0 +1,61 @@
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+
+# App Bundles (compilados)
+*.app/
+MacTouchBarBeta.app/
+MacTouchBar.app/
+
+# Build artifacts
+*.o
+*.dSYM/
+build/
+DerivedData/
+
+# Android
+*.apk
+*.aab
+*.idsig
+.gradle/
+local.properties
+.kotlin/
+
+# Node / Web
+node_modules/
+dist/
+.cache/
+
+# Xcode
+*.xcworkspace/
+*.xcuserdata/
+*.xccheckout
+xcuserdata/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv/
+venv/
+
+# Logs
+*.log
+
+# Secrets / keys
+*.p12
+*.mobileprovision
+*.keystore
+*.jks
+
+# Wallpaper dinâmico (gerado em runtime)
+wallpaper.jpg
+ipados-preview/wallpaper.jpg

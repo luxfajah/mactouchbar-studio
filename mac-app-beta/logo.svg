@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 160" width="100%" height="100%" fill="none">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#22242a"/>
+      <stop offset="100%" stop-color="#0e0f13"/>
+    </linearGradient>
+    <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00D2FF"/>
+      <stop offset="100%" stop-color="#007AFF"/>
+    </linearGradient>
+    <linearGradient id="sliderGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#AF52DE"/>
+      <stop offset="100%" stop-color="#BF5AF2"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Outer Machined TouchBar Bezel -->
+  <rect x="4" y="4" width="392" height="152" rx="28" fill="#0a0b0e" stroke="rgba(255,255,255,0.12)" stroke-width="2"/>
+  
+  <!-- OLED TouchBar Glass -->
+  <rect x="8" y="8" width="384" height="144" rx="24" fill="#050608" stroke="rgba(255,255,255,0.06)" stroke-width="1.5"/>
+
+  <!-- 1. ESC Key (Left) -->
+  <rect x="18" y="18" width="58" height="124" rx="14" fill="#16181e" stroke="rgba(255,255,255,0.14)" stroke-width="1.2"/>
+  <text x="47" y="86" fill="#F5F6FA" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro', sans-serif" font-size="22" font-weight="600" text-anchor="middle">esc</text>
+
+  <!-- 2. Dynamic Audio Waveform Deck -->
+  <rect x="86" y="18" width="128" height="124" rx="14" fill="#10141e" stroke="rgba(0,122,255,0.35)" stroke-width="1.2"/>
+  <!-- Audio bars -->
+  <g stroke="url(#waveGrad)" stroke-width="3.5" stroke-linecap="round">
+    <line x1="102" y1="64" x2="102" y2="96"/>
+    <line x1="114" y1="52" x2="114" y2="108"/>
+    <line x1="126" y1="36" x2="126" y2="124"/>
+    <line x1="138" y1="28" x2="138" y2="132"/>
+    <line x1="150" y1="46" x2="150" y2="114"/>
+    <line x1="162" y1="32" x2="162" y2="128"/>
+    <line x1="174" y1="50" x2="174" y2="110"/>
+    <line x1="186" y1="62" x2="186" y2="98"/>
+    <line x1="198" y1="70" x2="198" y2="90"/>
+  </g>
+
+  <!-- 3. Multi-Touch Slider & Swatches -->
+  <rect x="224" y="18" width="112" height="124" rx="14" fill="#16131e" stroke="rgba(175,82,222,0.35)" stroke-width="1.2"/>
+  <!-- Slider Track -->
+  <rect x="238" y="48" width="84" height="8" rx="4" fill="#323440"/>
+  <rect x="238" y="48" width="54" height="8" rx="4" fill="url(#sliderGrad)"/>
+  <circle cx="292" cy="52" r="9" fill="#FFFFFF" stroke="#D0D2DE" stroke-width="1.5"/>
+  <!-- Creative Swatches -->
+  <circle cx="244" cy="98" r="5" fill="#FF453A"/>
+  <circle cx="258" cy="98" r="5" fill="#FF9F0A"/>
+  <circle cx="272" cy="98" r="7" fill="#32D74B" stroke="#FFFFFF" stroke-width="1.5"/>
+  <circle cx="288" cy="98" r="5" fill="#00C7BE"/>
+  <circle cx="302" cy="98" r="5" fill="#0A84FF"/>
+  <circle cx="316" cy="98" r="5" fill="#BF5AF2"/>
+
+  <!-- 4. Touch ID Sensor (Right) -->
+  <rect x="346" y="18" width="36" height="124" rx="14" fill="#0e0f13" stroke="rgba(255,255,255,0.12)" stroke-width="1.2"/>
+  <circle cx="364" cy="80" r="13" stroke="rgba(160,165,180,0.7)" stroke-width="1.8"/>
+  <circle cx="364" cy="80" r="7" stroke="rgba(100,105,120,0.5)" stroke-width="1.2"/>
+  <circle cx="364" cy="80" r="3" fill="rgba(80,85,100,0.8)"/>
+</svg>
