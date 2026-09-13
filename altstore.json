@@ -1,34 +1,73 @@
 {
-  "name": "MacTouchBar Studio Source",
-  "identifier": "com.luxfajah.mactouchbar.source",
+  "name": "MacTouchBar Studio",
   "subtitle": "Touch Bar e Mac Deck para iPhone e iPad",
-  "description": "Repositório oficial do MacTouchBar Studio para AltStore e SideStore. Transforme seu iPhone ou iPad em uma Touch Bar tátil de baixa latência para macOS.",
+  "description": "Repositório oficial do MacTouchBar Studio. Transforme seu iPhone ou iPad em uma superfície física de atalhos e Touch Bar para macOS.",
   "iconURL": "https://raw.githubusercontent.com/luxfajah/mactouchbar-studio/main/docs/screenshots/icon.png",
+  "headerURL": "https://raw.githubusercontent.com/luxfajah/mactouchbar-studio/main/docs/screenshots/home.png",
   "website": "https://github.com/luxfajah/mactouchbar-studio",
-  "marketplaceID": "com.altstore.marketplace",
+  "tintColor": "#22C55E",
+  "featuredApps": [
+    "com.luxfajah.mactouchbar.ios"
+  ],
   "apps": [
     {
       "name": "MacTouchBar Studio",
       "bundleIdentifier": "com.luxfajah.mactouchbar.ios",
-      "appID": "com.luxfajah.mactouchbar.ios",
       "developerName": "luxfajah",
-      "marketplaceID": "com.altstore.marketplace",
-      "version": "1.0.0",
-      "versionDate": "2026-09-13T04:00:00-03:00",
-      "versionDescription": "Versão inicial com suporte a perfis de apps contextuais, iPad Pro 120Hz ProMotion, gestos multitoque e feedback tátil.",
-      "downloadURL": "https://github.com/luxfajah/mactouchbar-studio/releases/latest/download/MacTouchBarStudio.ipa",
-      "localizedDescription": "MacTouchBar Studio transforma seu iPhone ou iPad em uma superfície de controle profissional para Mac com atalhos dinâmicos, monitor de sistema e módulos para Illustrator, Photoshop e Figma.",
+      "subtitle": "Touch Bar e Mac Deck para iPhone e iPad",
+      "localizedDescription": "O MacTouchBar Studio transforma seu iPhone ou iPad em uma superfície de controle profissional para Mac com atalhos dinâmicos, monitor de sistema e módulos para Illustrator, Photoshop e Figma.",
       "iconURL": "https://raw.githubusercontent.com/luxfajah/mactouchbar-studio/main/docs/screenshots/icon.png",
       "tintColor": "#22C55E",
-      "size": 15400000,
-      "screenshotURLs": [
-        "https://raw.githubusercontent.com/luxfajah/mactouchbar-studio/main/docs/screenshots/home.png",
-        "https://raw.githubusercontent.com/luxfajah/mactouchbar-studio/main/docs/screenshots/connection.png",
-        "https://raw.githubusercontent.com/luxfajah/mactouchbar-studio/main/docs/screenshots/dock.png",
-        "https://raw.githubusercontent.com/luxfajah/mactouchbar-studio/main/docs/screenshots/displays.png",
-        "https://raw.githubusercontent.com/luxfajah/mactouchbar-studio/main/docs/screenshots/addons.png",
-        "https://raw.githubusercontent.com/luxfajah/mactouchbar-studio/main/docs/screenshots/voice.png"
-      ]
+      "category": "utilities",
+      "screenshots": [
+        {
+          "imageURL": "https://raw.githubusercontent.com/luxfajah/mactouchbar-studio/main/docs/screenshots/home.png",
+          "width": 1089,
+          "height": 756
+        },
+        {
+          "imageURL": "https://raw.githubusercontent.com/luxfajah/mactouchbar-studio/main/docs/screenshots/connection.png",
+          "width": 1152,
+          "height": 813
+        },
+        {
+          "imageURL": "https://raw.githubusercontent.com/luxfajah/mactouchbar-studio/main/docs/screenshots/dock.png",
+          "width": 1152,
+          "height": 813
+        },
+        {
+          "imageURL": "https://raw.githubusercontent.com/luxfajah/mactouchbar-studio/main/docs/screenshots/displays.png",
+          "width": 1152,
+          "height": 813
+        },
+        {
+          "imageURL": "https://raw.githubusercontent.com/luxfajah/mactouchbar-studio/main/docs/screenshots/addons.png",
+          "width": 1152,
+          "height": 813
+        },
+        {
+          "imageURL": "https://raw.githubusercontent.com/luxfajah/mactouchbar-studio/main/docs/screenshots/voice.png",
+          "width": 1356,
+          "height": 835
+        }
+      ],
+      "versions": [
+        {
+          "version": "1.0.0",
+          "buildVersion": "1",
+          "date": "2026-09-13T04:00:00-03:00",
+          "size": 4607570,
+          "downloadURL": "https://raw.githubusercontent.com/luxfajah/mactouchbar-studio/main/MacTouchBarStudio.ipa",
+          "localizedDescription": "Versão inicial com suporte a perfis contextuais, iPad Pro 120Hz, gestos multitoque e feedback tátil.",
+          "minOSVersion": "15.0"
+        }
+      ],
+      "appPermissions": {
+        "entitlements": [],
+        "privacy": {
+          "NSLocalNetworkUsageDescription": "O MacTouchBar Studio utiliza a rede local para se conectar ao seu Mac e sincronizar os atalhos em tempo real."
+        }
+      }
     }
   ],
   "news": [
@@ -36,9 +75,12 @@
       "title": "MacTouchBar Studio Disponível na AltStore!",
       "identifier": "release-v1-0-0",
       "caption": "Agora você pode instalar o app nativo no iPhone e iPad via AltStore ou SideStore.",
-      "date": "2026-09-13",
+      "date": "2026-09-13T04:00:00-03:00",
+      "tintColor": "#22C55E",
+      "imageURL": "https://raw.githubusercontent.com/luxfajah/mactouchbar-studio/main/docs/screenshots/home.png",
+      "notify": true,
       "appID": "com.luxfajah.mactouchbar.ios",
-      "notify": true
+      "url": "https://github.com/luxfajah/mactouchbar-studio"
     }
   ]
 }
