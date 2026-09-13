@@ -1,17 +1,18 @@
 # MacTouchBar Studio
 
-Transforme qualquer smartphone ou tablet Android em uma Touch Bar tátil e painel de atalhos contextuais para macOS.
+Transforme seu dispositivo Android, iPhone ou iPad em uma Touch Bar tátil e painel de atalhos contextuais para macOS.
 
 ![MacTouchBar Studio Preview](docs/screenshots/home.png)
 
-MacTouchBar Studio é uma aplicação para macOS com cliente Android complementar que permite utilizar seu celular ou tablet como uma superfície física de atalhos, automações e controles criativos. O app detecta automaticamente o programa em foco no Mac e adapta as ferramentas exibidas na tela do dispositivo.
+MacTouchBar Studio é uma aplicação para macOS que permite utilizar smartphones e tablets (Android, iPhone e iPad) como uma superfície física de atalhos, automações e controles criativos. O app detecta automaticamente o programa em foco no Mac e adapta as ferramentas exibidas na tela do dispositivo em tempo real.
 
 ---
 
 ## Funcionalidades
 
 - **Perfis contextuais automáticos**: Alterna os controles na tela conforme o app aberto no macOS (Adobe Illustrator, Photoshop, Figma, VS Code, Finder, etc.).
-- **Conexão USB de baixa latência (~1.2ms)**: Comunicação via ADB reverse tunnel para resposta instantânea ao toque, além de suporte a Wi-Fi local.
+- **Conexão USB de baixa latência (~1.2ms)**: Comunicação direta via cabo USB para resposta instantânea ao toque, além de conexão sem fio via Wi-Fi local.
+- **Suporte Multiplataforma**: Compatível com dispositivos Android (smartphones, tablets e Samsung DeX), iPhone e iPad.
 - **Dock de atalhos customizável**: Permite criar e reorganizar grades de botões, disparadores de apps, scripts de sistema e macros.
 - **Módulos para criativos (Add-ons)**:
   - **Illustrator**: Seletores de cor HSL/RGB, alinhamento magnético, ferramentas de vetor e ajustes tipográficos.
@@ -25,7 +26,7 @@ MacTouchBar Studio é uma aplicação para macOS com cliente Android complementa
 ## Screenshots
 
 ### Conexão e Pareamento (USB / Wi-Fi)
-Configuração rápida via cabo USB com baixa latência ou pareamento sem fio por QR Code.
+Configuração via cabo USB com baixa latência ou pareamento sem fio por QR Code para Android, iPhone e iPad.
 
 ![Conexão USB e Wi-Fi](docs/screenshots/connection.png)
 
@@ -51,7 +52,7 @@ Painel de automação por voz com processamento acústico local e baixa sobrecar
 
 ---
 
-## Instalação
+## Instalação e Uso
 
 ### 1. macOS (Servidor / Host)
 
@@ -70,12 +71,19 @@ chmod +x mac-app-beta/build_beta.sh
 > **Permissões necessárias**:  
 > No primeiro uso, acesse **Ajustes do Sistema > Privacidade e Segurança > Acessibilidade** e ative o **MacTouchBar Studio** para permitir o envio de eventos de teclado e atalhos aos aplicativos.
 
-### 2. Android (Cliente)
+---
 
+### 2. Dispositivos Clientes
+
+#### Android
 1. Transfira o arquivo `TouchbarHackintosh.apk` (disponível na raiz do repositório) para o dispositivo.
-2. Habilite a instalação de fontes desconhecidas caso solicitado pelo sistema.
-3. Instale o APK e abra o aplicativo.
-4. Conecte o cabo USB ao Mac ou verifique se ambos os dispositivos estão conectados à mesma rede Wi-Fi.
+2. Habilite a instalação de fontes desconhecidas caso solicitado.
+3. Instale o APK e conecte via cabo USB ou Wi-Fi.
+
+#### iPhone e iPad
+1. Com o MacTouchBar Studio aberto no Mac, acesse a aba **Conexão**.
+2. Aponte a câmera do iPhone ou iPad para o **QR Code** exibido na tela ou acesse o endereço IP local no Safari.
+3. Toque em **Compartilhar > Adicionar à Tela de Início** para usar o aplicativo em tela cheia sem barras de navegação.
 
 ---
 
@@ -88,7 +96,7 @@ mactouchbar-studio/
 │   ├── index.html           # Interface do usuário, dock e simulador
 │   ├── Info.plist           # Configuração do bundle
 │   └── build_beta.sh        # Script de compilação
-├── TouchbarHackintosh.apk   # Cliente Android
+├── TouchbarHackintosh.apk   # Cliente nativo Android
 ├── DeXPlay-AirPlay.apk      # Módulo complementar de receptor de tela
 └── docs/screenshots/       # Imagens de demonstração
 ```
