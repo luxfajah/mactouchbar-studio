@@ -244,8 +244,8 @@ def load_user_defaults_buttons() -> List[Dict]:
         return []
 
 
-def get_deck_buttons() -> List[Dict]:
-    """Return the 12 authentic Mac apps with Base64 icons and live running status."""
+def get_deck_buttons(target_count: int = 12) -> List[Dict]:
+    """Return authentic Mac apps with Base64 icons and live running status."""
     running = get_running_apps()
     user_buttons = load_json_config_buttons()
     if not user_buttons:
@@ -270,7 +270,7 @@ def get_deck_buttons() -> List[Dict]:
     # If user has configured buttons in MacTouchBar, use them!
     if user_buttons and len(user_buttons) > 0:
         result = []
-        for b in user_buttons[:12]:
+        for b in user_buttons[:target_count]:
             payload = b.get("payload", "")
             actionType = b.get("actionType", "launch_app")
             label = b.get("label", "App")
@@ -302,13 +302,13 @@ def get_deck_buttons() -> List[Dict]:
                 "colorHex": b.get("colorHex", "#1F1F24")
             })
 
-        # Pad with fallback if fewer than 12
-        while len(result) < 12:
-            idx = len(result)
+        # Pad with fallback if fewer than target_count
+        while len(result) < target_count:
+            idx = len(result) % len(fallback_apps)
             app_id, label, path, match_names = fallback_apps[idx]
             is_open = any(m.lower() in r.lower() for m in match_names for r in running) or app_id == "finder"
             result.append({
-                "id": app_id,
+                "id": f"{app_id}_{len(result)+1}",
                 "label": label,
                 "iconUrl": f"icons/{app_id}.png",
                 "iconBase64": get_icon_base64_for_path(path, app_id),
@@ -318,6 +318,24 @@ def get_deck_buttons() -> List[Dict]:
                 "colorHex": "#1F1F24"
             })
         return result
+
+    # Fallback default buttons
+    result = []
+    for i in range(target_count):
+        idx = i % len(fallback_apps)
+        app_id, label, path, match_names = fallback_apps[idx]
+        is_open = any(m.lower() in r.lower() for m in match_names for r in running) or app_id == "finder"
+        result.append({
+            "id": app_id,
+            "label": label,
+            "iconUrl": f"icons/{app_id}.png",
+            "iconBase64": get_icon_base64_for_path(path, app_id),
+            "actionType": "launch_app",
+            "payload": path,
+            "isRunning": is_open,
+            "colorHex": "#1F1F24"
+        })
+    return result
 
 
 def get_deck_config_full() -> Dict:
@@ -333,7 +351,8 @@ def get_deck_config_full() -> Dict:
                     cols = data.get("cols", 6)
         except Exception:
             pass
-    buttons = get_deck_buttons()
+    target_count = rows * cols
+    buttons = get_deck_buttons(target_count=target_count)
     return {
         "type": "deck_config_update",
         "rows": rows,
@@ -1046,15 +1065,11 @@ async def broadcast_status():
         try:
             await asyncio.sleep(1.2)
             if connected_clients:
-                # 1. Status Update
+                # 1. Status Update (telemetry, running apps, media, battery)
                 status = await asyncio.to_thread(get_mac_system_status)
                 status_frame = encode_ws_frame(json.dumps(status))
 
-                # 2. Deck buttons with dynamic user config & running indicators
-                deck = await asyncio.to_thread(get_deck_buttons)
-                deck_frame = encode_ws_frame(json.dumps({"type": "deck_config_update", "buttons": deck}))
-
-                # 3. Check Wallpaper change
+                # 2. Check Wallpaper change
                 current_wp = await asyncio.to_thread(get_current_wallpaper_b64)
                 wp_frame = None
                 if current_wp and current_wp != last_known_wallpaper:
@@ -1065,7 +1080,6 @@ async def broadcast_status():
                 for client in connected_clients:
                     try:
                         client.write(status_frame)
-                        client.write(deck_frame)
                         if wp_frame:
                             client.write(wp_frame)
                         await client.drain()

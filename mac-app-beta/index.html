@@ -12278,14 +12278,19 @@
     function renderSimDeck(apps) {
       const grid = document.getElementById('simDeckGrid');
       if (!grid) return;
-      const list = apps && apps.length >= 12 ? apps : simDeckApps;
-      grid.innerHTML = list.slice(0, 12).map((app, idx) => `
+      const list = apps && apps.length > 0 ? apps : simDeckApps;
+      grid.innerHTML = list.slice(0, 12).map((app, idx) => {
+        const iconSrc = (app.iconBase64 && app.iconBase64.length > 50)
+          ? `data:image/png;base64,${app.iconBase64}`
+          : (app.iconUrl || app.icon || 'icons/settings.png');
+        return `
         <div class="sim-app-tile" onclick="handleSimAppClick('${app.payload || app.id}')" title="${app.label}">
-          <img class="sim-app-icon" src="${app.iconUrl || app.icon || 'icons/settings.png'}" alt="${app.label}" onerror="this.src='icons/settings.png'"/>
+          <img class="sim-app-icon" src="${iconSrc}" alt="${app.label}" onerror="this.src='icons/settings.png'"/>
           <span class="sim-app-label">${app.label}</span>
           <span class="sim-running-dot ${app.isRunning || app.running ? 'active' : ''}"></span>
         </div>
-      `).join('');
+      `;
+      }).join('');
     }
 
     function sendSimAction(action, params) {
