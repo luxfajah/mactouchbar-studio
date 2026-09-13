@@ -11906,6 +11906,16 @@
       filterDockIconGallery('');
     }
 
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
     // Populate Icon Gallery
     function populateIconGallery(selectedId) {
       dockCurrentCat = 'all';
@@ -12207,6 +12217,32 @@
         renderDockEditor();
       }
     }
+
+    // Export Dock Functions to Window
+    window.setDockLayout = setDockLayout;
+    window.addNewDockShortcut = addNewDockShortcut;
+    window.resetDockToDefault = resetDockToDefault;
+    window.exportDockProfile = exportDockProfile;
+    window.handleImportProfileFile = handleImportProfileFile;
+    window.openCommunityPresetsModal = openCommunityPresetsModal;
+    window.closeCommunityPresetsModal = closeCommunityPresetsModal;
+    window.applyCommunityPreset = applyCommunityPreset;
+    window.openDockModal = openDockModal;
+    window.closeDockModal = closeDockModal;
+    window.setModalActionType = setModalActionType;
+    window.onSelectAppPreset = onSelectAppPreset;
+    window.onSelectShortcutPreset = onSelectShortcutPreset;
+    window.onCustomShortcutInput = onCustomShortcutInput;
+    window.saveDockShortcutChanges = saveDockShortcutChanges;
+    window.deleteCurrentDockShortcut = deleteCurrentDockShortcut;
+    window.setDockIconCategory = setDockIconCategory;
+    window.filterDockIconGallery = filterDockIconGallery;
+    window.clearDockIconSearch = clearDockIconSearch;
+    window.handleCustomIconUpload = handleCustomIconUpload;
+    window.toggleKeyRecording = toggleKeyRecording;
+    window.updateHotkeyFromCheckboxes = updateHotkeyFromCheckboxes;
+    window.renderDockEditor = renderDockEditor;
+    window.saveAndSyncDock = saveAndSyncDock;
 
     // Keyboard shortcuts for modal (Esc to close)
     window.addEventListener('keydown', (e) => {

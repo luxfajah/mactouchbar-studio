@@ -171,22 +171,7 @@ static BetaAppDelegate *gDelegate = nil;
     
     [self.window.contentView addSubview:self.webView];
     
-    // ── Drag View: área transparente de arraste no titlebar ──────────────────
-    // Altura: ~52pt (28pt titlebar padrão + 24pt do accessory controller).
-    // x=80 para não sobrepor os traffic lights (close/min/zoom até ~60px).
-    // autoresizingMask garante que acompanha redimensionamento e fullscreen.
-    CGFloat dragHeight = 52.0;
-    NSRect contentBounds = self.window.contentView.bounds;
-    CGFloat dragY = contentBounds.size.height - dragHeight;
-    NSRect dragRect = NSMakeRect(80.0, dragY, contentBounds.size.width - 80.0, dragHeight);
-    
-    WindowDragView *dragView = [[WindowDragView alloc] initWithFrame:dragRect];
-    dragView.autoresizingMask = NSViewWidthSizable | NSViewMinYMargin;
-    [self.window.contentView addSubview:dragView
-                             positioned:NSWindowAbove
-                             relativeTo:self.webView];
-    NSLog(@"[MacTouchBarBeta] Drag view instalada na titlebar (y=%.0f, h=%.0f)", dragY, dragHeight);
-    // ─────────────────────────────────────────────────────────────────────────
+
 
     
     // Load HTML UI
