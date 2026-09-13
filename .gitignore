@@ -20,7 +20,7 @@ build/
 DerivedData/
 
 # Android
-*.apk
+# *.apk — APKs são rastreados
 *.aab
 *.idsig
 .gradle/

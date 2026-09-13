@@ -7,9 +7,9 @@
 **Transforme seu iPhone ou iPad em uma Touch Bar para o Mac.**
 
 [![Platform](https://img.shields.io/badge/platform-macOS%2013%2B-black?logo=apple)](https://apple.com/macos)
+[![Android](https://img.shields.io/badge/client-Android%20APK-green?logo=android)](TouchbarHackintosh.apk)
 [![Language](https://img.shields.io/badge/language-Objective--C%20%7C%20WebKit-orange)](https://developer.apple.com/documentation/objectivec)
-[![Architecture](https://img.shields.io/badge/arch-Native%20Cocoa%20%2B%20WKWebView-blue)](https://developer.apple.com/documentation/webkit/wkwebview)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Status](https://img.shields.io/badge/status-Beta-orange)](https://github.com/luxfajah/mactouchbar-studio)
 
 </div>
@@ -18,9 +18,14 @@
 
 ## ✨ O que é
 
-O **MacTouchBar Studio** é um app nativo para macOS que permite usar um **iPhone ou iPad como Touch Bar**, enviando atalhos de teclado, ações e macros em tempo real para aplicativos como Illustrator, Photoshop, Figma e outros — via **Cabo USB (1.2ms)** ou **Wi-Fi**.
+O **MacTouchBar Studio** é composto de dois componentes que funcionam juntos:
 
-A interface foi construída com tecnologia híbrida: o **shell nativo é Objective-C puro (Cocoa + WebKit)**, e a UI interna é um motor HTML/CSS/JS de alta fidelidade que respeita as [Apple Human Interface Guidelines](https://developer.apple.com/design/human-interface-guidelines/).
+| Componente | Descrição |
+|---|---|
+| 🍎 **Mac App** (`mac-app-beta/`) | App nativo macOS — painel de controle, simulador e ponte de atalhos |
+| 📱 **Android APK** (`TouchbarHackintosh.apk`) | App Android que exibe a Touch Bar no dispositivo em tempo real |
+
+A comunicação acontece via **Cabo USB (~1.2ms)** ou **Wi-Fi WebSocket**, com o Mac app fazendo a ponte entre o dispositivo e os aplicativos do macOS (Illustrator, Photoshop, Figma, etc.).
 
 ---
 
@@ -46,200 +51,102 @@ A interface foi construída com tecnologia híbrida: o **shell nativo é Objecti
 
 ## 🏗 Arquitetura
 
-O projeto é dividido em **quatro camadas** que se comunicam em tempo real:
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                     MacTouchBar Studio                  │
-│  ┌───────────────────┐   ┌──────────────────────────┐   │
-│  │   Native Shell    │   │      WebKit UI Engine    │   │
-│  │  (Objective-C)    │◄──►    (HTML + CSS + JS)     │   │
-│  │                   │   │                          │   │
-│  │ • NSWindow        │   │ • NavigationSidebar      │   │
-│  │ • WKWebView       │   │ • SimulatorView          │   │
-│  │ • JS Bridge       │   │ • DockEditor             │   │
-│  │ • Wallpaper Sync  │   │ • ProfileManager         │   │
-│  │ • Appearance      │   │ • ExtensionsPanel        │   │
-│  └────────┬──────────┘   └──────────────────────────┘   │
-│           │ WebSocket (porta 9876)                       │
-│  ┌────────▼──────────┐                                   │
-│  │   Python Daemon   │   (mac-companion)                 │
-│  │  mac_deck_server  │◄── Executa atalhos no macOS       │
-│  └────────┬──────────┘                                   │
-└───────────┼─────────────────────────────────────────────┘
-            │ USB (ADB / usbmuxd) ou Wi-Fi WebSocket
-┌───────────▼─────────────────────────────────────────────┐
-│            App Android / iOS                            │
-│  ┌─────────────────────────────────────────────────┐    │
-│  │  TouchBar Display  (DeXPlay AirPlay / WebView)  │    │
-│  └─────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────┘
-```
-
-### Diagrama de Componentes Detalhado
-
 ```mermaid
-graph TB
-    subgraph macOS["🖥 macOS App (Objective-C + WebKit)"]
-        direction TB
-        MAIN["main.m\nBetaAppDelegate\n• Janela nativa NSWindow\n• Traffic lights customizados\n• WindowDragView"]
-        WEBVIEW["WKWebView\n• index.html carregado\n• drawsBackground = NO\n• JS Bridge via macNative"]
-        BRIDGE["JS Bridge\n• getSystemInfo\n• closeWindow / zoom\n• syncWallpaper\n• checkTechnicalStatus\n• restartDaemon"]
-        MAIN --> WEBVIEW
-        WEBVIEW --> BRIDGE
+graph LR
+    subgraph MAC["🖥 Mac App (Objective-C + WebKit)"]
+        NATIVE["Native Shell\nNSWindow + WKWebView"]
+        BRIDGE["JS Bridge\nWKScriptMessageHandler"]
+        UI["UI Engine\nHTML + CSS + JS"]
+        NATIVE --> UI
+        UI <--> BRIDGE
     end
 
-    subgraph UI["🎨 UI Engine (HTML / CSS / JS)"]
-        direction TB
-        NAV["NavigationSidebar\n• Início\n• Conexão\n• Dock\n• Telas\n• Extensões\n• Configurações"]
-        SIM["SimulatorView\n• Renderiza TouchBar real\n• Telas por perfil\n• Arraste para reordenar"]
-        DOCK["DockEditor\n• 1 ou 2 linhas\n• Importar / Exportar\n• Comunidade"]
-        EXT["ExtensionsPanel\n• Illustrator\n• Photoshop\n• Figma\n• Custom"]
-        NAV --> SIM
-        NAV --> DOCK
-        NAV --> EXT
+    subgraph MACOS["⚙️ macOS"]
+        AX["Accessibility API"]
+        HOTKEY["CGEvent / HotKeys"]
     end
 
-    subgraph DAEMON["⚙️ Python Daemon (mac-companion)"]
-        WS["WebSocket Server\nporta :9876"]
-        AX["Accessibility API\nAXUIElement"]
-        HK["HotKey Engine\nCGEvent / AppleScript"]
-        WS --> AX
-        WS --> HK
+    subgraph DEVICE["📱 Android"]
+        APK["TouchbarHackintosh.apk\nDisplay da Touch Bar"]
     end
 
-    subgraph DEVICE["📱 Dispositivo Remoto"]
-        ANDROID["Android App\nDeXPlay AirPlay\n(APK)"]
-        IOS["iOS / iPadOS\nWebView Client"]
-    end
-
-    BRIDGE <-->|"JS ↔ ObjC\npostMessage"| UI
-    BRIDGE <-->|"WebSocket\n127.0.0.1:9876"| DAEMON
-    DAEMON <-->|"USB 1.2ms\nou Wi-Fi"| DEVICE
-
-    style macOS fill:#1a1a2e,stroke:#6c63ff,color:#fff
-    style UI fill:#16213e,stroke:#0f3460,color:#fff
-    style DAEMON fill:#0f3460,stroke:#533483,color:#fff
-    style DEVICE fill:#533483,stroke:#6c63ff,color:#fff
+    BRIDGE <-->|"WebSocket :9876"| MACOS
+    MAC <-->|"USB 1.2ms\nou Wi-Fi"| DEVICE
 ```
+
+### Como funciona
+
+```
+[Android/iOS]  ──USB/Wi-Fi──►  [Mac App]  ──WebSocket──►  [macOS API]
+   Exibe a                      Recebe o                    Executa o
+   Touch Bar                    comando                     atalho
+```
+
+1. O **APK Android** exibe a Touch Bar customizada na tela do dispositivo
+2. Ao tocar em um botão, envia um comando via USB ou Wi-Fi para o Mac
+3. O **Mac App** recebe via WebSocket (porta 9876) e executa o atalho
+4. A Accessibility API do macOS injeta o evento no app em foco
 
 ---
 
-## 📁 Estrutura do Projeto
+## 📁 Estrutura
 
 ```
-MacTouchBar-Studio/
+mactouchbar-studio/
 │
-├── mac-app-beta/               # 🍎 App macOS (foco principal)
+├── mac-app-beta/               # 🍎 App macOS
 │   ├── main.m                  # Entry point: NSWindow + WKWebView + JS Bridge
-│   ├── index.html              # UI completa (15k+ linhas, HTML/CSS/JS)
+│   ├── index.html              # UI completa (HTML/CSS/JS)
 │   ├── Info.plist              # Bundle metadata
-│   ├── build_beta.sh           # Build + Install automático em /Applications
-│   ├── Views/                  # SwiftUI views (draft / referência)
-│   │   ├── MainView.swift      # NavigationSplitView
-│   │   ├── DashboardView.swift # Painel de métricas
-│   │   ├── ProfileEditorView.swift
-│   │   ├── ShortcutTesterView.swift
-│   │   └── LogConsoleView.swift
-│   └── Models/
-│       ├── SystemMonitor.swift # Monitor de sistema nativo
-│       └── AppProfile.swift    # Modelo de perfis de apps
+│   ├── build_beta.sh           # Build + install automático em /Applications
+│   ├── Views/                  # SwiftUI (referência)
+│   └── Models/                 # SystemMonitor, AppProfile
 │
-├── mac-companion/              # ⚙️ Daemon Python WebSocket (:9876)
-│   └── mac_deck_server.py      # Servidor de execução de atalhos
+├── TouchbarHackintosh.apk      # 📱 App Android (cliente Touch Bar)
 │
-├── touchbar-hackintosh/        # 📱 App Android (Kotlin + ADB)
-│   └── src/main/               # Interface Touch Bar no Android
-│
-├── ipados-preview/             # 🎭 Simulador iPadOS no browser
-├── docs/
-│   └── screenshots/            # 📸 Capturas de tela para o README
-│
-├── DeXPlay-AirPlay.apk         # APK compilado (Android)
-├── build.gradle.kts            # Gradle config (Android)
-└── README.md
+└── docs/
+    └── screenshots/            # 📸 Capturas de tela
 ```
 
 ---
 
-## 🛠 Stack Técnica
+## 🛠 Tech Stack
 
 | Camada | Tecnologia |
 |---|---|
-| **Shell nativo** | Objective-C • Cocoa • AppKit • Carbon |
-| **UI Engine** | HTML5 • CSS3 • Vanilla JS • WebKit |
-| **Bridge** | `WKScriptMessageHandler` (JS ↔ ObjC) |
-| **Daemon** | Python 3 • WebSockets • asyncio |
-| **Android Client** | Kotlin • Jetpack Compose • ADB |
-| **Transporte** | USB (usbmuxd, ~1.2ms) • Wi-Fi WebSocket |
-| **Appearance** | Apple HIG Dark Mode • `color-scheme` • `NSAppearance` |
+| **Mac — Shell nativo** | Objective-C · Cocoa · AppKit · Carbon |
+| **Mac — UI Engine** | HTML5 · CSS3 · JS · WebKit |
+| **Mac — Bridge** | `WKScriptMessageHandler` (JS ↔ ObjC) |
+| **Android Client** | APK instalável (sideload) |
+| **Transporte** | USB `~1.2ms` · Wi-Fi WebSocket |
+| **Appearance** | Apple HIG · `NSAppearance` · `color-scheme` |
 
 ---
 
-## 🚀 Build & Instalação
+## 🚀 Instalação
 
-### Pré-requisitos
+### Mac App
 
-- macOS 13 Ventura ou superior
-- Xcode Command Line Tools: `xcode-select --install`
-- Python 3.9+ (para o daemon)
-
-### Compilar e Instalar
+**Pré-requisito:** Xcode Command Line Tools  
+```bash
+xcode-select --install
+```
 
 ```bash
 # Clonar o repositório
 git clone git@github.com:luxfajah/mactouchbar-studio.git
 cd mactouchbar-studio
 
-# Build + install automático em /Applications
+# Compilar e instalar em /Applications automaticamente
 bash mac-app-beta/build_beta.sh
 ```
 
-O script:
-1. 📁 Monta o bundle `.app`
-2. 🔨 Compila `main.m` com `clang` (Cocoa + WebKit + Carbon)
-3. 🔏 Assina o bundle com identidade ad-hoc
-4. 📦 Instala automaticamente em `/Applications/MacTouchBarBeta.app`
+### Android APK
 
-### Iniciar o Daemon
-
-```bash
-# Iniciar o servidor WebSocket Python
-python3 mac-companion/mac_deck_server.py
-# Ou usar o script de conveniência:
-bash Iniciar-MacDeck-Server.command
-```
-
----
-
-## 🔌 Protocolo de Comunicação
-
-```
-iPhone/iPad → WebSocket → Daemon Python → macOS Accessibility API
-                                       ↘ CGEvent (teclado/mouse)
-                                       ↘ AppleScript
-                                       ↘ NSDistributedNotificationCenter
-```
-
-Mensagens trocadas via WebSocket são JSON simples:
-
-```json
-{ "action": "shortcut", "key": "g", "modifiers": ["cmd"] }
-{ "action": "align_center_artboard" }
-{ "action": "switch_profile", "appBundleId": "com.adobe.illustrator" }
-```
-
----
-
-## 🎨 Design System
-
-A UI segue as [Apple Human Interface Guidelines](https://developer.apple.com/design/human-interface-guidelines/):
-
-- **Dark Mode nativo**: `color-scheme: dark light` + `NSAppearanceNameDarkAqua` no `NSWindow`
-- **Scrollbars**: Overlay scrollbars nativos do macOS (sem CSS customizado), adaptam-se automaticamente ao tema
-- **Cores**: CSS Custom Properties com `@media (prefers-color-scheme)` e fallback JS via `body.theme-dark/light`
-- **Tipografia**: `-apple-system, SF Pro Text, SF Pro Display`
-- **Janela**: `NSWindowStyleMaskFullSizeContentView` com titlebar transparente e traffic lights reposicionados
+1. Transfira `TouchbarHackintosh.apk` para o Android
+2. Habilite **"Instalar apps desconhecidos"** nas configurações
+3. Abra o APK e instale
+4. Conecte via USB ou Wi-Fi ao Mac App
 
 ---
 
