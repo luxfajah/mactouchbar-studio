@@ -24,6 +24,7 @@ mkdir -p "$FRAMEWORKS_DIR"
 
 cp -f "$DIR/Info.plist"   "$CONTENTS_DIR/Info.plist"
 cp -f "$DIR/index.html"   "$RESOURCES_DIR/index.html"
+[ -f "$ROOT_DIR/mac-companion-studio.html" ] && cp -f "$ROOT_DIR/mac-companion-studio.html" "$RESOURCES_DIR/mac-companion-studio.html"
 
 if [ -f "$ROOT_DIR/mac-app/AppIcon.icns" ]; then
     cp -f "$ROOT_DIR/mac-app/AppIcon.icns" "$RESOURCES_DIR/AppIcon.icns"

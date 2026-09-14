@@ -447,10 +447,17 @@ static BetaAppDelegate *gDelegate = nil;
         dispatch_async(dispatch_get_main_queue(), ^{
             [self.updaterController checkForUpdates:nil];
         });
+    } else if ([action isEqualToString:@"openStudio"] || [action isEqualToString:@"openDeckEditor"]) {
+        [self openStudioEditor:nil];
     } else if ([action isEqualToString:@"takeSnapshot"]) {
         NSString *dest = body[@"path"] ?: @"/Volumes/Work/APP TESTE/screenshot_webview.png";
         [self saveSnapshotToPath:dest];
     }
+}
+
+- (void)openStudioEditor:(id)sender {
+    NSURL *url = [NSURL URLWithString:@"http://127.0.0.1:9876/studio"];
+    [[NSWorkspace sharedWorkspace] openURL:url];
 }
 
 - (void)setupMainMenu {
@@ -465,6 +472,11 @@ static BetaAppDelegate *gDelegate = nil;
     NSMenuItem *checkUpdatesItem = [[NSMenuItem alloc] initWithTitle:@"Verificar Atualizações..." action:@selector(checkForUpdates:) keyEquivalent:@""];
     [checkUpdatesItem setTarget:self.updaterController];
     [appMenu addItem:checkUpdatesItem];
+    
+    [appMenu addItem:[NSMenuItem separatorItem]];
+    NSMenuItem *studioItem = [[NSMenuItem alloc] initWithTitle:@"Configurar Atalhos do Deck (Studio)..." action:@selector(openStudioEditor:) keyEquivalent:@"e"];
+    [studioItem setTarget:self];
+    [appMenu addItem:studioItem];
     
     [appMenu addItem:[NSMenuItem separatorItem]];
     [appMenu addItemWithTitle:@"Ocultar MacTouchBar Studio" action:@selector(hide:) keyEquivalent:@"h"];

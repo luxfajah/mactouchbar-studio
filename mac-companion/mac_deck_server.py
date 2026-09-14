@@ -192,6 +192,61 @@ def resolve_uid(val, objs, depth=0):
     return val
 
 
+cached_installed_apps = []
+last_installed_apps_scan = 0.0
+
+def get_installed_mac_apps() -> List[Dict]:
+    """Scan and return all installed macOS applications with their icons."""
+    global cached_installed_apps, last_installed_apps_scan
+    now = time.time()
+    if cached_installed_apps and (now - last_installed_apps_scan < 30.0):
+        return cached_installed_apps
+
+    app_dirs = ['/Applications', '/System/Applications', '/System/Applications/Utilities', os.path.expanduser('~/Applications')]
+    results = []
+    seen_paths = set()
+
+    for d in app_dirs:
+        if not os.path.exists(d):
+            continue
+        try:
+            for item in sorted(os.listdir(d)):
+                if item.endswith('.app'):
+                    full_path = os.path.join(d, item)
+                    if full_path in seen_paths:
+                        continue
+                    seen_paths.add(full_path)
+
+                    name = item[:-4]
+                    plist_path = os.path.join(full_path, 'Contents', 'Info.plist')
+                    bundle_id = ""
+                    if os.path.exists(plist_path):
+                        try:
+                            with open(plist_path, 'rb') as fp:
+                                pl = plistlib.load(fp)
+                                name = pl.get('CFBundleDisplayName') or pl.get('CFBundleName') or name
+                                bundle_id = pl.get('CFBundleIdentifier', '')
+                        except Exception:
+                            pass
+
+                    clean_id = re.sub(r'[^a-zA-Z0-9]', '', str(name)).lower()
+                    icon_b64 = get_icon_base64_for_path(full_path, clean_id)
+
+                    results.append({
+                        "name": str(name),
+                        "path": full_path,
+                        "id": clean_id,
+                        "bundleId": str(bundle_id),
+                        "iconBase64": icon_b64
+                    })
+        except Exception:
+            pass
+
+    results.sort(key=lambda x: x["name"].lower())
+    cached_installed_apps = results
+    last_installed_apps_scan = now
+    return results
+
 DECK_CONFIG_FILE = os.path.join(os.path.dirname(__file__), "user_deck_config.json")
 
 
@@ -1594,16 +1649,99 @@ async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWrit
                             print(f"⚠️ Error: {e}")
 
         else:
-            body = json.dumps(get_mac_system_status()).encode('utf-8')
-            resp = (
-                "HTTP/1.1 200 OK\r\n"
-                "Content-Type: application/json\r\n"
-                f"Content-Length: {len(body)}\r\n"
-                "Access-Control-Allow-Origin: *\r\n"
-                "\r\n"
-            ).encode('utf-8') + body
-            writer.write(resp)
-            await writer.drain()
+            request_line = header_text.split("\r\n")[0] if "\r\n" in header_text else header_text
+            req_parts = request_line.split()
+            method = req_parts[0].upper() if req_parts else "GET"
+            req_path = req_parts[1] if len(req_parts) > 1 else "/"
+
+            if method == "OPTIONS":
+                resp = (
+                    "HTTP/1.1 204 No Content\r\n"
+                    "Access-Control-Allow-Origin: *\r\n"
+                    "Access-Control-Allow-Methods: GET, HEAD, POST, OPTIONS\r\n"
+                    "Access-Control-Allow-Headers: Content-Type\r\n"
+                    "Connection: close\r\n"
+                    "\r\n"
+                ).encode('utf-8')
+                writer.write(resp)
+                await writer.drain()
+            elif method in ("GET", "HEAD") and req_path.startswith("/api/apps"):
+                apps_data = await asyncio.to_thread(get_installed_mac_apps)
+                body = json.dumps(apps_data).encode('utf-8')
+                resp = (
+                    "HTTP/1.1 200 OK\r\n"
+                    "Content-Type: application/json; charset=utf-8\r\n"
+                    f"Content-Length: {len(body)}\r\n"
+                    "Access-Control-Allow-Origin: *\r\n"
+                    "Connection: close\r\n"
+                    "\r\n"
+                ).encode('utf-8') + (body if method == "GET" else b"")
+                writer.write(resp)
+                await writer.drain()
+            elif method in ("GET", "HEAD") and req_path.startswith("/api/deck"):
+                deck_data = await asyncio.to_thread(get_deck_config_full)
+                body = json.dumps(deck_data).encode('utf-8')
+                resp = (
+                    "HTTP/1.1 200 OK\r\n"
+                    "Content-Type: application/json; charset=utf-8\r\n"
+                    f"Content-Length: {len(body)}\r\n"
+                    "Access-Control-Allow-Origin: *\r\n"
+                    "Connection: close\r\n"
+                    "\r\n"
+                ).encode('utf-8') + (body if method == "GET" else b"")
+                writer.write(resp)
+                await writer.drain()
+            elif method in ("GET", "HEAD") and (req_path.startswith("/studio") or req_path.startswith("/mac-companion-studio")):
+                studio_file = os.path.join(os.path.dirname(__file__), "..", "mac-companion-studio.html")
+                if os.path.exists(studio_file):
+                    with open(studio_file, "rb") as f:
+                        body = f.read()
+                    resp = (
+                        "HTTP/1.1 200 OK\r\n"
+                        "Content-Type: text/html; charset=utf-8\r\n"
+                        f"Content-Length: {len(body)}\r\n"
+                        "Access-Control-Allow-Origin: *\r\n"
+                        "Connection: close\r\n"
+                        "\r\n"
+                    ).encode('utf-8') + (body if method == "GET" else b"")
+                    writer.write(resp)
+                    await writer.drain()
+                else:
+                    resp = b"HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n"
+                    writer.write(resp)
+                    await writer.drain()
+            elif method in ("GET", "HEAD") and req_path.startswith("/icons/"):
+                icon_file = os.path.basename(req_path)
+                icon_full = os.path.join(os.path.dirname(__file__), "..", "icons", icon_file)
+                if os.path.exists(icon_full):
+                    with open(icon_full, "rb") as f:
+                        body = f.read()
+                    resp = (
+                        "HTTP/1.1 200 OK\r\n"
+                        "Content-Type: image/png\r\n"
+                        f"Content-Length: {len(body)}\r\n"
+                        "Access-Control-Allow-Origin: *\r\n"
+                        "Connection: close\r\n"
+                        "\r\n"
+                    ).encode('utf-8') + (body if method == "GET" else b"")
+                    writer.write(resp)
+                    await writer.drain()
+                else:
+                    resp = b"HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n"
+                    writer.write(resp)
+                    await writer.drain()
+            else:
+                body = json.dumps(get_mac_system_status()).encode('utf-8')
+                resp = (
+                    "HTTP/1.1 200 OK\r\n"
+                    "Content-Type: application/json; charset=utf-8\r\n"
+                    f"Content-Length: {len(body)}\r\n"
+                    "Access-Control-Allow-Origin: *\r\n"
+                    "Connection: close\r\n"
+                    "\r\n"
+                ).encode('utf-8') + (body if method == "GET" else b"")
+                writer.write(resp)
+                await writer.drain()
 
     except Exception:
         pass

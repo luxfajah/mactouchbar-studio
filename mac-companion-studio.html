@@ -1310,16 +1310,23 @@
               <div class="action-subpanel" id="subpanel-sound">
                 <div class="form-group">
                   <label class="form-label" for="select-mac-sound">Efeito Sonoro do macOS:</label>
-                  <select id="select-mac-sound" class="apple-input-text" onchange="onSoundChange(this.value)">
-                    <option value="Glass">Glass (Vidro)</option>
-                    <option value="Pop">Pop</option>
-                    <option value="Ping">Ping</option>
-                    <option value="Funk">Funk</option>
-                    <option value="Hero">Hero</option>
-                    <option value="Bottle">Bottle</option>
-                    <option value="Submarine">Submarine</option>
-                    <option value="Tink">Tink</option>
-                  </select>
+                  <div style="display: flex; gap: 8px; align-items: center;">
+                    <select id="select-mac-sound" class="apple-input-text" onchange="onSoundChange(this.value)">
+                      <option value="Glass">Glass (Vidro)</option>
+                      <option value="Pop">Pop</option>
+                      <option value="Ping">Ping</option>
+                      <option value="Funk">Funk</option>
+                      <option value="Hero">Hero</option>
+                      <option value="Bottle">Bottle</option>
+                      <option value="Submarine">Submarine</option>
+                      <option value="Tink">Tink</option>
+                      <option value="Blow">Blow</option>
+                      <option value="Purr">Purr</option>
+                      <option value="Sosumi">Sosumi</option>
+                      <option value="Morse">Morse</option>
+                    </select>
+                    <button type="button" class="btn-choose-file" onclick="previewCurrentSound()" style="white-space: nowrap; height: 38px;">▶️ Testar</button>
+                  </div>
                 </div>
               </div>
 
@@ -1407,7 +1414,7 @@
 
   <script>
     /* ==========================================================================
-       MacDeck Studio - Engine de Configuração Apple com Drag & Drop
+       MacDeck Studio - Engine de Configuração Apple com Drag & Drop e Sincronização
        ========================================================================== */
     const DEFAULT_DECK_BUTTONS = [
       { id: 'chrome', label: 'Chrome', iconUrl: 'icons/chrome.png', actionType: 'launch_app', payload: '/Applications/Google Chrome.app', isRunning: false },
@@ -1426,7 +1433,9 @@
 
     const SYSTEM_GALLERY_ICONS = [
       'chrome', 'music', 'discord', 'photoshop', 'illustrator', 'indesign',
-      'figma', 'affinity', 'antigravity', 'whatsapp', 'finder', 'settings'
+      'figma', 'affinity', 'antigravity', 'whatsapp', 'finder', 'settings',
+      'camera', 'screen_record', 'lock', 'restart', 'power', 'terminal',
+      'wifi', 'bluetooth', 'airdrop', 'dnd', 'screen_mirror', 'brightness'
     ];
 
     let currentButtons = JSON.parse(localStorage.getItem('mac_deck_buttons_v4') || 'null') || DEFAULT_DECK_BUTTONS;
@@ -1435,13 +1444,19 @@
     let ws = null;
     let isRecordingKey = false;
     let draggedSlotIndex = null;
+    let autoSaveTimer = null;
 
     async function initStudio() {
       renderIPhoneSlots();
       populateSystemIconGallery();
       selectSlot(0);
       setupKeyRecorder();
+      
+      // Carregar apps e deck da API HTTP do Mac
+      await fetchDeckConfig();
       await fetchInstalledApps();
+      
+      // Conectar WebSocket em tempo real
       connectWebSocket();
     }
 
@@ -1462,25 +1477,46 @@
       if (!grid) return;
       grid.innerHTML = '';
 
-      currentButtons.forEach((btn, idx) => {
+      // Garantir 12 slots
+      while (currentButtons.length < 12) {
+        currentButtons.push({
+          id: `slot_${currentButtons.length + 1}`,
+          label: `Slot ${currentButtons.length + 1}`,
+          iconUrl: 'icons/settings.png',
+          actionType: 'launch_app',
+          payload: '',
+          isRunning: false
+        });
+      }
+
+      currentButtons.slice(0, 12).forEach((btn, idx) => {
         const slotEl = document.createElement('div');
         slotEl.className = 'sim-slot-btn' + (idx === selectedSlotIndex ? ' selected' : '') + (btn.isRunning ? ' running' : '');
         slotEl.setAttribute('draggable', 'true');
         slotEl.dataset.index = idx;
+        slotEl.id = `sim-slot-${idx}`;
 
-        slotEl.onclick = () => selectSlot(idx);
+        slotEl.onclick = (e) => {
+          e.stopPropagation();
+          selectSlot(idx);
+        };
 
         // Drag and drop event listeners
         slotEl.addEventListener('dragstart', (e) => {
           draggedSlotIndex = idx;
           slotEl.classList.add('dragging');
           e.dataTransfer.effectAllowed = 'move';
-          e.dataTransfer.setData('text/plain', idx);
+          e.dataTransfer.setData('text/plain', String(idx));
         });
 
         slotEl.addEventListener('dragend', () => {
           slotEl.classList.remove('dragging');
           document.querySelectorAll('.sim-slot-btn').forEach(s => s.classList.remove('drag-over'));
+        });
+
+        slotEl.addEventListener('dragenter', (e) => {
+          e.preventDefault();
+          slotEl.classList.add('drag-over');
         });
 
         slotEl.addEventListener('dragover', (e) => {
@@ -1489,8 +1525,11 @@
           slotEl.classList.add('drag-over');
         });
 
-        slotEl.addEventListener('dragleave', () => {
-          slotEl.classList.remove('drag-over');
+        slotEl.addEventListener('dragleave', (e) => {
+          // Evitar falsos dragleave causados por elementos filhos
+          if (!slotEl.contains(e.relatedTarget)) {
+            slotEl.classList.remove('drag-over');
+          }
         });
 
         slotEl.addEventListener('drop', (e) => {
@@ -1498,7 +1537,7 @@
           slotEl.classList.remove('drag-over');
           const targetIndex = idx;
           if (draggedSlotIndex !== null && draggedSlotIndex !== targetIndex) {
-            // Swap buttons
+            // Trocar botões de posição
             const temp = currentButtons[draggedSlotIndex];
             currentButtons[draggedSlotIndex] = currentButtons[targetIndex];
             currentButtons[targetIndex] = temp;
@@ -1506,6 +1545,7 @@
             selectedSlotIndex = targetIndex;
             renderIPhoneSlots();
             selectSlot(targetIndex);
+            saveAndSyncAll(false);
             showToast(`🔄 Atalhos trocados: Slot ${draggedSlotIndex + 1} ↔ Slot ${targetIndex + 1}`);
           }
           draggedSlotIndex = null;
@@ -1518,12 +1558,14 @@
         const iconBox = document.createElement('div');
         iconBox.className = 'sim-slot-icon-box';
         const img = document.createElement('img');
+        img.id = `sim-slot-img-${idx}`;
         img.src = btn.iconBase64 ? `data:image/png;base64,${btn.iconBase64}` : (btn.iconUrl || `icons/${btn.id || 'settings'}.png`);
         img.onerror = () => { img.src = 'icons/settings.png'; };
         iconBox.appendChild(img);
 
         const label = document.createElement('span');
         label.className = 'sim-slot-label';
+        label.id = `sim-slot-label-${idx}`;
         label.textContent = btn.label || `Slot ${idx + 1}`;
 
         const dot = document.createElement('span');
@@ -1542,40 +1584,47 @@
       if (index < 0 || index >= currentButtons.length) return;
       selectedSlotIndex = index;
 
-      // Update iPhone slots focus
+      // Atualizar classe selected nos slots
       const slots = document.querySelectorAll('.sim-slot-btn');
       slots.forEach((s, i) => {
         if (i === index) s.classList.add('selected');
         else s.classList.remove('selected');
       });
 
-      // Load into Editor
+      // Carregar dados no Editor
       const btn = currentButtons[index];
       const row = Math.floor(index / 6) + 1;
       const col = (index % 6) + 1;
 
-      document.getElementById('edit-slot-title').textContent = `Slot ${index + 1} (Linha ${row}, Coluna ${col})`;
-      document.getElementById('input-slot-label').value = btn.label || '';
+      const titleEl = document.getElementById('edit-slot-title');
+      if (titleEl) titleEl.textContent = `Slot ${index + 1} (Linha ${row}, Coluna ${col})`;
+
+      const inputLabel = document.getElementById('input-slot-label');
+      if (inputLabel) inputLabel.value = btn.label || '';
       
       const imgPreview = document.getElementById('edit-icon-img');
       if (imgPreview) {
         imgPreview.src = btn.iconBase64 ? `data:image/png;base64,${btn.iconBase64}` : (btn.iconUrl || `icons/${btn.id || 'settings'}.png`);
+        imgPreview.onerror = () => { imgPreview.src = 'icons/settings.png'; };
       }
 
       switchActionType(btn.actionType || 'launch_app', false);
 
-      // Load action payload
+      // Carregar payload da ação
       const act = btn.actionType || 'launch_app';
       if (act === 'launch_app') {
         highlightSelectedAppInList(btn.payload || '');
       } else if (act === 'hotkey') {
-        document.getElementById('input-hotkey-val').value = btn.payload || 'cmd+s';
-        renderKeyBadges(btn.payload || 'cmd+s');
+        const val = btn.payload || 'cmd+s';
+        const hotkeyInput = document.getElementById('input-hotkey-val');
+        if (hotkeyInput) hotkeyInput.value = val;
+        renderKeyBadges(val);
       } else if (act === 'system') {
         const selSys = document.getElementById('select-sys-action');
         if (selSys) selSys.value = btn.payload || 'screenshot_interactive';
       } else if (act === 'terminal_cmd') {
-        document.getElementById('input-term-cmd').value = btn.payload || '';
+        const termInput = document.getElementById('input-term-cmd');
+        if (termInput) termInput.value = btn.payload || '';
       } else if (act === 'sound') {
         const selSnd = document.getElementById('select-mac-sound');
         if (selSnd) selSnd.value = btn.payload || 'Glass';
@@ -1584,8 +1633,8 @@
 
     function selectSlotRelative(offset) {
       let next = selectedSlotIndex + offset;
-      if (next < 0) next = currentButtons.length - 1;
-      if (next >= currentButtons.length) next = 0;
+      if (next < 0) next = Math.min(currentButtons.length, 12) - 1;
+      if (next >= Math.min(currentButtons.length, 12)) next = 0;
       selectSlot(next);
     }
 
@@ -1621,6 +1670,43 @@
 
       if (isUserClick) {
         currentButtons[selectedSlotIndex].actionType = type;
+        
+        // Atribuir payload padrão se estiver vazio
+        const btn = currentButtons[selectedSlotIndex];
+        if (type === 'hotkey' && (!btn.payload || btn.payload.includes('.app'))) {
+          btn.payload = 'cmd+s';
+          const hotkeyInput = document.getElementById('input-hotkey-val');
+          if (hotkeyInput) hotkeyInput.value = 'cmd+s';
+          renderKeyBadges('cmd+s');
+        } else if (type === 'system' && (!btn.payload || btn.payload.includes('.app'))) {
+          btn.payload = 'screenshot_interactive';
+          const selSys = document.getElementById('select-sys-action');
+          if (selSys) selSys.value = 'screenshot_interactive';
+        } else if (type === 'sound' && (!btn.payload || btn.payload.includes('.app'))) {
+          btn.payload = 'Glass';
+          const selSnd = document.getElementById('select-mac-sound');
+          if (selSnd) selSnd.value = 'Glass';
+        }
+        triggerAutoSave();
+      }
+    }
+
+    /* Fetch Deck Config from HTTP API */
+    async function fetchDeckConfig() {
+      const host = window.location.hostname || '127.0.0.1';
+      try {
+        const res = await fetch(`http://${host}:9876/api/deck`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && Array.isArray(data.buttons) && data.buttons.length > 0) {
+            currentButtons = data.buttons;
+            renderIPhoneSlots();
+            selectSlot(selectedSlotIndex);
+            console.log('✅ Configuração do Deck carregada via API HTTP');
+          }
+        }
+      } catch (e) {
+        console.log('ℹ️ Usando configuração local em cache');
       }
     }
 
@@ -1630,11 +1716,14 @@
       try {
         const res = await fetch(`http://${host}:9876/api/apps`);
         if (res.ok) {
-          installedAppsList = await res.json();
-          renderAppList(installedAppsList);
-        } else {
-          fallbackDefaultApps();
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            installedAppsList = data;
+            renderAppList(installedAppsList);
+            return;
+          }
         }
+        fallbackDefaultApps();
       } catch (e) {
         fallbackDefaultApps();
       }
@@ -1642,21 +1731,21 @@
 
     function fallbackDefaultApps() {
       installedAppsList = [
-        { name: 'Google Chrome', path: '/Applications/Google Chrome.app' },
-        { name: 'Música', path: '/System/Applications/Music.app' },
-        { name: 'Discord', path: '/Applications/Discord.app' },
-        { name: 'Adobe Photoshop', path: '/Applications/Adobe Photoshop 2026/Adobe Photoshop 2026.app' },
-        { name: 'Adobe Illustrator', path: '/Applications/Adobe Illustrator 2026/Adobe Illustrator.app' },
-        { name: 'Adobe InDesign', path: '/Applications/Adobe InDesign 2026/Adobe InDesign 2026.app' },
-        { name: 'Figma', path: '/Applications/Figma.app' },
-        { name: 'Affinity', path: '/Applications/Affinity.app' },
-        { name: 'Antigravity', path: '/Applications/Antigravity.app' },
-        { name: 'WhatsApp', path: '/Applications/WhatsApp.app' },
-        { name: 'Finder', path: '/System/Library/CoreServices/Finder.app' },
-        { name: 'Launchpad', path: '/System/Applications/Launchpad.app' },
-        { name: 'Visual Studio Code', path: '/Applications/Visual Studio Code.app' },
-        { name: 'Terminal', path: '/System/Applications/Utilities/Terminal.app' },
-        { name: 'Ajustes do Sistema', path: '/System/Applications/System Settings.app' }
+        { name: 'Google Chrome', path: '/Applications/Google Chrome.app', id: 'chrome' },
+        { name: 'Música', path: '/System/Applications/Music.app', id: 'music' },
+        { name: 'Discord', path: '/Applications/Discord.app', id: 'discord' },
+        { name: 'Adobe Photoshop', path: '/Applications/Adobe Photoshop 2026/Adobe Photoshop 2026.app', id: 'photoshop' },
+        { name: 'Adobe Illustrator', path: '/Applications/Adobe Illustrator 2026/Adobe Illustrator.app', id: 'illustrator' },
+        { name: 'Adobe InDesign', path: '/Applications/Adobe InDesign 2026/Adobe InDesign 2026.app', id: 'indesign' },
+        { name: 'Figma', path: '/Applications/Figma.app', id: 'figma' },
+        { name: 'Affinity', path: '/Applications/Affinity.app', id: 'affinity' },
+        { name: 'Antigravity', path: '/Applications/Antigravity.app', id: 'antigravity' },
+        { name: 'WhatsApp', path: '/Applications/WhatsApp.app', id: 'whatsapp' },
+        { name: 'Finder', path: '/System/Library/CoreServices/Finder.app', id: 'finder' },
+        { name: 'Launchpad', path: '/System/Applications/Launchpad.app', id: 'settings' },
+        { name: 'Visual Studio Code', path: '/Applications/Visual Studio Code.app', id: 'vscode' },
+        { name: 'Terminal', path: '/System/Applications/Utilities/Terminal.app', id: 'terminal' },
+        { name: 'Ajustes do Sistema', path: '/System/Applications/System Settings.app', id: 'settings' }
       ];
       renderAppList(installedAppsList);
     }
@@ -1666,6 +1755,11 @@
       if (!container) return;
       container.innerHTML = '';
 
+      if (!Array.isArray(apps) || apps.length === 0) {
+        container.innerHTML = '<div style="padding: 10px; color: var(--text-tertiary); font-size: 12px; text-align: center;">Nenhum aplicativo encontrado</div>';
+        return;
+      }
+
       apps.forEach(app => {
         const item = document.createElement('div');
         item.className = 'app-list-item';
@@ -1674,8 +1768,12 @@
 
         const icon = document.createElement('img');
         icon.className = 'app-item-icon';
-        const cleanName = app.name.toLowerCase().replace(/[^a-z0-9]/g, '');
-        icon.src = `icons/${cleanName}.png`;
+        if (app.iconBase64) {
+          icon.src = `data:image/png;base64,${app.iconBase64}`;
+        } else {
+          const cleanName = (app.id || app.name).toLowerCase().replace(/[^a-z0-9]/g, '');
+          icon.src = `icons/${cleanName}.png`;
+        }
         icon.onerror = () => { icon.src = 'icons/settings.png'; };
 
         const nameSpan = document.createElement('span');
@@ -1703,15 +1801,31 @@
       btn.payload = app.path;
       btn.actionType = 'launch_app';
 
-      const cleanName = app.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const cleanName = (app.id || app.name).toLowerCase().replace(/[^a-z0-9]/g, '');
       btn.id = cleanName;
-      btn.iconUrl = `icons/${cleanName}.png`;
+      
+      if (app.iconBase64) {
+        btn.iconBase64 = app.iconBase64;
+        btn.iconUrl = '';
+      } else {
+        btn.iconUrl = `icons/${cleanName}.png`;
+        btn.iconBase64 = '';
+      }
 
-      document.getElementById('input-slot-label').value = app.name;
-      document.getElementById('edit-icon-img').src = `icons/${cleanName}.png`;
+      const inputLabel = document.getElementById('input-slot-label');
+      if (inputLabel) inputLabel.value = app.name;
+
+      const editIcon = document.getElementById('edit-icon-img');
+      if (editIcon) {
+        editIcon.src = app.iconBase64 ? `data:image/png;base64,${app.iconBase64}` : `icons/${cleanName}.png`;
+        editIcon.onerror = () => { editIcon.src = 'icons/settings.png'; };
+      }
 
       highlightSelectedAppInList(app.path);
-      renderIPhoneSlots();
+      
+      // Atualizar o slot específico no simulador
+      updateSingleSlotUI(selectedSlotIndex);
+      triggerAutoSave();
       showToast(`📱 Aplicativo selecionado: ${app.name}`);
     }
 
@@ -1722,22 +1836,80 @@
       });
     }
 
+    function updateSingleSlotUI(idx) {
+      const btn = currentButtons[idx];
+      if (!btn) return;
+      const labelEl = document.getElementById(`sim-slot-label-${idx}`);
+      if (labelEl) labelEl.textContent = btn.label || `Slot ${idx + 1}`;
+      const imgEl = document.getElementById(`sim-slot-img-${idx}`);
+      if (imgEl) {
+        imgEl.src = btn.iconBase64 ? `data:image/png;base64,${btn.iconBase64}` : (btn.iconUrl || `icons/${btn.id || 'settings'}.png`);
+        imgEl.onerror = () => { imgEl.src = 'icons/settings.png'; };
+      }
+    }
+
     /* Live Input Handlers */
     function onLabelInput(val) {
       currentButtons[selectedSlotIndex].label = val;
-      renderIPhoneSlots();
+      const labelEl = document.getElementById(`sim-slot-label-${selectedSlotIndex}`);
+      if (labelEl) labelEl.textContent = val || `Slot ${selectedSlotIndex + 1}`;
+      triggerAutoSave();
     }
 
     function onSysActionChange(val) {
-      currentButtons[selectedSlotIndex].payload = val;
+      const btn = currentButtons[selectedSlotIndex];
+      btn.payload = val;
+
+      const sysMap = {
+        'screenshot_interactive': { label: 'Print Área', icon: 'camera' },
+        'screen_record': { label: 'Gravar Tela', icon: 'screen_record' },
+        'show_desktop': { label: 'Mesa', icon: 'finder' },
+        'lock_screen': { label: 'Bloquear', icon: 'lock' },
+        'restart_mac': { label: 'Reiniciar', icon: 'restart' },
+        'shutdown_mac': { label: 'Desligar', icon: 'power' },
+        'shazam_recognize': { label: 'Shazam', icon: 'music' },
+        'toggle_wifi': { label: 'Wi-Fi', icon: 'wifi' },
+        'toggle_bluetooth': { label: 'Bluetooth', icon: 'bluetooth' },
+        'toggle_airdrop': { label: 'AirDrop', icon: 'airdrop' },
+        'sleep_mac': { label: 'Dormir', icon: 'lock' }
+      };
+
+      if (sysMap[val]) {
+        btn.label = sysMap[val].label;
+        btn.id = sysMap[val].icon;
+        btn.iconUrl = `icons/${sysMap[val].icon}.png`;
+        btn.iconBase64 = '';
+
+        const inputLabel = document.getElementById('input-slot-label');
+        if (inputLabel) inputLabel.value = btn.label;
+
+        const editIcon = document.getElementById('edit-icon-img');
+        if (editIcon) editIcon.src = btn.iconUrl;
+
+        updateSingleSlotUI(selectedSlotIndex);
+      }
+      triggerAutoSave();
     }
 
     function onTermCmdInput(val) {
       currentButtons[selectedSlotIndex].payload = val;
+      triggerAutoSave();
     }
 
     function onSoundChange(val) {
       currentButtons[selectedSlotIndex].payload = val;
+      triggerAutoSave();
+    }
+
+    function previewCurrentSound() {
+      const soundVal = document.getElementById('select-mac-sound')?.value || 'Glass';
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          action: 'system_command',
+          params: { command: 'play_sound', sound: soundVal }
+        }));
+      }
+      showToast(`🔔 Som "${soundVal}" tocado no Mac`);
     }
 
     /* Keyboard Shortcut Recorder */
@@ -1748,10 +1920,10 @@
       box.addEventListener('click', () => {
         isRecordingKey = true;
         box.classList.add('recording');
-        document.getElementById('key-recorder-status').innerHTML = '🔴 <strong>Pressione a combinação no seu teclado agora...</strong>';
+        document.getElementById('key-recorder-status').innerHTML = '🔴 <strong>Pressione a combinação de teclas agora...</strong>';
       });
 
-      box.addEventListener('keydown', (e) => {
+      window.addEventListener('keydown', (e) => {
         if (!isRecordingKey) return;
         e.preventDefault();
         e.stopPropagation();
@@ -1764,14 +1936,31 @@
 
         let key = e.key.toLowerCase();
         if (['meta', 'control', 'alt', 'shift'].includes(key)) {
-          return; // Wait for the actual key
+          return; // Aguardando a tecla de caractere
         }
 
-        if (key === ' ') key = 'space';
-        if (key === 'escape') key = 'esc';
+        if (e.code && e.code.startsWith('Digit')) {
+          key = e.code.replace('Digit', '');
+        } else if (e.code && e.code.startsWith('Key')) {
+          key = e.code.replace('Key', '').toLowerCase();
+        } else if (e.code && e.code.startsWith('F') && !isNaN(e.code.substring(1))) {
+          key = e.code.toLowerCase();
+        } else if (key === ' ' || e.code === 'Space') {
+          key = 'space';
+        } else if (key === 'escape' || e.code === 'Escape') {
+          key = 'esc';
+        } else if (key === 'enter' || e.code === 'Enter') {
+          key = 'enter';
+        } else if (key === 'backspace' || e.code === 'Backspace') {
+          key = 'backspace';
+        } else if (key === 'arrowleft') key = 'left';
+        else if (key === 'arrowright') key = 'right';
+        else if (key === 'arrowup') key = 'up';
+        else if (key === 'arrowdown') key = 'down';
 
         const hotkeyStr = (modifiers.length > 0 ? modifiers.join('+') + '+' : '') + key;
-        document.getElementById('input-hotkey-val').value = hotkeyStr;
+        const inputVal = document.getElementById('input-hotkey-val');
+        if (inputVal) inputVal.value = hotkeyStr;
         renderKeyBadges(hotkeyStr);
 
         isRecordingKey = false;
@@ -1779,7 +1968,8 @@
         document.getElementById('key-recorder-status').innerHTML = '✅ Atalho gravado! Clique para regravar.';
         
         currentButtons[selectedSlotIndex].payload = hotkeyStr;
-      });
+        triggerAutoSave();
+      }, true);
     }
 
     function renderKeyBadges(hotkeyStr) {
@@ -1787,14 +1977,14 @@
       if (!container) return;
       container.innerHTML = '';
 
-      const parts = hotkeyStr.split('+');
+      const parts = String(hotkeyStr).split('+');
       const symbolMap = {
-        'cmd': '⌘ Command',
-        'command': '⌘ Command',
-        'opt': '⌥ Option',
-        'alt': '⌥ Option',
-        'ctrl': '⌃ Control',
-        'control': '⌃ Control',
+        'cmd': '⌘ Cmd',
+        'command': '⌘ Cmd',
+        'opt': '⌥ Opt',
+        'alt': '⌥ Opt',
+        'ctrl': '⌃ Ctrl',
+        'control': '⌃ Ctrl',
         'shift': '⇧ Shift'
       };
 
@@ -1820,6 +2010,7 @@
         const img = document.createElement('img');
         img.src = `icons/${name}.png`;
         img.alt = name;
+        img.onerror = () => { img.src = 'icons/settings.png'; };
         item.appendChild(img);
         box.appendChild(item);
       });
@@ -1831,30 +2022,44 @@
       btn.iconUrl = `icons/${name}.png`;
       btn.iconBase64 = '';
 
-      document.getElementById('edit-icon-img').src = `icons/${name}.png`;
-      renderIPhoneSlots();
+      const editIcon = document.getElementById('edit-icon-img');
+      if (editIcon) editIcon.src = `icons/${name}.png`;
+
+      updateSingleSlotUI(selectedSlotIndex);
+      triggerAutoSave();
+      showToast(`🎨 Ícone alterado para: ${name}`);
     }
 
     function switchIconTab(tab) {
-      document.getElementById('tab-btn-sysicons').classList.toggle('active', tab === 'gallery');
-      document.getElementById('tab-btn-customicons').classList.toggle('active', tab === 'upload');
-      document.getElementById('icon-gallery-box').style.display = tab === 'gallery' ? 'grid' : 'none';
-      document.getElementById('icon-upload-box').style.display = tab === 'upload' ? 'flex' : 'none';
+      document.getElementById('tab-btn-sysicons')?.classList.toggle('active', tab === 'gallery');
+      document.getElementById('tab-btn-customicons')?.classList.toggle('active', tab === 'upload');
+      
+      const galleryBox = document.getElementById('icon-gallery-box');
+      const uploadBox = document.getElementById('icon-upload-box');
+      if (galleryBox) galleryBox.style.display = tab === 'gallery' ? 'grid' : 'none';
+      if (uploadBox) uploadBox.style.display = tab === 'upload' ? 'flex' : 'none';
     }
 
     function handleCustomIconUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
 
-      document.getElementById('file-upload-name').textContent = file.name;
+      const nameEl = document.getElementById('file-upload-name');
+      if (nameEl) nameEl.textContent = file.name;
+
       const reader = new FileReader();
       reader.onload = function(e) {
         const b64 = e.target.result.split(',')[1];
         const btn = currentButtons[selectedSlotIndex];
         btn.iconBase64 = b64;
         btn.iconUrl = '';
-        document.getElementById('edit-icon-img').src = e.target.result;
-        renderIPhoneSlots();
+
+        const editIcon = document.getElementById('edit-icon-img');
+        if (editIcon) editIcon.src = e.target.result;
+
+        updateSingleSlotUI(selectedSlotIndex);
+        triggerAutoSave();
+        showToast(`🖼️ Ícone personalizado carregado com sucesso!`);
       };
       reader.readAsDataURL(file);
     }
@@ -1866,17 +2071,17 @@
       } else if (preset === 'developer') {
         currentButtons = [
           { id: 'vscode', label: 'VS Code', iconUrl: 'icons/chrome.png', actionType: 'launch_app', payload: '/Applications/Visual Studio Code.app' },
-          { id: 'terminal', label: 'Terminal', iconUrl: 'icons/settings.png', actionType: 'launch_app', payload: '/System/Applications/Utilities/Terminal.app' },
+          { id: 'terminal', label: 'Terminal', iconUrl: 'icons/terminal.png', actionType: 'launch_app', payload: '/System/Applications/Utilities/Terminal.app' },
           { id: 'save', label: 'Salvar', iconUrl: 'icons/finder.png', actionType: 'hotkey', payload: 'cmd+s' },
           { id: 'search', label: 'Buscar', iconUrl: 'icons/antigravity.png', actionType: 'hotkey', payload: 'cmd+p' },
           { id: 'git_status', label: 'Git Status', iconUrl: 'icons/affinity.png', actionType: 'terminal_cmd', payload: 'git status\n' },
           { id: 'npm_dev', label: 'npm dev', iconUrl: 'icons/figma.png', actionType: 'terminal_cmd', payload: 'npm run dev\n' },
           { id: 'chrome', label: 'Chrome', iconUrl: 'icons/chrome.png', actionType: 'launch_app', payload: '/Applications/Google Chrome.app' },
-          { id: 'print', label: 'Print Área', iconUrl: 'icons/settings.png', actionType: 'system', payload: 'screenshot_interactive' },
-          { id: 'lock', label: 'Bloquear', iconUrl: 'icons/settings.png', actionType: 'system', payload: 'lock_screen' },
+          { id: 'print', label: 'Print Área', iconUrl: 'icons/camera.png', actionType: 'system', payload: 'screenshot_interactive' },
+          { id: 'lock', label: 'Bloquear', iconUrl: 'icons/lock.png', actionType: 'system', payload: 'lock_screen' },
           { id: 'sound', label: 'Beep', iconUrl: 'icons/music.png', actionType: 'sound', payload: 'Glass' },
           { id: 'desktop', label: 'Mesa', iconUrl: 'icons/finder.png', actionType: 'system', payload: 'show_desktop' },
-          { id: 'clear', label: 'Limpar', iconUrl: 'icons/settings.png', actionType: 'terminal_cmd', payload: 'clear\n' }
+          { id: 'clear', label: 'Limpar', iconUrl: 'icons/terminal.png', actionType: 'terminal_cmd', payload: 'clear\n' }
         ];
       } else if (preset === 'designer') {
         currentButtons = [
@@ -1891,43 +2096,61 @@
           { id: 'export', label: 'Exportar', iconUrl: 'icons/antigravity.png', actionType: 'hotkey', payload: 'cmd+shift+e' },
           { id: 'chrome', label: 'Chrome', iconUrl: 'icons/chrome.png', actionType: 'launch_app', payload: '/Applications/Google Chrome.app' },
           { id: 'finder', label: 'Finder', iconUrl: 'icons/finder.png', actionType: 'launch_app', payload: '/System/Library/CoreServices/Finder.app' },
-          { id: 'lock', label: 'Bloquear', iconUrl: 'icons/settings.png', actionType: 'system', payload: 'lock_screen' }
+          { id: 'lock', label: 'Bloquear', iconUrl: 'icons/lock.png', actionType: 'system', payload: 'lock_screen' }
         ];
       }
       renderIPhoneSlots();
       selectSlot(0);
-      showToast('✨ Modelo carregado!');
+      saveAndSyncAll(false);
+      showToast('✨ Modelo carregado e sincronizado!');
+    }
+
+    function triggerAutoSave() {
+      clearTimeout(autoSaveTimer);
+      autoSaveTimer = setTimeout(() => {
+        saveAndSyncAll(false);
+      }, 350);
     }
 
     /* Save & Sync All */
-    function saveAndSyncAll() {
-      // Save active slot field values
+    function saveAndSyncAll(showToastAlert = true) {
+      // Salvar valores ativos do formulário
       const btn = currentButtons[selectedSlotIndex];
-      btn.label = document.getElementById('input-slot-label').value.trim() || btn.label;
+      if (btn) {
+        const inputLabel = document.getElementById('input-slot-label');
+        if (inputLabel && inputLabel.value.trim()) {
+          btn.label = inputLabel.value.trim();
+        }
 
-      const act = btn.actionType || 'launch_app';
-      if (act === 'hotkey') {
-        btn.payload = document.getElementById('input-hotkey-val').value;
-      } else if (act === 'system') {
-        btn.payload = document.getElementById('select-sys-action').value;
-      } else if (act === 'terminal_cmd') {
-        btn.payload = document.getElementById('input-term-cmd').value;
-      } else if (act === 'sound') {
-        btn.payload = document.getElementById('select-mac-sound').value;
+        const act = btn.actionType || 'launch_app';
+        if (act === 'hotkey') {
+          const val = document.getElementById('input-hotkey-val')?.value;
+          if (val) btn.payload = val;
+        } else if (act === 'system') {
+          const val = document.getElementById('select-sys-action')?.value;
+          if (val) btn.payload = val;
+        } else if (act === 'terminal_cmd') {
+          const val = document.getElementById('input-term-cmd')?.value;
+          if (val) btn.payload = val;
+        } else if (act === 'sound') {
+          const val = document.getElementById('select-mac-sound')?.value;
+          if (val) btn.payload = val;
+        }
       }
 
       localStorage.setItem('mac_deck_buttons_v4', JSON.stringify(currentButtons));
-      renderIPhoneSlots();
 
-      // Send to Companion Server via WebSocket
+      // Enviar para o servidor WebSocket
       if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({
           action: 'save_deck_config',
-          params: { buttons: currentButtons }
+          params: { buttons: currentButtons, rows: 2, cols: 6 }
         }));
       }
 
-      showToast('💾 Configurações salvas e sincronizadas com o Mac e Celular!');
+      if (showToastAlert) {
+        showToast('💾 Configurações salvas e sincronizadas com o Mac e Celular!');
+      }
     }
 
     function showToast(msg) {
@@ -1946,35 +2169,48 @@
       try {
         ws = new WebSocket(wsUrl);
         ws.onopen = () => {
-          document.getElementById('conn-dot').classList.remove('offline');
-          document.getElementById('conn-text').textContent = `Mac Conectado (${host}:9876)`;
+          document.getElementById('conn-dot')?.classList.remove('offline');
+          const connText = document.getElementById('conn-text');
+          if (connText) connText.textContent = `Mac Conectado (${host}:9876)`;
+          
+          // Solicitar configuração atual do deck
+          ws.send(JSON.stringify({ action: 'get_deck_config' }));
         };
+
         ws.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);
             if (data.type === 'status_update') {
               if (data.battery) {
-                document.getElementById('dash-battery').textContent = `${data.battery.percent}%`;
-                document.getElementById('dash-battery-state').textContent = data.battery.state || 'Normal';
+                const bVal = document.getElementById('dash-battery');
+                const bState = document.getElementById('dash-battery-state');
+                if (bVal) bVal.textContent = `${data.battery.percent}%`;
+                if (bState) bState.textContent = data.battery.state || 'Normal';
               }
               if (typeof data.volume === 'number') {
-                document.getElementById('dash-volume').textContent = `${data.volume}%`;
+                const volEl = document.getElementById('dash-volume');
+                if (volEl) volEl.textContent = `${data.volume}%`;
               }
               if (data.airpods) {
-                document.getElementById('dash-airpods-name').textContent = data.airpods.name || 'AirPods';
-                document.getElementById('dash-airpods-status').textContent = `L: ${data.airpods.left}% | R: ${data.airpods.right}%`;
+                const apName = document.getElementById('dash-airpods-name');
+                const apStatus = document.getElementById('dash-airpods-status');
+                if (apName) apName.textContent = data.airpods.name || 'AirPods';
+                if (apStatus) apStatus.textContent = `L: ${data.airpods.left}% | R: ${data.airpods.right}%`;
               }
             } else if (data.type === 'deck_config_update') {
               if (Array.isArray(data.buttons) && data.buttons.length > 0) {
                 currentButtons = data.buttons;
                 renderIPhoneSlots();
+                selectSlot(selectedSlotIndex);
               }
             }
           } catch (e) {}
         };
+
         ws.onclose = () => {
-          document.getElementById('conn-dot').classList.add('offline');
-          document.getElementById('conn-text').textContent = 'Mac Desconectado (Tentando reconectar...)';
+          document.getElementById('conn-dot')?.classList.add('offline');
+          const connText = document.getElementById('conn-text');
+          if (connText) connText.textContent = 'Mac Desconectado (Tentando reconectar...)';
           setTimeout(connectWebSocket, 3000);
         };
       } catch (e) {
