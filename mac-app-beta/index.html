@@ -12733,17 +12733,17 @@
       {
         id: 'screen-taskmgr',
         type: 'taskmgr',
-        title: 'Gerenciador de Tarefas',
-        appName: 'Monitor de Atividades',
+        title: 'Telemetria do Sistema',
+        appName: 'Monitor de Hardware',
         icon: 'icons/terminal.png',
-        badgeText: 'TM',
+        badgeText: 'HUD',
         badgeBg: '#007AFF',
         badgeColor: '#FFFFFF',
         active: false,
         isHome: false,
         bgStyle: 'wallpaper',
         swipeSensitivity: 'normal',
-        desc: 'Monitore o consumo em tempo real de CPU, GPU e Memória RAM do Mac, e encerre aplicativos com 1 toque.'
+        desc: 'Monitore em tempo real o uso de CPU, GPU Metal, Memória RAM, Armazenamento SSD e Velocidade de Download/Upload da Rede.'
       }
     ];
 
@@ -13672,17 +13672,17 @@
       {
         id: 'addon-taskmgr',
         appId: 'taskmgr',
-        appName: 'Monitor de Atividades',
+        appName: 'Monitor de Hardware',
         appIcon: 'icons/terminal.png',
         appBadgeBg: '#007AFF',
-        appBadgeText: 'TM',
+        appBadgeText: 'HUD',
         appBadgeColor: '#FFFFFF',
-        title: 'Gerenciador de Tarefas do Mac',
-        version: 'v1.0.0',
+        title: 'Telemetria & Hardware do Mac',
+        version: 'v1.1.0',
         size: '1.2 MB',
         author: 'Apple System Tools',
-        desc: 'Monitore o consumo em tempo real de CPU, GPU e Memória RAM do seu Mac, visualize todos os aplicativos abertos e encerre qualquer processo travado ou pesado com 1 toque.',
-        tags: ['CPU & GPU', 'Memória RAM', 'Telemetria', 'Kill Process', 'Activity Monitor'],
+        desc: 'Painel HUD em tempo real com métricas detalhadas do processador (CPU & Cores), acelerador gráfico (GPU), Memória RAM, espaço em disco SSD/HD e velocidade de download/upload da rede.',
+        tags: ['CPU & GPU', 'Memória RAM', 'SSD / HD', 'Velocidade de Rede', 'Telemetria ao Vivo'],
         available: true,
         defaultInstalled: true,
         defaultActive: false,
@@ -13690,10 +13690,10 @@
           {
             id: 'tm-p1',
             pageNumber: 1,
-            title: 'Telemetria & Processos',
-            subtitle: 'Monitor de Hardware & Encerramento',
-            desc: 'Cards de uso de CPU, GPU, RAM e lista interativa de processos com botão de encerrar.',
-            tools: ['CPU Gauge', 'GPU Usage', 'RAM GB Counter', 'Encerrar App'],
+            title: 'Telemetria do Sistema',
+            subtitle: 'Monitor de Hardware em Tempo Real',
+            desc: 'Cards dinâmicos de CPU, GPU, Memória RAM, Armazenamento e Velocidade de Rede.',
+            tools: ['CPU Cores & Load', 'GPU Metal Gauge', 'RAM GB Counter', 'SSD Macintosh HD', 'Rede Down/Up'],
             active: true
           }
         ]

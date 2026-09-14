@@ -1,0 +1,13 @@
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="dex_bg">#FF0F1117</color>
+    <color name="dex_surface">#FF1A1D27</color>
+    <color name="dex_primary">#FF3B82F6</color>
+    <color name="dex_primary_container">#FF1E3A8A</color>
+    <color name="dex_accent">#FF06B6D4</color>
+    <color name="dex_success">#FF10B981</color>
+    <color name="dex_text_primary">#FFF3F4F6</color>
+    <color name="dex_text_secondary">#FF9CA3AF</color>
+    <color name="dex_border">#FF2D3748</color>
+</resources>

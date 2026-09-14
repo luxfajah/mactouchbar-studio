@@ -1,0 +1,1988 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MacDeck Studio • Configuração e Controle Apple</title>
+  <style>
+    /* ==========================================================================
+       Apple HIG Design Foundations (macOS Sequoia & iPadOS Style)
+       ========================================================================== */
+    @font-face {
+      font-family: 'SF Pro Display';
+      src: url('fonts/SFPro.ttf') format('truetype');
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --apple-font: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --apple-mono: 'SF Mono', Menlo, Monaco, Consolas, monospace;
+
+      --bg-canvas: #0A0C10;
+      --bg-surface: rgba(24, 27, 34, 0.88);
+      --bg-surface-elevated: rgba(32, 36, 46, 0.96);
+      --bg-card: rgba(255, 255, 255, 0.05);
+      --bg-card-hover: rgba(255, 255, 255, 0.08);
+
+      --border-subtle: 0.5px solid rgba(255, 255, 255, 0.12);
+      --border-medium: 0.5px solid rgba(255, 255, 255, 0.22);
+      --border-focus: 2px solid #007AFF;
+
+      --glass-blur: blur(40px) saturate(190%);
+      --shadow-window: 0 32px 80px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.1);
+      --shadow-card: 0 12px 28px rgba(0, 0, 0, 0.4);
+
+      --apple-blue: #007AFF;
+      --apple-blue-glow: rgba(0, 122, 255, 0.45);
+      --apple-green: #34C759;
+      --apple-orange: #FF9500;
+      --apple-red: #FF3B30;
+      --apple-purple: #AF52DE;
+      --apple-indigo: #5856D6;
+      --apple-gold: #FFD60A;
+
+      --text-primary: #FFFFFF;
+      --text-secondary: rgba(255, 255, 255, 0.72);
+      --text-tertiary: rgba(255, 255, 255, 0.45);
+
+      --spring: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      font-family: var(--apple-font);
+      background-color: #060709;
+      background-image: radial-gradient(circle at 50% 0%, rgba(30, 50, 95, 0.32) 0%, transparent 70%),
+                        radial-gradient(circle at 100% 100%, rgba(80, 40, 120, 0.22) 0%, transparent 60%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+
+    /* Main Window Shell */
+    .mac-window {
+      width: 100%;
+      max-width: 1300px;
+      height: 860px;
+      background: var(--bg-surface);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border-radius: 20px;
+      border: var(--border-subtle);
+      box-shadow: var(--shadow-window);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Window Titlebar */
+    .mac-titlebar {
+      height: 48px;
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      position: relative;
+    }
+
+    .traffic-lights {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .traffic-light {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .traffic-light.close { background: #FF5F56; border: 0.5px solid #E0443E; }
+    .traffic-light.minimize { background: #FFBD2E; border: 0.5px solid #DEA123; }
+    .traffic-light.maximize { background: #27C93F; border: 0.5px solid #1AAB29; }
+
+    .window-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .connection-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.06);
+      border: var(--border-subtle);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .conn-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--apple-green);
+      box-shadow: 0 0 6px var(--apple-green);
+    }
+    .conn-dot.offline {
+      background: var(--apple-red);
+      box-shadow: 0 0 6px var(--apple-red);
+    }
+
+    /* Main Window Body: Sidebar + Main Content */
+    .mac-window-body {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Sidebar Navigation */
+    .mac-sidebar {
+      width: 230px;
+      background: rgba(0, 0, 0, 0.24);
+      border-right: var(--border-subtle);
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .nav-section-title {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 6px 10px 4px 10px;
+    }
+
+    .nav-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nav-item-btn {
+      width: 100%;
+      background: none;
+      border: none;
+      border-radius: 10px;
+      padding: 9px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.16s var(--spring);
+    }
+
+    .nav-item-btn:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: #FFFFFF;
+    }
+
+    .nav-item-btn.active {
+      background: var(--apple-blue);
+      color: #FFFFFF;
+      box-shadow: 0 4px 14px var(--apple-blue-glow);
+    }
+
+    .nav-icon {
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      font-size: 9.5px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.16);
+      letter-spacing: 0.2px;
+    }
+
+    .sidebar-footer {
+      padding: 12px 6px 0 6px;
+      border-top: var(--border-subtle);
+      font-size: 11px;
+      color: var(--text-tertiary);
+      line-height: 1.4;
+    }
+
+    /* Content Area */
+    .mac-content-viewport {
+      flex: 1;
+      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.15);
+      position: relative;
+    }
+
+    .content-screen {
+      display: none;
+      padding: 24px 28px;
+      min-height: 100%;
+    }
+
+    .content-screen.active {
+      display: block;
+      animation: fadeIn 0.25s var(--spring);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Screen Headers */
+    .screen-header {
+      margin-bottom: 20px;
+    }
+    .screen-title {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+      color: #FFFFFF;
+    }
+    .screen-subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    /* ==========================================================================
+       TELA 2: Configuração de Atalhos Studio (Drag & Drop + iPhone)
+       ========================================================================== */
+    .studio-grid-layout {
+      display: grid;
+      grid-template-columns: 500px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* Left: Realistic iPhone Simulator Mockup */
+    .iphone-stage-column {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .iphone-chassis {
+      width: 100%;
+      height: 255px;
+      background: #14171D;
+      border: 4px solid #2D323E;
+      border-radius: 40px;
+      padding: 10px 12px;
+      position: relative;
+      box-shadow: 0 24px 50px rgba(0, 0, 0, 0.75), inset 0 1px 2px rgba(255, 255, 255, 0.35), inset 0 -1px 2px rgba(0, 0, 0, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-size: cover;
+      background-position: center;
+      background-image: url('wallpaper.jpg');
+      overflow: hidden;
+    }
+
+    /* Dynamic Island Mask on Left Edge */
+    .iphone-island-mask {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 22px;
+      height: 74px;
+      background: #000000;
+      border-radius: 14px;
+      z-index: 20;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .iphone-camera-lens {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 40%, #1c263c 0%, #000000 100%);
+    }
+
+    /* iPhone 2x6 Simulator Grid with Full Drag & Drop */
+    .iphone-deck-grid {
+      width: 96%;
+      height: 94%;
+      margin-left: 14px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(25px) saturate(180%);
+      -webkit-backdrop-filter: blur(25px) saturate(180%);
+      border: 0.5px solid rgba(255, 255, 255, 0.28);
+      border-radius: 20px;
+      padding: 4px 6px;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 4px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .sim-slot-btn {
+      background: none;
+      border: 1.5px solid transparent;
+      border-radius: 12px;
+      padding: 2px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      position: relative;
+      transition: transform 0.15s var(--spring), border-color 0.15s, background 0.15s, opacity 0.15s;
+    }
+
+    .sim-slot-btn:active {
+      cursor: grabbing;
+    }
+
+    .sim-slot-btn:hover {
+      background: rgba(255, 255, 255, 0.14);
+      transform: scale(1.04);
+    }
+
+    .sim-slot-btn.selected {
+      border-color: var(--apple-blue);
+      background: rgba(0, 122, 255, 0.24);
+      box-shadow: 0 0 0 2px var(--apple-blue), 0 4px 14px var(--apple-blue-glow);
+      transform: scale(1.06);
+      z-index: 5;
+    }
+
+    /* Drag & Drop Visual States */
+    .sim-slot-btn.dragging {
+      opacity: 0.4;
+      transform: scale(0.92);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    .sim-slot-btn.drag-over {
+      border-color: var(--apple-blue);
+      border-style: dashed;
+      background: rgba(0, 122, 255, 0.35);
+      transform: scale(1.08);
+      box-shadow: 0 0 16px var(--apple-blue-glow);
+    }
+
+    .sim-slot-tag {
+      position: absolute;
+      top: -2px;
+      left: 2px;
+      font-size: 8.5px;
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.7);
+      background: rgba(0, 0, 0, 0.6);
+      padding: 1px 4px;
+      border-radius: 4px;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .sim-slot-icon-box {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .sim-slot-icon-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 10px;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+    }
+
+    .sim-slot-label {
+      font-size: 9px;
+      font-weight: 700;
+      color: #FFFFFF;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 90%;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+      margin-top: 1px;
+      pointer-events: none;
+    }
+
+    .sim-slot-dot {
+      width: 3.5px;
+      height: 3.5px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      box-shadow: 0 0 4px #FFFFFF;
+      margin-top: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .sim-slot-btn.running .sim-slot-dot {
+      opacity: 1;
+    }
+
+    /* Drag hint below iPhone */
+    .drag-hint-pill {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      text-align: center;
+    }
+
+    /* Presets Bar */
+    .preset-quick-bar {
+      background: var(--bg-card);
+      border: var(--border-subtle);
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .preset-btn-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    .preset-pill-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: var(--border-subtle);
+      color: var(--text-primary);
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .preset-pill-btn:hover {
+      background: rgba(255, 255, 255, 0.16);
+    }
+
+    /* Right: Shortcut Editor Pane */
+    .editor-pane-card {
+      background: var(--bg-surface-elevated);
+      border: var(--border-medium);
+      border-radius: 20px;
+      padding: 20px 22px;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .editor-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: var(--border-subtle);
+      padding-bottom: 14px;
+    }
+
+    .slot-indicator-badge {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .slot-icon-large-preview {
+      width: 54px;
+      height: 54px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.08);
+      border: var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .slot-icon-large-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 12px;
+    }
+
+    .slot-header-info h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+    .slot-header-info p {
+      font-size: 12px;
+      color: var(--text-tertiary);
+    }
+
+    .slot-nav-arrows {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-slot-nav {
+      background: rgba(255, 255, 255, 0.08);
+      border: var(--border-subtle);
+      color: var(--text-primary);
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .btn-slot-nav:hover { background: rgba(255, 255, 255, 0.16); }
+
+    /* Form Inputs */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      letter-spacing: -0.1px;
+    }
+
+    .apple-input-text {
+      width: 100%;
+      height: 38px;
+      background: rgba(0, 0, 0, 0.35);
+      border: var(--border-subtle);
+      border-radius: 10px;
+      padding: 0 12px;
+      font-size: 13.5px;
+      color: #FFFFFF;
+      font-family: var(--apple-font);
+      outline: none;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .apple-input-text:focus {
+      border-color: var(--apple-blue);
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    /* Action Type Segmented Control */
+    .action-segmented-bar {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      background: rgba(0, 0, 0, 0.35);
+      border: var(--border-subtle);
+      border-radius: 11px;
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .action-seg-btn {
+      background: none;
+      border: none;
+      border-radius: 8px;
+      padding: 7px 4px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      transition: all 0.15s var(--spring);
+    }
+
+    .action-seg-btn:hover { color: #FFFFFF; }
+
+    .action-seg-btn.active {
+      background: rgba(255, 255, 255, 0.18);
+      color: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Action Config Sub-Panels */
+    .action-subpanel {
+      display: none;
+      background: rgba(0, 0, 0, 0.22);
+      border: var(--border-subtle);
+      border-radius: 12px;
+      padding: 12px;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .action-subpanel.active { display: block; }
+
+    /* App Selector with Search Bar & Scrollable List */
+    .app-search-box {
+      margin-bottom: 8px;
+      position: relative;
+    }
+
+    .app-list-container {
+      max-height: 150px;
+      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.35);
+      border: var(--border-subtle);
+      border-radius: 10px;
+      padding: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .app-list-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+
+    .app-list-item:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .app-list-item.selected {
+      background: rgba(0, 122, 255, 0.25);
+      border: 0.5px solid var(--apple-blue);
+    }
+
+    .app-item-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      object-fit: contain;
+    }
+
+    .app-item-name {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #FFFFFF;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Interactive Keyboard Shortcut Recorder Box */
+    .key-recorder-box {
+      border: 1.5px dashed rgba(255, 255, 255, 0.3);
+      background: rgba(0, 122, 255, 0.05);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .key-recorder-box:focus, .key-recorder-box.recording {
+      border-color: var(--apple-blue);
+      border-style: solid;
+      background: rgba(0, 122, 255, 0.15);
+      box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.3);
+    }
+
+    .key-recorder-instructions {
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-align: center;
+    }
+
+    .key-badges-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .key-badge {
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 7px;
+      padding: 5px 10px;
+      font-size: 13px;
+      font-weight: 700;
+      font-family: var(--apple-mono);
+      color: #FFFFFF;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+
+    /* Icon Picker Tabs */
+    .icon-picker-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .icon-tabs-nav {
+      display: flex;
+      gap: 8px;
+      border-bottom: var(--border-subtle);
+      padding-bottom: 6px;
+    }
+
+    .icon-tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-tertiary);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 4px 8px;
+      position: relative;
+    }
+
+    .icon-tab-btn.active {
+      color: var(--apple-blue);
+    }
+
+    .icon-gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 6px;
+      max-height: 110px;
+      overflow-y: auto;
+      padding: 4px;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 10px;
+    }
+
+    .gallery-icon-choice {
+      aspect-ratio: 1/1;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid transparent;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 4px;
+      transition: all 0.15s;
+    }
+
+    .gallery-icon-choice:hover {
+      background: rgba(255, 255, 255, 0.16);
+      transform: scale(1.1);
+    }
+
+    .gallery-icon-choice.selected {
+      border-color: var(--apple-blue);
+      background: rgba(0, 122, 255, 0.3);
+    }
+
+    .gallery-icon-choice img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 6px;
+    }
+
+    /* Custom File Upload Box */
+    .custom-upload-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px dashed rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    .btn-choose-file {
+      background: var(--apple-blue);
+      border: none;
+      color: #FFFFFF;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    /* Save & Sync Footer */
+    .editor-footer-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .btn-save-sync {
+      flex: 1;
+      height: 44px;
+      background: var(--apple-blue);
+      border: none;
+      border-radius: 12px;
+      color: #FFFFFF;
+      font-size: 14.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 16px var(--apple-blue-glow);
+      transition: transform 0.15s, opacity 0.15s;
+    }
+    .btn-save-sync:active { transform: scale(0.98); opacity: 0.9; }
+
+    /* ==========================================================================
+       TELA 1: Visão Geral / Dashboard
+       ========================================================================== */
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .metric-card {
+      background: var(--bg-card);
+      border: var(--border-subtle);
+      border-radius: 16px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 140px;
+    }
+
+    .metric-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .metric-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: rgba(0, 122, 255, 0.2);
+      color: var(--apple-blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .metric-val {
+      font-size: 28px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      margin-top: 8px;
+    }
+
+    .metric-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* ==========================================================================
+       TELA 3: Central de Comando (Em Construção / Apple Blueprint)
+       ========================================================================== */
+    .construction-stage {
+      height: 620px;
+      border: 1px dashed rgba(255, 255, 255, 0.18);
+      border-radius: 24px;
+      background: radial-gradient(circle at 50% 50%, rgba(0, 122, 255, 0.06) 0%, rgba(0, 0, 0, 0.3) 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .blueprint-icon-box {
+      width: 96px;
+      height: 96px;
+      border-radius: 28px;
+      background: linear-gradient(135deg, rgba(0, 122, 255, 0.35) 0%, rgba(175, 82, 222, 0.25) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 44px;
+      box-shadow: 0 16px 40px rgba(0, 122, 255, 0.3);
+      margin-bottom: 20px;
+    }
+
+    .construction-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 149, 0, 0.18);
+      border: 0.5px solid rgba(255, 149, 0, 0.5);
+      color: var(--apple-orange);
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 14px;
+    }
+
+    .construction-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: #FFFFFF;
+      margin-bottom: 10px;
+    }
+
+    .construction-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      max-width: 520px;
+      line-height: 1.6;
+    }
+
+    .preview-shimmer-row {
+      display: flex;
+      gap: 14px;
+      margin-top: 36px;
+      opacity: 0.45;
+      filter: blur(0.5px);
+      pointer-events: none;
+    }
+
+    .shimmer-card {
+      width: 140px;
+      height: 90px;
+      background: rgba(255, 255, 255, 0.08);
+      border: var(--border-subtle);
+      border-radius: 16px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* Toast Notification */
+    .studio-toast {
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-30px);
+      background: rgba(30, 32, 40, 0.95);
+      border: var(--border-medium);
+      backdrop-filter: blur(20px);
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #FFFFFF;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s var(--spring);
+      z-index: 100;
+    }
+    .studio-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Main macOS App Window -->
+  <div class="mac-window">
+
+    <!-- Titlebar -->
+    <header class="mac-titlebar">
+      <div class="traffic-lights">
+        <span class="traffic-light close"></span>
+        <span class="traffic-light minimize"></span>
+        <span class="traffic-light maximize"></span>
+      </div>
+
+      <div class="window-title">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M4 6h16v10H4V6zm16-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2z"/></svg>
+        <span>MacDeck Studio</span>
+      </div>
+
+      <div class="connection-badge" id="mac-conn-status">
+        <span class="conn-dot" id="conn-dot"></span>
+        <span id="conn-text">Mac Conectado (127.0.0.1:9876)</span>
+      </div>
+    </header>
+
+    <!-- Body: Sidebar + Dynamic Screens -->
+    <div class="mac-window-body">
+      
+      <!-- Sidebar -->
+      <aside class="mac-sidebar">
+        <div>
+          <span class="nav-section-title">Controle</span>
+          <ul class="nav-list">
+            <li>
+              <button class="nav-item-btn" onclick="switchNavTab('overview')" id="nav-overview">
+                <span class="nav-icon">🖥️</span>
+                <span>Visão Geral</span>
+              </button>
+            </li>
+            <li>
+              <button class="nav-item-btn active" onclick="switchNavTab('shortcuts')" id="nav-shortcuts">
+                <span class="nav-icon">🎛️</span>
+                <span>Configurar Atalhos</span>
+                <span class="nav-badge">2x6</span>
+              </button>
+            </li>
+            <li>
+              <button class="nav-item-btn" onclick="switchNavTab('cc')" id="nav-cc">
+                <span class="nav-icon">⚙️</span>
+                <span>Central de Comando</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <div class="sidebar-footer">
+          <p><strong>MacTouchBar & DeX</strong></p>
+          <p>Sincronização bidirecional de atalhos e telemetria.</p>
+        </div>
+      </aside>
+
+      <!-- Viewport Content Area -->
+      <main class="mac-content-viewport">
+
+        <!-- ================================================================
+             TELA 1: Visão Geral (Dashboard)
+             ================================================================ -->
+        <section class="content-screen" id="screen-overview">
+          <div class="screen-header">
+            <h1 class="screen-title">Visão Geral do Sistema</h1>
+            <p class="screen-subtitle">Telemetria em tempo real do macOS e dispositivos móveis conectados.</p>
+          </div>
+
+          <div class="overview-grid">
+            <!-- 1. Mac Bateria -->
+            <div class="metric-card">
+              <div class="metric-top">
+                <span class="metric-icon">🔋</span>
+                <span style="font-size: 11px; font-weight: 700; color: var(--apple-green);">STATUS REAL</span>
+              </div>
+              <div>
+                <div class="metric-val" id="dash-battery">100%</div>
+                <div class="metric-sub" id="dash-battery-state">Carregando</div>
+              </div>
+            </div>
+
+            <!-- 2. Volume -->
+            <div class="metric-card">
+              <div class="metric-top">
+                <span class="metric-icon">🔊</span>
+                <span style="font-size: 11px; font-weight: 700; color: var(--apple-blue);">ÁUDIO</span>
+              </div>
+              <div>
+                <div class="metric-val" id="dash-volume">50%</div>
+                <div class="metric-sub">Saída Principal</div>
+              </div>
+            </div>
+
+            <!-- 3. AirPods -->
+            <div class="metric-card">
+              <div class="metric-top">
+                <span class="metric-icon">🎧</span>
+                <span style="font-size: 11px; font-weight: 700; color: var(--apple-purple);" id="dash-airpods-name">AirPods</span>
+              </div>
+              <div>
+                <div class="metric-val" id="dash-airpods-status">L: 100% | R: 100%</div>
+                <div class="metric-sub">Estojo: 90%</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================
+             TELA 2: Configurar Atalhos (Foco Principal, iPhone Interativo & Drag & Drop)
+             ================================================================ -->
+        <section class="content-screen active" id="screen-shortcuts">
+          <div class="screen-header">
+            <h1 class="screen-title">Configurar Atalhos do Deck (2x6)</h1>
+            <p class="screen-subtitle">Clique em um atalho para editar ou <strong>arraste e solte para reordenar</strong> a posição.</p>
+          </div>
+
+          <div class="studio-grid-layout">
+            
+            <!-- Left Column: iPhone Mockup Simulation with Drag & Drop -->
+            <div class="iphone-stage-column">
+              
+              <div class="iphone-chassis" id="iphone-chassis">
+                <!-- Dynamic Island Notch on Left -->
+                <div class="iphone-island-mask">
+                  <div class="iphone-camera-lens"></div>
+                </div>
+
+                <!-- 2x6 Simulator Deck Grid -->
+                <div class="iphone-deck-grid" id="sim-deck-grid">
+                  <!-- 12 slots populated dynamically with drag & drop -->
+                </div>
+              </div>
+
+              <div class="drag-hint-pill">
+                <span>✋ Arraste qualquer atalho no iPhone acima para trocar de lugar</span>
+              </div>
+
+              <!-- Quick Presets -->
+              <div class="preset-quick-bar">
+                <span style="font-size: 12px; font-weight: 700; color: var(--text-secondary);">Modelos Prontos:</span>
+                <div class="preset-btn-group">
+                  <button class="preset-pill-btn" onclick="applyPreset('default_apps')">🌟 Meus Apps</button>
+                  <button class="preset-pill-btn" onclick="applyPreset('developer')">💻 Desenvolvedor</button>
+                  <button class="preset-pill-btn" onclick="applyPreset('designer')">🎨 Designer</button>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Right Column: Shortcut Editor Pane -->
+            <div class="editor-pane-card">
+              
+              <!-- Selected Slot Header -->
+              <div class="editor-header">
+                <div class="slot-indicator-badge">
+                  <div class="slot-icon-large-preview" id="edit-icon-preview">
+                    <img id="edit-icon-img" src="icons/chrome.png" alt="Ícone">
+                  </div>
+                  <div class="slot-header-info">
+                    <h3 id="edit-slot-title">Slot 1 (Linha 1, Coluna 1)</h3>
+                    <p id="edit-slot-subtitle">Clique ou arraste outro slot no iPhone para trocar</p>
+                  </div>
+                </div>
+
+                <div class="slot-nav-arrows">
+                  <button class="btn-slot-nav" onclick="selectSlotRelative(-1)" title="Slot Anterior">‹</button>
+                  <button class="btn-slot-nav" onclick="selectSlotRelative(1)" title="Próximo Slot">›</button>
+                </div>
+              </div>
+
+              <!-- 1. Nome do Atalho -->
+              <div class="form-group">
+                <label class="form-label" for="input-slot-label">Nome do Botão / Rótulo:</label>
+                <input type="text" id="input-slot-label" class="apple-input-text" placeholder="Ex: Chrome, Salvar, Print..." oninput="onLabelInput(this.value)">
+              </div>
+
+              <!-- 2. Tipo de Ação (Segmented Control) -->
+              <div class="form-group">
+                <label class="form-label">Tipo de Ação:</label>
+                <div class="action-segmented-bar">
+                  <button class="action-seg-btn active" id="seg-btn-app" onclick="switchActionType('launch_app')">
+                    <span>📱</span>
+                    <span>App</span>
+                  </button>
+                  <button class="action-seg-btn" id="seg-btn-hotkey" onclick="switchActionType('hotkey')">
+                    <span>⌨️</span>
+                    <span>Atalho</span>
+                  </button>
+                  <button class="action-seg-btn" id="seg-btn-system" onclick="switchActionType('system')">
+                    <span>⚡</span>
+                    <span>Sistema</span>
+                  </button>
+                  <button class="action-seg-btn" id="seg-btn-terminal" onclick="switchActionType('terminal_cmd')">
+                    <span>💻</span>
+                    <span>Terminal</span>
+                  </button>
+                  <button class="action-seg-btn" id="seg-btn-sound" onclick="switchActionType('sound')">
+                    <span>🔔</span>
+                    <span>Som</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- 3. Sub-Painéis Dinâmicos de Ação -->
+              
+              <!-- Tab A: Abrir App (com Busca e Lista de mais de 200 Apps) -->
+              <div class="action-subpanel active" id="subpanel-app">
+                <div class="form-group">
+                  <label class="form-label">Escolher Aplicativo Instalado no Mac:</label>
+                  <div class="app-search-box">
+                    <input type="text" id="input-search-apps" class="apple-input-text" placeholder="🔍 Buscar aplicativo (ex: Photoshop, Chrome, Spotify, Figma...)" oninput="filterAppList(this.value)">
+                  </div>
+                  <div class="app-list-container" id="mac-apps-list">
+                    <!-- Populated dynamically with all Mac apps -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tab B: Atalho de Teclado (Gravador Dinâmico) -->
+              <div class="action-subpanel" id="subpanel-hotkey">
+                <div class="form-group">
+                  <label class="form-label">Gravador de Atalho de Teclado:</label>
+                  <div class="key-recorder-box" id="key-recorder-box" tabindex="0">
+                    <div class="key-badges-row" id="key-badges-container">
+                      <span class="key-badge">⌘ Cmd</span>
+                      <span class="key-badge">Shift</span>
+                      <span class="key-badge">4</span>
+                    </div>
+                    <p class="key-recorder-instructions" id="key-recorder-status">
+                      👉 Clique aqui e <strong>pressione as teclas no teclado</strong> para gravar
+                    </p>
+                  </div>
+                  <input type="hidden" id="input-hotkey-val" value="cmd+shift+4">
+                </div>
+              </div>
+
+              <!-- Tab C: Ação do Sistema -->
+              <div class="action-subpanel" id="subpanel-system">
+                <div class="form-group">
+                  <label class="form-label" for="select-sys-action">Ação Nativa do macOS:</label>
+                  <select id="select-sys-action" class="apple-input-text" onchange="onSysActionChange(this.value)">
+                    <option value="screenshot_interactive">📸 Captura de Área (⌘⇧4)</option>
+                    <option value="screen_record">🎥 Gravação de Tela (⌘⇧5)</option>
+                    <option value="show_desktop">🖥️ Mostrar Mesa (F11)</option>
+                    <option value="lock_screen">🔒 Bloquear Mac (⌃⌘Q)</option>
+                    <option value="restart_mac">🔄 Reiniciar Mac</option>
+                    <option value="shutdown_mac">⏻ Desligar Mac</option>
+                    <option value="shazam_recognize">🎵 Shazam (Reconhecer Música)</option>
+                    <option value="toggle_wifi">📶 Alternar Wi-Fi</option>
+                    <option value="toggle_bluetooth">⚡ Alternar Bluetooth</option>
+                    <option value="toggle_airdrop">📡 Alternar AirDrop</option>
+                    <option value="sleep_mac">💤 Dormir Mac</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Tab D: Terminal Script -->
+              <div class="action-subpanel" id="subpanel-terminal">
+                <div class="form-group">
+                  <label class="form-label" for="input-term-cmd">Comando Shell / Terminal:</label>
+                  <input type="text" id="input-term-cmd" class="apple-input-text" placeholder="Ex: npm run dev ou git status" oninput="onTermCmdInput(this.value)">
+                </div>
+              </div>
+
+              <!-- Tab E: Som -->
+              <div class="action-subpanel" id="subpanel-sound">
+                <div class="form-group">
+                  <label class="form-label" for="select-mac-sound">Efeito Sonoro do macOS:</label>
+                  <select id="select-mac-sound" class="apple-input-text" onchange="onSoundChange(this.value)">
+                    <option value="Glass">Glass (Vidro)</option>
+                    <option value="Pop">Pop</option>
+                    <option value="Ping">Ping</option>
+                    <option value="Funk">Funk</option>
+                    <option value="Hero">Hero</option>
+                    <option value="Bottle">Bottle</option>
+                    <option value="Submarine">Submarine</option>
+                    <option value="Tink">Tink</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- 4. Seletor de Ícones (Galeria do Sistema ou Upload Personalizado) -->
+              <div class="icon-picker-section">
+                <div class="icon-tabs-nav">
+                  <button class="icon-tab-btn active" id="tab-btn-sysicons" onclick="switchIconTab('gallery')">Ícones do Sistema</button>
+                  <button class="icon-tab-btn" id="tab-btn-customicons" onclick="switchIconTab('upload')">Personalizado / Upload</button>
+                </div>
+
+                <!-- Gallery -->
+                <div id="icon-gallery-box" class="icon-gallery-grid">
+                  <!-- Populated dynamically with official and SF Symbol icons -->
+                </div>
+
+                <!-- Custom Upload Box -->
+                <div id="icon-upload-box" class="custom-upload-box" style="display: none;">
+                  <button class="btn-choose-file" onclick="document.getElementById('input-file-icon').click()">📁 Escolher Imagem...</button>
+                  <input type="file" id="input-file-icon" accept="image/*" style="display: none;" onchange="handleCustomIconUpload(event)">
+                  <span style="font-size: 11.5px; color: var(--text-tertiary);" id="file-upload-name">Suporta PNG, JPG, SVG</span>
+                </div>
+              </div>
+
+              <!-- 5. Botões de Salvar & Sincronizar -->
+              <div class="editor-footer-actions">
+                <button class="btn-save-sync" onclick="saveAndSyncAll()">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+                  <span>Salvar e Sincronizar Tudo</span>
+                </button>
+              </div>
+
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ================================================================
+             TELA 3: Central de Comando (Em Construção / Apple Blueprint)
+             ================================================================ -->
+        <section class="content-screen" id="screen-cc">
+          <div class="screen-header">
+            <h1 class="screen-title">Central de Comando</h1>
+            <p class="screen-subtitle">Personalização de módulos, widgets e controles de sistema.</p>
+          </div>
+
+          <div class="construction-stage">
+            <div class="blueprint-icon-box">
+              ⚙️
+            </div>
+
+            <div class="construction-badge">
+              <span>🛠️ Em Construção • Versão 2.0</span>
+            </div>
+
+            <h2 class="construction-title">Central de Comando Modular</h2>
+            <p class="construction-desc">
+              Estamos desenvolvendo a nova Central de Comando modular no padrão Apple iPadOS com suporte a blocos arrastáveis, sliders táteis avançados e integrações com atalhos de automação do Mac.
+            </p>
+
+            <div class="preview-shimmer-row">
+              <div class="shimmer-card">
+                <span style="font-size: 20px;">📶</span>
+                <span style="font-size: 11px; font-weight: 700;">Wi-Fi 6E</span>
+              </div>
+              <div class="shimmer-card">
+                <span style="font-size: 20px;">⚡</span>
+                <span style="font-size: 11px; font-weight: 700;">Bluetooth</span>
+              </div>
+              <div class="shimmer-card">
+                <span style="font-size: 20px;">☀️</span>
+                <span style="font-size: 11px; font-weight: 700;">Brilho Real</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+    </div>
+
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="studio-toast" class="studio-toast">💾 Configurações salvas e sincronizadas!</div>
+
+  <script>
+    /* ==========================================================================
+       MacDeck Studio - Engine de Configuração Apple com Drag & Drop
+       ========================================================================== */
+    const DEFAULT_DECK_BUTTONS = [
+      { id: 'chrome', label: 'Chrome', iconUrl: 'icons/chrome.png', actionType: 'launch_app', payload: '/Applications/Google Chrome.app', isRunning: false },
+      { id: 'music', label: 'Música', iconUrl: 'icons/music.png', actionType: 'launch_app', payload: '/System/Applications/Music.app', isRunning: false },
+      { id: 'discord', label: 'Discord', iconUrl: 'icons/discord.png', actionType: 'launch_app', payload: '/Applications/Discord.app', isRunning: false },
+      { id: 'photoshop', label: 'Photoshop', iconUrl: 'icons/photoshop.png', actionType: 'launch_app', payload: '/Applications/Adobe Photoshop 2026/Adobe Photoshop 2026.app', isRunning: false },
+      { id: 'illustrator', label: 'Illustrator', iconUrl: 'icons/illustrator.png', actionType: 'launch_app', payload: '/Applications/Adobe Illustrator 2026/Adobe Illustrator.app', isRunning: false },
+      { id: 'indesign', label: 'InDesign', iconUrl: 'icons/indesign.png', actionType: 'launch_app', payload: '/Applications/Adobe InDesign 2026/Adobe InDesign 2026.app', isRunning: false },
+      { id: 'figma', label: 'Figma', iconUrl: 'icons/figma.png', actionType: 'launch_app', payload: '/Applications/Figma.app', isRunning: false },
+      { id: 'affinity', label: 'Affinity', iconUrl: 'icons/affinity.png', actionType: 'launch_app', payload: '/Applications/Affinity.app', isRunning: false },
+      { id: 'antigravity', label: 'Antigravity', iconUrl: 'icons/antigravity.png', actionType: 'launch_app', payload: '/Applications/Antigravity.app', isRunning: false },
+      { id: 'whatsapp', label: 'WhatsApp', iconUrl: 'icons/whatsapp.png', actionType: 'launch_app', payload: '/Applications/WhatsApp.app', isRunning: false },
+      { id: 'finder', label: 'Finder', iconUrl: 'icons/finder.png', actionType: 'launch_app', payload: '/System/Library/CoreServices/Finder.app', isRunning: true },
+      { id: 'launchpad', label: 'Launchpad', iconUrl: 'icons/settings.png', actionType: 'launch_app', payload: '/System/Applications/Launchpad.app', isRunning: false }
+    ];
+
+    const SYSTEM_GALLERY_ICONS = [
+      'chrome', 'music', 'discord', 'photoshop', 'illustrator', 'indesign',
+      'figma', 'affinity', 'antigravity', 'whatsapp', 'finder', 'settings'
+    ];
+
+    let currentButtons = JSON.parse(localStorage.getItem('mac_deck_buttons_v4') || 'null') || DEFAULT_DECK_BUTTONS;
+    let selectedSlotIndex = 0;
+    let installedAppsList = [];
+    let ws = null;
+    let isRecordingKey = false;
+    let draggedSlotIndex = null;
+
+    async function initStudio() {
+      renderIPhoneSlots();
+      populateSystemIconGallery();
+      selectSlot(0);
+      setupKeyRecorder();
+      await fetchInstalledApps();
+      connectWebSocket();
+    }
+
+    /* Tab Switching */
+    function switchNavTab(tabId) {
+      document.querySelectorAll('.nav-item-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.content-screen').forEach(screen => screen.classList.remove('active'));
+
+      const navBtn = document.getElementById(`nav-${tabId}`);
+      const screen = document.getElementById(`screen-${tabId}`);
+      if (navBtn) navBtn.classList.add('active');
+      if (screen) screen.classList.add('active');
+    }
+
+    /* Render iPhone Simulation Slots with Full Drag & Drop Support */
+    function renderIPhoneSlots() {
+      const grid = document.getElementById('sim-deck-grid');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      currentButtons.forEach((btn, idx) => {
+        const slotEl = document.createElement('div');
+        slotEl.className = 'sim-slot-btn' + (idx === selectedSlotIndex ? ' selected' : '') + (btn.isRunning ? ' running' : '');
+        slotEl.setAttribute('draggable', 'true');
+        slotEl.dataset.index = idx;
+
+        slotEl.onclick = () => selectSlot(idx);
+
+        // Drag and drop event listeners
+        slotEl.addEventListener('dragstart', (e) => {
+          draggedSlotIndex = idx;
+          slotEl.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', idx);
+        });
+
+        slotEl.addEventListener('dragend', () => {
+          slotEl.classList.remove('dragging');
+          document.querySelectorAll('.sim-slot-btn').forEach(s => s.classList.remove('drag-over'));
+        });
+
+        slotEl.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          slotEl.classList.add('drag-over');
+        });
+
+        slotEl.addEventListener('dragleave', () => {
+          slotEl.classList.remove('drag-over');
+        });
+
+        slotEl.addEventListener('drop', (e) => {
+          e.preventDefault();
+          slotEl.classList.remove('drag-over');
+          const targetIndex = idx;
+          if (draggedSlotIndex !== null && draggedSlotIndex !== targetIndex) {
+            // Swap buttons
+            const temp = currentButtons[draggedSlotIndex];
+            currentButtons[draggedSlotIndex] = currentButtons[targetIndex];
+            currentButtons[targetIndex] = temp;
+
+            selectedSlotIndex = targetIndex;
+            renderIPhoneSlots();
+            selectSlot(targetIndex);
+            showToast(`🔄 Atalhos trocados: Slot ${draggedSlotIndex + 1} ↔ Slot ${targetIndex + 1}`);
+          }
+          draggedSlotIndex = null;
+        });
+
+        const tag = document.createElement('span');
+        tag.className = 'sim-slot-tag';
+        tag.textContent = `${idx + 1}`;
+
+        const iconBox = document.createElement('div');
+        iconBox.className = 'sim-slot-icon-box';
+        const img = document.createElement('img');
+        img.src = btn.iconBase64 ? `data:image/png;base64,${btn.iconBase64}` : (btn.iconUrl || `icons/${btn.id || 'settings'}.png`);
+        img.onerror = () => { img.src = 'icons/settings.png'; };
+        iconBox.appendChild(img);
+
+        const label = document.createElement('span');
+        label.className = 'sim-slot-label';
+        label.textContent = btn.label || `Slot ${idx + 1}`;
+
+        const dot = document.createElement('span');
+        dot.className = 'sim-slot-dot';
+
+        slotEl.appendChild(tag);
+        slotEl.appendChild(iconBox);
+        slotEl.appendChild(label);
+        slotEl.appendChild(dot);
+        grid.appendChild(slotEl);
+      });
+    }
+
+    /* Select a Slot */
+    function selectSlot(index) {
+      if (index < 0 || index >= currentButtons.length) return;
+      selectedSlotIndex = index;
+
+      // Update iPhone slots focus
+      const slots = document.querySelectorAll('.sim-slot-btn');
+      slots.forEach((s, i) => {
+        if (i === index) s.classList.add('selected');
+        else s.classList.remove('selected');
+      });
+
+      // Load into Editor
+      const btn = currentButtons[index];
+      const row = Math.floor(index / 6) + 1;
+      const col = (index % 6) + 1;
+
+      document.getElementById('edit-slot-title').textContent = `Slot ${index + 1} (Linha ${row}, Coluna ${col})`;
+      document.getElementById('input-slot-label').value = btn.label || '';
+      
+      const imgPreview = document.getElementById('edit-icon-img');
+      if (imgPreview) {
+        imgPreview.src = btn.iconBase64 ? `data:image/png;base64,${btn.iconBase64}` : (btn.iconUrl || `icons/${btn.id || 'settings'}.png`);
+      }
+
+      switchActionType(btn.actionType || 'launch_app', false);
+
+      // Load action payload
+      const act = btn.actionType || 'launch_app';
+      if (act === 'launch_app') {
+        highlightSelectedAppInList(btn.payload || '');
+      } else if (act === 'hotkey') {
+        document.getElementById('input-hotkey-val').value = btn.payload || 'cmd+s';
+        renderKeyBadges(btn.payload || 'cmd+s');
+      } else if (act === 'system') {
+        const selSys = document.getElementById('select-sys-action');
+        if (selSys) selSys.value = btn.payload || 'screenshot_interactive';
+      } else if (act === 'terminal_cmd') {
+        document.getElementById('input-term-cmd').value = btn.payload || '';
+      } else if (act === 'sound') {
+        const selSnd = document.getElementById('select-mac-sound');
+        if (selSnd) selSnd.value = btn.payload || 'Glass';
+      }
+    }
+
+    function selectSlotRelative(offset) {
+      let next = selectedSlotIndex + offset;
+      if (next < 0) next = currentButtons.length - 1;
+      if (next >= currentButtons.length) next = 0;
+      selectSlot(next);
+    }
+
+    /* Switch Action Type */
+    function switchActionType(type, isUserClick = true) {
+      const types = ['launch_app', 'hotkey', 'system', 'terminal_cmd', 'sound'];
+      const mapSegId = {
+        'launch_app': 'seg-btn-app',
+        'hotkey': 'seg-btn-hotkey',
+        'system': 'seg-btn-system',
+        'terminal_cmd': 'seg-btn-terminal',
+        'sound': 'seg-btn-sound'
+      };
+      const mapPanelId = {
+        'launch_app': 'subpanel-app',
+        'hotkey': 'subpanel-hotkey',
+        'system': 'subpanel-system',
+        'terminal_cmd': 'subpanel-terminal',
+        'sound': 'subpanel-sound'
+      };
+
+      types.forEach(t => {
+        const seg = document.getElementById(mapSegId[t]);
+        const pan = document.getElementById(mapPanelId[t]);
+        if (seg) seg.classList.remove('active');
+        if (pan) pan.classList.remove('active');
+      });
+
+      const activeSeg = document.getElementById(mapSegId[type]);
+      const activePan = document.getElementById(mapPanelId[type]);
+      if (activeSeg) activeSeg.classList.add('active');
+      if (activePan) activePan.classList.add('active');
+
+      if (isUserClick) {
+        currentButtons[selectedSlotIndex].actionType = type;
+      }
+    }
+
+    /* Fetch Installed Mac Applications */
+    async function fetchInstalledApps() {
+      const host = window.location.hostname || '127.0.0.1';
+      try {
+        const res = await fetch(`http://${host}:9876/api/apps`);
+        if (res.ok) {
+          installedAppsList = await res.json();
+          renderAppList(installedAppsList);
+        } else {
+          fallbackDefaultApps();
+        }
+      } catch (e) {
+        fallbackDefaultApps();
+      }
+    }
+
+    function fallbackDefaultApps() {
+      installedAppsList = [
+        { name: 'Google Chrome', path: '/Applications/Google Chrome.app' },
+        { name: 'Música', path: '/System/Applications/Music.app' },
+        { name: 'Discord', path: '/Applications/Discord.app' },
+        { name: 'Adobe Photoshop', path: '/Applications/Adobe Photoshop 2026/Adobe Photoshop 2026.app' },
+        { name: 'Adobe Illustrator', path: '/Applications/Adobe Illustrator 2026/Adobe Illustrator.app' },
+        { name: 'Adobe InDesign', path: '/Applications/Adobe InDesign 2026/Adobe InDesign 2026.app' },
+        { name: 'Figma', path: '/Applications/Figma.app' },
+        { name: 'Affinity', path: '/Applications/Affinity.app' },
+        { name: 'Antigravity', path: '/Applications/Antigravity.app' },
+        { name: 'WhatsApp', path: '/Applications/WhatsApp.app' },
+        { name: 'Finder', path: '/System/Library/CoreServices/Finder.app' },
+        { name: 'Launchpad', path: '/System/Applications/Launchpad.app' },
+        { name: 'Visual Studio Code', path: '/Applications/Visual Studio Code.app' },
+        { name: 'Terminal', path: '/System/Applications/Utilities/Terminal.app' },
+        { name: 'Ajustes do Sistema', path: '/System/Applications/System Settings.app' }
+      ];
+      renderAppList(installedAppsList);
+    }
+
+    function renderAppList(apps) {
+      const container = document.getElementById('mac-apps-list');
+      if (!container) return;
+      container.innerHTML = '';
+
+      apps.forEach(app => {
+        const item = document.createElement('div');
+        item.className = 'app-list-item';
+        item.dataset.path = app.path;
+        item.onclick = () => selectApp(app);
+
+        const icon = document.createElement('img');
+        icon.className = 'app-item-icon';
+        const cleanName = app.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+        icon.src = `icons/${cleanName}.png`;
+        icon.onerror = () => { icon.src = 'icons/settings.png'; };
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'app-item-name';
+        nameSpan.textContent = app.name;
+
+        item.appendChild(icon);
+        item.appendChild(nameSpan);
+        container.appendChild(item);
+      });
+
+      const currentPayload = currentButtons[selectedSlotIndex]?.payload || '';
+      highlightSelectedAppInList(currentPayload);
+    }
+
+    function filterAppList(query) {
+      const q = query.toLowerCase().trim();
+      const filtered = installedAppsList.filter(a => a.name.toLowerCase().includes(q) || a.path.toLowerCase().includes(q));
+      renderAppList(filtered);
+    }
+
+    function selectApp(app) {
+      const btn = currentButtons[selectedSlotIndex];
+      btn.label = app.name;
+      btn.payload = app.path;
+      btn.actionType = 'launch_app';
+
+      const cleanName = app.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+      btn.id = cleanName;
+      btn.iconUrl = `icons/${cleanName}.png`;
+
+      document.getElementById('input-slot-label').value = app.name;
+      document.getElementById('edit-icon-img').src = `icons/${cleanName}.png`;
+
+      highlightSelectedAppInList(app.path);
+      renderIPhoneSlots();
+      showToast(`📱 Aplicativo selecionado: ${app.name}`);
+    }
+
+    function highlightSelectedAppInList(path) {
+      document.querySelectorAll('.app-list-item').forEach(item => {
+        if (item.dataset.path === path) item.classList.add('selected');
+        else item.classList.remove('selected');
+      });
+    }
+
+    /* Live Input Handlers */
+    function onLabelInput(val) {
+      currentButtons[selectedSlotIndex].label = val;
+      renderIPhoneSlots();
+    }
+
+    function onSysActionChange(val) {
+      currentButtons[selectedSlotIndex].payload = val;
+    }
+
+    function onTermCmdInput(val) {
+      currentButtons[selectedSlotIndex].payload = val;
+    }
+
+    function onSoundChange(val) {
+      currentButtons[selectedSlotIndex].payload = val;
+    }
+
+    /* Keyboard Shortcut Recorder */
+    function setupKeyRecorder() {
+      const box = document.getElementById('key-recorder-box');
+      if (!box) return;
+
+      box.addEventListener('click', () => {
+        isRecordingKey = true;
+        box.classList.add('recording');
+        document.getElementById('key-recorder-status').innerHTML = '🔴 <strong>Pressione a combinação no seu teclado agora...</strong>';
+      });
+
+      box.addEventListener('keydown', (e) => {
+        if (!isRecordingKey) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        const modifiers = [];
+        if (e.metaKey) modifiers.push('cmd');
+        if (e.ctrlKey) modifiers.push('ctrl');
+        if (e.altKey) modifiers.push('opt');
+        if (e.shiftKey) modifiers.push('shift');
+
+        let key = e.key.toLowerCase();
+        if (['meta', 'control', 'alt', 'shift'].includes(key)) {
+          return; // Wait for the actual key
+        }
+
+        if (key === ' ') key = 'space';
+        if (key === 'escape') key = 'esc';
+
+        const hotkeyStr = (modifiers.length > 0 ? modifiers.join('+') + '+' : '') + key;
+        document.getElementById('input-hotkey-val').value = hotkeyStr;
+        renderKeyBadges(hotkeyStr);
+
+        isRecordingKey = false;
+        box.classList.remove('recording');
+        document.getElementById('key-recorder-status').innerHTML = '✅ Atalho gravado! Clique para regravar.';
+        
+        currentButtons[selectedSlotIndex].payload = hotkeyStr;
+      });
+    }
+
+    function renderKeyBadges(hotkeyStr) {
+      const container = document.getElementById('key-badges-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const parts = hotkeyStr.split('+');
+      const symbolMap = {
+        'cmd': '⌘ Command',
+        'command': '⌘ Command',
+        'opt': '⌥ Option',
+        'alt': '⌥ Option',
+        'ctrl': '⌃ Control',
+        'control': '⌃ Control',
+        'shift': '⇧ Shift'
+      };
+
+      parts.forEach(p => {
+        const badge = document.createElement('span');
+        badge.className = 'key-badge';
+        badge.textContent = symbolMap[p.toLowerCase()] || p.toUpperCase();
+        container.appendChild(badge);
+      });
+    }
+
+    /* Icon Gallery */
+    function populateSystemIconGallery() {
+      const box = document.getElementById('icon-gallery-box');
+      if (!box) return;
+      box.innerHTML = '';
+
+      SYSTEM_GALLERY_ICONS.forEach(name => {
+        const item = document.createElement('div');
+        item.className = 'gallery-icon-choice';
+        item.onclick = () => selectSystemIcon(name);
+
+        const img = document.createElement('img');
+        img.src = `icons/${name}.png`;
+        img.alt = name;
+        item.appendChild(img);
+        box.appendChild(item);
+      });
+    }
+
+    function selectSystemIcon(name) {
+      const btn = currentButtons[selectedSlotIndex];
+      btn.id = name;
+      btn.iconUrl = `icons/${name}.png`;
+      btn.iconBase64 = '';
+
+      document.getElementById('edit-icon-img').src = `icons/${name}.png`;
+      renderIPhoneSlots();
+    }
+
+    function switchIconTab(tab) {
+      document.getElementById('tab-btn-sysicons').classList.toggle('active', tab === 'gallery');
+      document.getElementById('tab-btn-customicons').classList.toggle('active', tab === 'upload');
+      document.getElementById('icon-gallery-box').style.display = tab === 'gallery' ? 'grid' : 'none';
+      document.getElementById('icon-upload-box').style.display = tab === 'upload' ? 'flex' : 'none';
+    }
+
+    function handleCustomIconUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      document.getElementById('file-upload-name').textContent = file.name;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const b64 = e.target.result.split(',')[1];
+        const btn = currentButtons[selectedSlotIndex];
+        btn.iconBase64 = b64;
+        btn.iconUrl = '';
+        document.getElementById('edit-icon-img').src = e.target.result;
+        renderIPhoneSlots();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    /* Presets */
+    function applyPreset(preset) {
+      if (preset === 'default_apps') {
+        currentButtons = JSON.parse(JSON.stringify(DEFAULT_DECK_BUTTONS));
+      } else if (preset === 'developer') {
+        currentButtons = [
+          { id: 'vscode', label: 'VS Code', iconUrl: 'icons/chrome.png', actionType: 'launch_app', payload: '/Applications/Visual Studio Code.app' },
+          { id: 'terminal', label: 'Terminal', iconUrl: 'icons/settings.png', actionType: 'launch_app', payload: '/System/Applications/Utilities/Terminal.app' },
+          { id: 'save', label: 'Salvar', iconUrl: 'icons/finder.png', actionType: 'hotkey', payload: 'cmd+s' },
+          { id: 'search', label: 'Buscar', iconUrl: 'icons/antigravity.png', actionType: 'hotkey', payload: 'cmd+p' },
+          { id: 'git_status', label: 'Git Status', iconUrl: 'icons/affinity.png', actionType: 'terminal_cmd', payload: 'git status\n' },
+          { id: 'npm_dev', label: 'npm dev', iconUrl: 'icons/figma.png', actionType: 'terminal_cmd', payload: 'npm run dev\n' },
+          { id: 'chrome', label: 'Chrome', iconUrl: 'icons/chrome.png', actionType: 'launch_app', payload: '/Applications/Google Chrome.app' },
+          { id: 'print', label: 'Print Área', iconUrl: 'icons/settings.png', actionType: 'system', payload: 'screenshot_interactive' },
+          { id: 'lock', label: 'Bloquear', iconUrl: 'icons/settings.png', actionType: 'system', payload: 'lock_screen' },
+          { id: 'sound', label: 'Beep', iconUrl: 'icons/music.png', actionType: 'sound', payload: 'Glass' },
+          { id: 'desktop', label: 'Mesa', iconUrl: 'icons/finder.png', actionType: 'system', payload: 'show_desktop' },
+          { id: 'clear', label: 'Limpar', iconUrl: 'icons/settings.png', actionType: 'terminal_cmd', payload: 'clear\n' }
+        ];
+      } else if (preset === 'designer') {
+        currentButtons = [
+          { id: 'figma', label: 'Figma', iconUrl: 'icons/figma.png', actionType: 'launch_app', payload: '/Applications/Figma.app' },
+          { id: 'photoshop', label: 'Photoshop', iconUrl: 'icons/photoshop.png', actionType: 'launch_app', payload: '/Applications/Adobe Photoshop 2026/Adobe Photoshop 2026.app' },
+          { id: 'illustrator', label: 'Illustrator', iconUrl: 'icons/illustrator.png', actionType: 'launch_app', payload: '/Applications/Adobe Illustrator 2026/Adobe Illustrator.app' },
+          { id: 'indesign', label: 'InDesign', iconUrl: 'icons/indesign.png', actionType: 'launch_app', payload: '/Applications/Adobe InDesign 2026/Adobe InDesign 2026.app' },
+          { id: 'affinity', label: 'Affinity', iconUrl: 'icons/affinity.png', actionType: 'launch_app', payload: '/Applications/Affinity.app' },
+          { id: 'music', label: 'Música', iconUrl: 'icons/music.png', actionType: 'launch_app', payload: '/System/Applications/Music.app' },
+          { id: 'undo', label: 'Desfazer', iconUrl: 'icons/settings.png', actionType: 'hotkey', payload: 'cmd+z' },
+          { id: 'redo', label: 'Refazer', iconUrl: 'icons/settings.png', actionType: 'hotkey', payload: 'cmd+shift+z' },
+          { id: 'export', label: 'Exportar', iconUrl: 'icons/antigravity.png', actionType: 'hotkey', payload: 'cmd+shift+e' },
+          { id: 'chrome', label: 'Chrome', iconUrl: 'icons/chrome.png', actionType: 'launch_app', payload: '/Applications/Google Chrome.app' },
+          { id: 'finder', label: 'Finder', iconUrl: 'icons/finder.png', actionType: 'launch_app', payload: '/System/Library/CoreServices/Finder.app' },
+          { id: 'lock', label: 'Bloquear', iconUrl: 'icons/settings.png', actionType: 'system', payload: 'lock_screen' }
+        ];
+      }
+      renderIPhoneSlots();
+      selectSlot(0);
+      showToast('✨ Modelo carregado!');
+    }
+
+    /* Save & Sync All */
+    function saveAndSyncAll() {
+      // Save active slot field values
+      const btn = currentButtons[selectedSlotIndex];
+      btn.label = document.getElementById('input-slot-label').value.trim() || btn.label;
+
+      const act = btn.actionType || 'launch_app';
+      if (act === 'hotkey') {
+        btn.payload = document.getElementById('input-hotkey-val').value;
+      } else if (act === 'system') {
+        btn.payload = document.getElementById('select-sys-action').value;
+      } else if (act === 'terminal_cmd') {
+        btn.payload = document.getElementById('input-term-cmd').value;
+      } else if (act === 'sound') {
+        btn.payload = document.getElementById('select-mac-sound').value;
+      }
+
+      localStorage.setItem('mac_deck_buttons_v4', JSON.stringify(currentButtons));
+      renderIPhoneSlots();
+
+      // Send to Companion Server via WebSocket
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          action: 'save_deck_config',
+          params: { buttons: currentButtons }
+        }));
+      }
+
+      showToast('💾 Configurações salvas e sincronizadas com o Mac e Celular!');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('studio-toast');
+      if (!toast) return;
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+
+    /* WebSocket Connection */
+    function connectWebSocket() {
+      const host = window.location.hostname || '127.0.0.1';
+      const wsUrl = `ws://${host}:9876`;
+
+      try {
+        ws = new WebSocket(wsUrl);
+        ws.onopen = () => {
+          document.getElementById('conn-dot').classList.remove('offline');
+          document.getElementById('conn-text').textContent = `Mac Conectado (${host}:9876)`;
+        };
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'status_update') {
+              if (data.battery) {
+                document.getElementById('dash-battery').textContent = `${data.battery.percent}%`;
+                document.getElementById('dash-battery-state').textContent = data.battery.state || 'Normal';
+              }
+              if (typeof data.volume === 'number') {
+                document.getElementById('dash-volume').textContent = `${data.volume}%`;
+              }
+              if (data.airpods) {
+                document.getElementById('dash-airpods-name').textContent = data.airpods.name || 'AirPods';
+                document.getElementById('dash-airpods-status').textContent = `L: ${data.airpods.left}% | R: ${data.airpods.right}%`;
+              }
+            } else if (data.type === 'deck_config_update') {
+              if (Array.isArray(data.buttons) && data.buttons.length > 0) {
+                currentButtons = data.buttons;
+                renderIPhoneSlots();
+              }
+            }
+          } catch (e) {}
+        };
+        ws.onclose = () => {
+          document.getElementById('conn-dot').classList.add('offline');
+          document.getElementById('conn-text').textContent = 'Mac Desconectado (Tentando reconectar...)';
+          setTimeout(connectWebSocket, 3000);
+        };
+      } catch (e) {
+        setTimeout(connectWebSocket, 3000);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', initStudio);
+  </script>
+</body>
+</html>

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>MacTouchBar - Control Center & Deck</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Main Viewport -->
+  <div id="app-viewport">
+    
+    <!-- Dynamic Apple Backdrop Overlay for Control Center Blur -->
+    <div id="screen-backdrop-overlay" class="screen-backdrop-overlay"></div>
+
+    <!-- 1. Top Navigation & Status Bar -->
+    <header class="top-nav-bar">
+      <!-- Camera Green LED Indicator (Tiny Apple Privacy / Connection Dot) -->
+      <div id="btn-conn-settings" class="camera-led-pill" title="Status da Conexão com o Mac">
+        <span id="camera-led-dot" class="camera-led-dot connected"></span>
+      </div>
+
+      <!-- Right: Pure Apple Battery Icon (Sem IP do lado) -->
+      <div class="nav-right">
+        <div class="battery-shell" title="Bateria do Mac">
+          <div id="nav-battery-level" class="battery-level"></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- 2. Horizontal 3-Screen Carousel Slider -->
+    <main class="carousel-viewport" id="carousel-viewport">
+      <div class="carousel-track" id="carousel-track">
+        
+        <!-- ====================================================================
+             TELA 1 (Esquerda): Controle de Músicas Oficial Apple (StandBy / iOS)
+             ==================================================================== -->
+        <!-- ====================================================================
+             TELA 1 (Esquerda): StandBy Apple Music Player Oficial (Idêntico à Foto)
+             ==================================================================== -->
+        <section class="carousel-screen" id="screen-music">
+          <div class="music-standby-stage" id="music-standby-stage">
+            
+            <!-- Dynamic Island Camera Mask on Left -->
+            <div class="dynamic-island-mask">
+              <div class="island-camera-lens"></div>
+            </div>
+
+            <!-- Left: Floating Album Artwork -->
+            <div class="music-cover-wrapper">
+              <div class="music-art-floating" id="music-art-box">
+                <img id="music-art-img" src="icons/music.png" alt="Capa do Álbum">
+              </div>
+            </div>
+
+            <!-- Right: Controls Pane -->
+            <div class="music-controls-wrapper">
+              
+              <!-- Top Accessory Row: Speaker Volume Glyph on Left, AirPlay on Right -->
+              <div class="music-top-accessory-row">
+                <button class="btn-accessory-icon" onclick="sendMacAction('system_command', {command: 'launch_music'})" title="Volume">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                </button>
+                <button class="btn-accessory-icon" onclick="sendMacAction('toggle_favorite')" id="btn-music-fav" title="Favorito / Saída de Áudio">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8a4 4 0 0 1 4 4"/><path d="M12 6a6 6 0 0 1 6 6"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>
+                </button>
+              </div>
+
+              <!-- Meta: Track Title & Artist (Centered, Large & Bold) -->
+              <div class="music-center-meta">
+                <h1 id="music-title" class="music-meta-title">Nenhuma reprodução</h1>
+                <h2 id="music-artist" class="music-meta-artist">Apple Music</h2>
+              </div>
+
+              <!-- Playback Controls Row: <<, || / ▶, >> -->
+              <div class="music-playback-glyphs">
+                <button class="btn-glyph-action" onclick="sendMacAction('media_prev')" title="Anterior">
+                  <svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor"><path d="M11 16.5V7.5L4 12l7 4.5zm8 0V7.5L12 12l7 4.5z"/></svg>
+                </button>
+                <button id="btn-main-play" class="btn-glyph-action btn-glyph-play" onclick="sendMacAction('media_play_pause')" title="Play / Pause">
+                  <span id="glyph-play">
+                    <svg viewBox="0 0 24 24" width="42" height="42" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                  </span>
+                </button>
+                <button class="btn-glyph-action" onclick="sendMacAction('media_next')" title="Próximo">
+                  <svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor"><path d="M5 7.5v9l7-4.5-7-4.5zm8 0v9l7-4.5-7-4.5z"/></svg>
+                </button>
+              </div>
+
+              <!-- Scrubber Bar with Elapsed & Remaining Time -->
+              <div class="music-scrubber-capsule-wrap">
+                <div id="music-scrubber-track" class="scrubber-capsule-track">
+                  <div id="music-scrubber-fill" class="scrubber-capsule-fill" style="width: 0%;"></div>
+                </div>
+                <div class="music-scrubber-times">
+                  <span id="music-time-elapsed">0:00</span>
+                  <span id="music-time-remaining">-0:00</span>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ====================================================================
+             TELA 2 (Central): Deck 2x6 (Vidro Único 100% Transparente & Ícones Flutuantes)
+             ==================================================================== -->
+        <section class="carousel-screen" id="screen-deck">
+          <div class="deck-screen-container">
+            <!-- 2x6 Shortcuts Grid with Real Mac Icons and Running Dots -->
+            <div id="deck-grid" class="deck-grid-surface">
+              <!-- Dynamically populated with user-configured shortcuts from Mac -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ====================================================================
+             TELA 3 (Direita): Central de Controle Oficial iPadOS / macOS
+             ==================================================================== -->
+        <section class="carousel-screen" id="screen-cc">
+          <div class="cc-screen-container">
+            <div class="cc-ios-grid">
+              
+              <!-- Column 1: Connectivity (2x2) + Battery Card below -->
+              <div class="cc-col-left">
+                <!-- 2x2 Pod: Wi-Fi, Bluetooth, AirDrop, Reconhecimento de Música (Shazam) -->
+                <div class="cc-pod-2x2">
+                  <!-- Wi-Fi -->
+                  <button id="btn-cc-wifi" class="cc-tile-btn active-blue" onclick="sendMacAction('system_command', {command: 'toggle_wifi'})" title="Wi-Fi">
+                    <div class="cc-tile-icon-circle">
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 4C7.31 4 3.07 5.9 0 8.98L12 21 24 8.98A16.88 16.88 0 0 0 12 4zm0 4.5c3.34 0 6.38 1.34 8.58 3.52L12 20.65 3.42 12.02A12.16 12.16 0 0 1 12 8.5z"/></svg>
+                    </div>
+                    <div class="cc-tile-texts">
+                      <span class="cc-tile-title">Wi-Fi</span>
+                      <span id="cc-wifi-label" class="cc-tile-sub">Ativo</span>
+                    </div>
+                  </button>
+
+                  <!-- Bluetooth -->
+                  <button id="btn-cc-bluetooth" class="cc-tile-btn active-blue" onclick="sendMacAction('system_command', {command: 'toggle_bluetooth'})" title="Bluetooth">
+                    <div class="cc-tile-icon-circle">
+                      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M14.88 16.29L13 14.41v5.18l1.88-3.3zm0-8.58L13 4.41v5.18l1.88-1.88zM11 2v7.59L6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 11 14.41V22h2l5-5-3.59-5L18 7l-5-5h-2z"/></svg>
+                    </div>
+                    <div class="cc-tile-texts">
+                      <span class="cc-tile-title">Bluetooth</span>
+                      <span id="cc-bt-label" class="cc-tile-sub">Ativo</span>
+                    </div>
+                  </button>
+
+                  <!-- AirDrop -->
+                  <button id="btn-cc-airdrop" class="cc-tile-btn active-blue" onclick="sendMacAction('system_command', {command: 'toggle_airdrop'})" title="AirDrop">
+                    <div class="cc-tile-icon-circle">
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2.5a9.5 9.5 0 0 0-6.72 16.22l1.42-1.42A7.5 7.5 0 1 1 17.3 17.3l1.42 1.42A9.5 9.5 0 0 0 12 2.5zm0 4a5.5 5.5 0 0 0-3.89 9.39l1.42-1.42A3.5 3.5 0 1 1 14.47 14.47l1.42 1.42A5.5 5.5 0 0 0 12 6.5zm0 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg>
+                    </div>
+                    <div class="cc-tile-texts">
+                      <span class="cc-tile-title">AirDrop</span>
+                      <span class="cc-tile-sub">Todos</span>
+                    </div>
+                  </button>
+
+                  <!-- Reconhecimento de Música (Shazam) -->
+                  <button id="btn-cc-shazam" class="cc-tile-btn active-blue" onclick="sendMacAction('system_command', {command: 'shazam_recognize'})" title="Reconhecimento de Música (Shazam)">
+                    <div class="cc-tile-icon-circle">
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19.78 11.23a7.33 7.33 0 0 0-5.83-5.83 7.42 7.42 0 0 0-6.76 2.3 1.76 1.76 0 0 0 2.49 2.49 3.82 3.82 0 0 1 3.54-1.2 3.73 3.73 0 0 1 2.92 2.92 3.82 3.82 0 0 1-1.2 3.54l-3.3 3.3a3.83 3.83 0 0 1-5.32-5.32 1.76 1.76 0 0 0-2.49-2.49 7.42 7.42 0 0 0 0 10.42 7.42 7.42 0 0 0 10.42 0l3.3-3.3a7.33 7.33 0 0 0 2.23-6.83zm-9.2 1.54a3.82 3.82 0 0 1-3.54 1.2 3.73 3.73 0 0 1-2.92-2.92 3.82 3.82 0 0 1 1.2-3.54l3.3-3.3a3.83 3.83 0 0 1 5.32 5.32 1.76 1.76 0 0 0 2.49 2.49 7.42 7.42 0 0 0 0-10.42 7.42 7.42 0 0 0-10.42 0l-3.3 3.3a7.33 7.33 0 0 0-2.23 6.83 7.33 7.33 0 0 0 5.83 5.83 7.42 7.42 0 0 0 6.76-2.3 1.76 1.76 0 0 0-2.49-2.49 3.82 3.82 0 0 1-2.5 1.69z"/></svg>
+                    </div>
+                    <div class="cc-tile-texts">
+                      <span class="cc-tile-title">Shazam</span>
+                      <span id="cc-shazam-sub" class="cc-tile-sub">Ouvir</span>
+                    </div>
+                  </button>
+                </div>
+
+                <!-- Bateria Card Pod (Status Real do Mac) -->
+                <div class="cc-battery-card" title="Status da Bateria do Mac">
+                  <div class="cc-battery-top">
+                    <div class="cc-battery-graphic">
+                      <div class="cc-battery-shell-big">
+                        <div id="cc-battery-level-bar" class="cc-battery-level-fill" style="width: 100%;"></div>
+                      </div>
+                      <span id="cc-battery-bolt-icon" class="cc-battery-bolt">⚡</span>
+                    </div>
+                    <span id="cc-battery-pct-label" class="cc-battery-pct-text">100%</span>
+                  </div>
+                  <div class="cc-battery-bottom">
+                    <span class="cc-battery-name">Bateria do Mac</span>
+                    <span id="cc-battery-mode-label" class="cc-battery-mode">Carregando</span>
+                  </div>
+                </div>
+
+                <!-- AirPods Battery Card Pod (L, R, Case) -->
+                <div id="cc-airpods-card" class="cc-airpods-card" title="Status dos AirPods">
+                  <div class="cc-airpods-header">
+                    <div class="cc-airpods-title-wrap">
+                      <svg class="cc-airpods-glyph" viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12c0 2.85 1.2 5.41 3.12 7.22l1.42-1.42C4.98 16.36 4 14.3 4 12c0-4.41 3.59-8 8-8s8 3.59 8 8c0 2.3-.98 4.36-2.54 5.8l1.42 1.42C20.8 17.41 22 14.85 22 12c0-5.52-4.48-10-10-10zm-3 8c-.55 0-1 .45-1 1v6c0 1.66 1.34 3 3 3h2c1.66 0 3-1.34 3-3v-6c0-.55-.45-1-1-1H9zm1 7v-5h1v5h-1zm4 0v-5h1v5h-1z"/>
+                      </svg>
+                      <span id="cc-airpods-name" class="cc-airpods-name">AirPods</span>
+                    </div>
+                    <span id="cc-airpods-status" class="cc-airpods-status-badge disconnected">Offline</span>
+                  </div>
+
+                  <div class="cc-airpods-gauges">
+                    <!-- Left Pod -->
+                    <div class="cc-airpod-gauge-item" title="Fone Esquerdo (L)">
+                      <div class="cc-airpod-icon-gauge">
+                        <span class="cc-airpod-tag">L</span>
+                        <div class="cc-airpod-mini-bar">
+                          <div id="cc-airpod-fill-left" class="cc-airpod-mini-fill" style="width: 100%;"></div>
+                        </div>
+                      </div>
+                      <span id="cc-airpod-pct-left" class="cc-airpod-val">100%</span>
+                    </div>
+
+                    <!-- Right Pod -->
+                    <div class="cc-airpod-gauge-item" title="Fone Direito (R)">
+                      <div class="cc-airpod-icon-gauge">
+                        <span class="cc-airpod-tag">R</span>
+                        <div class="cc-airpod-mini-bar">
+                          <div id="cc-airpod-fill-right" class="cc-airpod-mini-fill" style="width: 100%;"></div>
+                        </div>
+                      </div>
+                      <span id="cc-airpod-pct-right" class="cc-airpod-val">100%</span>
+                    </div>
+
+                    <!-- Case -->
+                    <div class="cc-airpod-gauge-item" title="Estojo de Carga (Case)">
+                      <div class="cc-airpod-icon-gauge">
+                        <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" style="opacity: 0.9;"><rect x="4" y="5" width="16" height="15" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 2h8v3H8z" fill="currentColor"/></svg>
+                        <div class="cc-airpod-mini-bar">
+                          <div id="cc-airpod-fill-case" class="cc-airpod-mini-fill" style="width: 90%;"></div>
+                        </div>
+                      </div>
+                      <span id="cc-airpod-pct-case" class="cc-airpod-val">90%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Column 2: Sliders (Brilho & Volume Capsule Sliders) -->
+              <div class="cc-col-sliders">
+                <!-- Brilho Capsule Slider -->
+                <div id="slider-box-brightness" class="cc-slider-capsule-box" title="Brilho da Tela">
+                  <div id="slider-fill-brightness" class="cc-slider-capsule-fill" style="height: 75%;"></div>
+                  <div class="cc-slider-icon-box">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+                    <span class="cc-slider-name">Brilho</span>
+                  </div>
+                </div>
+
+                <!-- Volume Capsule Slider -->
+                <div id="slider-box-volume" class="cc-slider-capsule-box" title="Volume do Áudio">
+                  <div id="slider-fill-volume" class="cc-slider-capsule-fill" style="height: 50%;"></div>
+                  <div class="cc-slider-icon-box">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                    <span class="cc-slider-name">Volume</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Column 3: Atalhos de Ação Rápida (Grade 2x3 de Atalhos Nativos) -->
+              <div class="cc-col-actions">
+                <div class="cc-actions-grid">
+                  
+                  <!-- 1. Print (Win/Cmd + Shift + 4) -->
+                  <button class="cc-action-card" onclick="sendMacAction('system_command', {command: 'screenshot_area'})" title="Captura de Área (Cmd+Shift+4)">
+                    <div class="cc-action-icon-wrap">
+                      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M4 4h3l2-2h6l2 2h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm8 14a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0-2a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg>
+                    </div>
+                    <div class="cc-action-info">
+                      <span class="cc-action-title">Print</span>
+                      <span class="cc-action-hotkey">⌘⇧4</span>
+                    </div>
+                  </button>
+
+                  <!-- 2. Gravar Tela (Win/Cmd + Shift + 5) -->
+                  <button class="cc-action-card" onclick="sendMacAction('system_command', {command: 'screen_record'})" title="Gravar Tela (Cmd+Shift+5)">
+                    <div class="cc-action-icon-wrap record-wrap">
+                      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><circle cx="12" cy="12" r="5" fill="#FF3B30"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/></svg>
+                    </div>
+                    <div class="cc-action-info">
+                      <span class="cc-action-title">Gravar Tela</span>
+                      <span class="cc-action-hotkey">⌘⇧5</span>
+                    </div>
+                  </button>
+
+                  <!-- 3. Mesa (F11) -->
+                  <button class="cc-action-card" onclick="sendMacAction('system_command', {command: 'show_desktop'})" title="Mostrar Mesa (F11)">
+                    <div class="cc-action-icon-wrap">
+                      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H3V4h18v12z"/></svg>
+                    </div>
+                    <div class="cc-action-info">
+                      <span class="cc-action-title">Mesa</span>
+                      <span class="cc-action-hotkey">F11</span>
+                    </div>
+                  </button>
+
+                  <!-- 4. Bloquear Tela (Ctrl + Cmd + Q) -->
+                  <button class="cc-action-card" onclick="sendMacAction('system_command', {command: 'lock_screen'})" title="Bloquear Mac (Ctrl+Cmd+Q)">
+                    <div class="cc-action-icon-wrap">
+                      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                    </div>
+                    <div class="cc-action-info">
+                      <span class="cc-action-title">Bloquear</span>
+                      <span class="cc-action-hotkey">⌃⌘Q</span>
+                    </div>
+                  </button>
+
+                  <!-- 5. Reiniciar -->
+                  <button class="cc-action-card" onclick="sendMacAction('system_command', {command: 'restart_mac'})" title="Reiniciar Mac">
+                    <div class="cc-action-icon-wrap">
+                      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                    </div>
+                    <div class="cc-action-info">
+                      <span class="cc-action-title">Reiniciar</span>
+                      <span class="cc-action-hotkey">Mac</span>
+                    </div>
+                  </button>
+
+                  <!-- 6. Desligar -->
+                  <button class="cc-action-card btn-power-off" onclick="sendMacAction('system_command', {command: 'shutdown_mac'})" title="Desligar Mac">
+                    <div class="cc-action-icon-wrap power-wrap">
+                      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42A7.92 7.92 0 0 1 20 12c0 4.42-3.58 8-8 8s-8-3.58-8-8c0-2.47 1.13-4.68 2.91-6.15L5.49 4.43A9.953 9.953 0 0 0 2 12c0 5.52 4.48 10 10 10s10-4.48 10-10c0-2.76-1.12-5.26-2.92-7.07l-.25.24z"/></svg>
+                    </div>
+                    <div class="cc-action-info">
+                      <span class="cc-action-title">Desligar</span>
+                      <span class="cc-action-hotkey">Mac</span>
+                    </div>
+                  </button>
+
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- 3. Bottom Centered Page Indicator Dots (Indicador de Rolagem na Parte Inferior) -->
+    <footer class="bottom-nav-bar">
+      <div class="screen-page-dots" id="screen-page-dots">
+        <span id="dot-page-0" class="page-dot" onclick="goToScreen(0)" title="Música"></span>
+        <span id="dot-page-1" class="page-dot active" onclick="goToScreen(1)" title="Deck 2x6"></span>
+        <span id="dot-page-2" class="page-dot" onclick="goToScreen(2)" title="Central de Controle"></span>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Connection Modal -->
+  <div id="modal-conn-setup" class="overlay-modal">
+    <div class="setup-dialog">
+      <div class="radar-circle">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M20 18c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/></svg>
+      </div>
+
+      <h2 style="font-size: 17px; font-weight: 700; margin-bottom: 4px;">Conectar ao Mac</h2>
+      <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.4;">
+        Informe o IP do Mac na rede Wi-Fi local para conexão direta e contínua.
+      </p>
+
+      <div class="setup-inputs-row">
+        <input type="text" id="input-mac-ip" class="setup-field" placeholder="192.168.1.6" value="192.168.1.6">
+        <input type="number" id="input-mac-port" class="setup-field" style="max-width: 80px;" placeholder="9876" value="9876">
+      </div>
+
+      <button id="btn-save-connect" class="btn-primary-action">Salvar e Conectar</button>
+      <button onclick="document.getElementById('modal-conn-setup').classList.remove('active')" style="margin-top: 10px; background: none; border: none; color: var(--text-secondary); font-size: 12px; cursor: pointer;">Fechar</button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast-bubble" class="toast-bubble"></div>
+
+  <!-- App Script -->
+  <script src="app.js"></script>
+</body>
+</html>

@@ -3313,9 +3313,9 @@ img {
 }
 
 /* ==========================================================================
-   TASK MANAGER ADDON (Windows Style + Apple Glassmorphism)
+   HUD HARDWARE TELEMETRY DASHBOARD (Apple Glassmorphism + High Tech HUD)
    ========================================================================== */
-.taskmgr-container {
+.hud-telemetry-container {
   width: 98%;
   max-width: 980px;
   height: calc(100vh - 44px);
@@ -3327,347 +3327,270 @@ img {
   -webkit-backdrop-filter: var(--glass-blur);
   border: var(--glass-border);
   border-radius: 20px;
-  padding: 10px 14px 8px 14px;
+  padding: 10px 14px 10px 14px;
   box-sizing: border-box;
   overflow: hidden;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
 }
 
-.taskmgr-header-bar {
+.hud-telemetry-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
   padding-bottom: 8px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
 }
 
-.taskmgr-title-group {
+.hud-header-left {
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-width: 170px;
+  gap: 10px;
 }
 
-.taskmgr-badge-icon {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #007AFF, #00C7BE);
+.hud-header-icon-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #007AFF, #5856D6);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.4);
+  box-shadow: 0 2px 10px rgba(0, 122, 255, 0.35);
 }
 
-.taskmgr-title {
-  font-size: 13.5px;
+.hud-header-title {
+  font-size: 14px;
   font-weight: 700;
   color: #ffffff;
   margin: 0;
   line-height: 1.15;
 }
 
-.taskmgr-subtitle {
-  font-size: 10px;
+.hud-header-sub {
+  font-size: 10.5px;
   color: rgba(255, 255, 255, 0.55);
 }
 
-/* Top Telemetry 3-Card Cluster */
-.taskmgr-telemetry-row {
+.hud-header-right {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 1;
-  max-width: 440px;
 }
 
-.taskmgr-metric-card {
-  flex: 1;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 10px;
-  padding: 4px 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.taskmgr-metric-head {
-  display: flex;
+.hud-live-pill {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  font-size: 10px;
-  font-weight: 600;
+  gap: 5px;
+  background: rgba(52, 199, 89, 0.15);
+  border: 1px solid rgba(52, 199, 89, 0.3);
+  border-radius: 12px;
+  padding: 3px 8px;
 }
 
-.taskmgr-metric-label {
-  color: rgba(255, 255, 255, 0.65);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.taskmgr-metric-val {
-  color: #ffffff;
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-}
-
-.taskmgr-progress-track {
-  width: 100%;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 2px;
-  overflow: hidden;
-  position: relative;
-}
-
-.taskmgr-progress-fill {
-  height: 100%;
+.hud-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
   background: #34C759;
-  border-radius: 2px;
-  transition: width 0.3s ease, background 0.3s ease;
+  box-shadow: 0 0 8px #34C759;
+  animation: hudPulse 1.8s infinite;
 }
 
-.taskmgr-progress-fill.gpu-fill {
-  background: #007AFF;
+@keyframes hudPulse {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.8; }
 }
 
-.taskmgr-progress-fill.ram-fill {
-  background: #AF52DE;
+.hud-live-text {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #34C759;
+  letter-spacing: 0.4px;
 }
 
-.taskmgr-progress-fill.heat-mid {
-  background: #FF9500;
-}
-
-.taskmgr-progress-fill.heat-high {
-  background: #FF3B30;
-}
-
-/* Search and Filter bar */
-.taskmgr-actions-bar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.taskmgr-search-box {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 8px;
-  padding: 4px 8px;
-  width: 130px;
-  transition: width 0.2s ease, border-color 0.2s ease;
-}
-
-.taskmgr-search-box:focus-within {
-  width: 160px;
-  border-color: #007AFF;
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.taskmgr-search-box svg {
-  color: rgba(255, 255, 255, 0.5);
-  flex-shrink: 0;
-}
-
-.taskmgr-search-box input {
-  background: none;
-  border: none;
-  color: #ffffff;
-  font-size: 11px;
-  outline: none;
-  width: 100%;
-}
-
-.taskmgr-search-box input::placeholder {
-  color: rgba(255, 255, 255, 0.4);
-}
-
-.taskmgr-toggle-btn {
+.hud-refresh-btn {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 8px;
-  color: #ffffff;
-  padding: 4px 8px;
-  font-size: 10.5px;
-  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   transition: all 0.15s ease;
-  white-space: nowrap;
 }
 
-.taskmgr-toggle-btn:active, .taskmgr-toggle-btn.active {
+.hud-refresh-btn:active {
+  transform: scale(0.92);
   background: #007AFF;
-  border-color: #007AFF;
+  color: #fff;
 }
 
-/* Process Table Header */
-.taskmgr-table-header {
+/* 5-Card HUD Grid */
+.hud-cards-grid {
   display: grid;
-  grid-template-columns: 2.5fr 0.8fr 1fr 1.2fr 1fr;
-  align-items: center;
-  padding: 6px 10px 4px 10px;
-  font-size: 10px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.45);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  flex-shrink: 0;
-}
-
-.taskmgr-col {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.col-pid { text-align: center; }
-.col-cpu { text-align: center; }
-.col-mem { text-align: center; }
-.col-action { text-align: right; }
-
-/* Scrollable Process List */
-.taskmgr-process-list {
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 8px;
   flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding-right: 2px;
-  margin-top: 4px;
+  margin-top: 8px;
+  min-height: 0;
+}
+
+.hud-card {
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.085);
+  border-radius: 12px;
+  padding: 8px 10px;
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  min-height: 0;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  justify-content: space-between;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
 }
 
-.taskmgr-process-list::-webkit-scrollbar {
-  width: 4px;
-}
-
-.taskmgr-process-list::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-}
-
-/* Process Row */
-.taskmgr-row {
-  display: grid;
-  grid-template-columns: 2.5fr 0.8fr 1fr 1.2fr 1fr;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 8px;
-  padding: 4px 8px;
-  transition: background 0.12s ease, border-color 0.12s ease, transform 0.1s ease;
-}
-
-.taskmgr-row:hover {
+.hud-card:hover {
   background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.16);
 }
 
-.taskmgr-proc-ident {
+.hud-card-disk {
+  grid-column: span 1;
+}
+
+.hud-card-net {
+  grid-column: span 2;
+}
+
+.hud-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.hud-card-label-wrap {
   display: flex;
   align-items: center;
-  gap: 8px;
-  overflow: hidden;
+  gap: 6px;
 }
 
-.taskmgr-proc-icon {
-  width: 22px;
-  height: 22px;
-  border-radius: 5px;
-  object-fit: cover;
-  flex-shrink: 0;
+.hud-card-tag {
+  font-size: 8.5px;
+  font-weight: 800;
+  padding: 2px 5px;
+  border-radius: 4px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
 }
 
-.taskmgr-proc-icon-fallback {
-  width: 22px;
-  height: 22px;
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.tag-cpu { background: rgba(0, 122, 255, 0.2); color: #007AFF; border: 1px solid rgba(0, 122, 255, 0.3); }
+.tag-gpu { background: rgba(88, 86, 214, 0.2); color: #5856D6; border: 1px solid rgba(88, 86, 214, 0.3); }
+.tag-ram { background: rgba(175, 82, 222, 0.2); color: #AF52DE; border: 1px solid rgba(175, 82, 222, 0.3); }
+.tag-disk { background: rgba(255, 149, 0, 0.2); color: #FF9500; border: 1px solid rgba(255, 149, 0, 0.3); }
+.tag-net { background: rgba(52, 199, 89, 0.2); color: #34C759; border: 1px solid rgba(52, 199, 89, 0.3); }
+
+.hud-card-title {
   font-size: 11px;
-  flex-shrink: 0;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
 }
 
-.taskmgr-proc-name {
-  font-size: 11.5px;
-  font-weight: 600;
+.hud-card-main-val {
+  font-size: 16px;
+  font-weight: 800;
   color: #ffffff;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.hud-net-speed-val {
+  color: #34C759;
+  font-size: 13.5px;
+}
+
+.hud-gauge-bar-wrap {
+  width: 100%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 4px 0;
+}
+
+.hud-gauge-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.35s ease, background 0.35s ease;
+}
+
+.fill-cpu { background: linear-gradient(90deg, #007AFF, #00C7BE); }
+.fill-gpu { background: linear-gradient(90deg, #5856D6, #AF52DE); }
+.fill-ram { background: linear-gradient(90deg, #AF52DE, #FF2D55); }
+.fill-disk { background: linear-gradient(90deg, #FF9500, #FFCC00); }
+
+.hud-net-split-bars {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 4px 0;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.hud-net-bar-col {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hud-net-arrow {
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.down-arrow { color: #34C759; }
+.up-arrow { color: #007AFF; }
+
+.hud-net-kbs {
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #ffffff;
+}
+
+.hud-card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 2px;
+}
+
+.hud-detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 9.5px;
+}
+
+.hud-detail-key {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.hud-detail-val {
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.taskmgr-proc-pid {
-  font-size: 10.5px;
-  font-family: var(--font-mono, monospace);
-  color: rgba(255, 255, 255, 0.5);
-  text-align: center;
-}
-
-.taskmgr-heat-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2px 6px;
-  border-radius: 5px;
-  font-size: 10.5px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  margin: 0 auto;
-}
-
-.taskmgr-heat-badge.heat-low {
-  background: rgba(52, 199, 89, 0.15);
-  color: #34C759;
-  border: 1px solid rgba(52, 199, 89, 0.25);
-}
-
-.taskmgr-heat-badge.heat-mid {
-  background: rgba(255, 149, 0, 0.18);
-  color: #FF9500;
-  border: 1px solid rgba(255, 149, 0, 0.3);
-}
-
-.taskmgr-heat-badge.heat-high {
-  background: rgba(255, 59, 48, 0.22);
-  color: #FF3B30;
-  border: 1px solid rgba(255, 59, 48, 0.35);
-}
-
-.btn-kill-proc {
-  background: rgba(255, 59, 48, 0.16);
-  border: 1px solid rgba(255, 59, 48, 0.3);
-  border-radius: 6px;
-  color: #FF453A;
-  padding: 3px 8px;
-  font-size: 10px;
-  font-weight: 700;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  margin-left: auto;
-  transition: all 0.12s ease;
-}
-
-.btn-kill-proc:hover {
-  background: #FF3B30;
-  color: #ffffff;
-  border-color: #FF3B30;
+  max-width: 130px;
+  text-align: right;
 }
 
 .btn-kill-proc:active {

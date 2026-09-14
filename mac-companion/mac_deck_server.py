@@ -496,8 +496,67 @@ cached_media = {
 last_active_media_time = 0.0
 
 
+_last_net_time = 0.0
+_last_bytes_in = 0
+_last_bytes_out = 0
+_cached_cpu_brand = None
+_cached_hw_model = None
+
+
+def get_net_speed() -> Tuple[float, float]:
+    """Measure real-time network throughput delta in KB/s."""
+    global _last_net_time, _last_bytes_in, _last_bytes_out
+    now = time.time()
+    try:
+        out = subprocess.check_output(['netstat', '-ib', '-n'], timeout=0.5).decode('utf-8')
+        tot_in = 0
+        tot_out = 0
+        for line in out.splitlines()[1:]:
+            parts = line.split()
+            if len(parts) >= 10 and not parts[0].startswith('lo') and 'Link' in parts[2]:
+                try:
+                    tot_in += int(parts[6])
+                    tot_out += int(parts[9])
+                except (ValueError, IndexError):
+                    pass
+
+        down_kbs = 0.0
+        up_kbs = 0.0
+        if _last_net_time > 0 and now > _last_net_time:
+            dt = now - _last_net_time
+            if dt > 0.1:
+                down_kbs = max(0.0, (tot_in - _last_bytes_in) / dt / 1024.0)
+                up_kbs = max(0.0, (tot_out - _last_bytes_out) / dt / 1024.0)
+
+        _last_net_time = now
+        _last_bytes_in = tot_in
+        _last_bytes_out = tot_out
+        return round(down_kbs, 1), round(up_kbs, 1)
+    except Exception:
+        return 0.0, 0.0
+
+
+def get_disk_telemetry() -> Dict:
+    """Read root SSD/HD storage capacity, used space and free space."""
+    try:
+        st = os.statvfs('/')
+        total_gb = round((st.f_blocks * st.f_frsize) / (1024**3), 1)
+        free_gb = round((st.f_bavail * st.f_frsize) / (1024**3), 1)
+        used_gb = round(max(0.0, total_gb - free_gb), 1)
+        pct = round((used_gb / total_gb) * 100, 1) if total_gb > 0 else 0.0
+        return {
+            "total_gb": total_gb,
+            "used_gb": used_gb,
+            "free_gb": free_gb,
+            "percent": pct
+        }
+    except Exception:
+        return {"total_gb": 500.0, "used_gb": 250.0, "free_gb": 250.0, "percent": 50.0}
+
+
 def get_hardware_telemetry() -> Dict:
-    """Read full system hardware telemetry (CPU, GPU, RAM) with sub-millisecond precision."""
+    """Read full system hardware telemetry (CPU, GPU, RAM, SSD, Network) with high precision."""
+    global _cached_cpu_brand, _cached_hw_model
     # 1. RAM via sysctl and vm_stat
     try:
         memsize = int(subprocess.check_output(["sysctl", "-n", "hw.memsize"]).strip())
@@ -517,14 +576,27 @@ def get_hardware_telemetry() -> Dict:
     except Exception:
         ram_total_gb, ram_used_gb, ram_free_gb, ram_pct = 16.0, 8.0, 8.0, 50.0
 
-    # 2. CPU load average / estimated CPU percentage
+    # 2. CPU load average & estimated CPU percentage
     cpu_pct = 15.0
+    load1, load5, load15 = 0.0, 0.0, 0.0
     try:
-        load1, _, _ = os.getloadavg()
+        load1, load5, load15 = os.getloadavg()
         cpu_count = os.cpu_count() or 1
         cpu_pct = round(min(100.0, (load1 / cpu_count) * 100.0), 1)
     except Exception:
         pass
+
+    if _cached_cpu_brand is None:
+        try:
+            _cached_cpu_brand = subprocess.check_output(["sysctl", "-n", "machdep.cpu.brand_string"]).decode("utf-8").strip()
+        except Exception:
+            _cached_cpu_brand = "Apple Silicon"
+
+    if _cached_hw_model is None:
+        try:
+            _cached_hw_model = subprocess.check_output(["sysctl", "-n", "hw.model"]).decode("utf-8").strip()
+        except Exception:
+            _cached_hw_model = "MacBook Pro"
 
     # 3. GPU device utilization via IOAccelerator
     gpu_pct = 0
@@ -536,14 +608,29 @@ def get_hardware_telemetry() -> Dict:
     except Exception:
         pass
 
+    # 4. Storage & Network Throughput
+    disk = get_disk_telemetry()
+    net_down_kb, net_up_kb = get_net_speed()
+
     return {
         "cpu_percent": cpu_pct,
+        "cpu_model": _cached_cpu_brand,
+        "cpu_cores": os.cpu_count() or 8,
+        "cpu_load": f"{load1:.2f} / {load5:.2f}",
+        "mac_model": _cached_hw_model,
         "gpu_percent": gpu_pct,
         "ram": {
             "total_gb": ram_total_gb,
             "used_gb": ram_used_gb,
             "free_gb": ram_free_gb,
             "percent": ram_pct
+        },
+        "disk": disk,
+        "network": {
+            "down_kbs": net_down_kb,
+            "up_kbs": net_up_kb,
+            "ip": get_local_ip(),
+            "interface": "Wi-Fi / Ethernet"
         }
     }
 
