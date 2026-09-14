@@ -206,6 +206,15 @@
     }
 
     triggerHaptic();
+
+    try {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'sim_screen_changed', index: index }, '*');
+        if (typeof window.parent.syncActiveSimScreen === 'function') {
+          window.parent.syncActiveSimScreen(index);
+        }
+      }
+    } catch(e) {}
   }
   window.goToScreen = goToScreen;
 

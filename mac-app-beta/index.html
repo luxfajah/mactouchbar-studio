@@ -8683,37 +8683,63 @@
     }
 
     /* Stage Bottom: Pagination & Microcopy */
+    /* Stage Bottom: Pagination & Microcopy */
     .sim-stage-footer {
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 14px;
-      margin-top: 4px;
+      gap: 10px;
+      margin-top: 10px;
     }
 
     .sim-stage-dots {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    }
+
+    body.light-theme .sim-stage-dots {
+      background: rgba(0, 0, 0, 0.05);
+      border-color: rgba(0, 0, 0, 0.08);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     }
 
     .sim-stage-dot {
-      width: 6px;
-      height: 6px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.28);
       cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.2, 1, 0.3, 1);
+      transition: all 0.25s cubic-bezier(0.2, 1, 0.3, 1);
+      position: relative;
+    }
+
+    .sim-stage-dot:hover {
+      background: rgba(255, 255, 255, 0.55);
+      transform: scale(1.2);
     }
 
     body.light-theme .sim-stage-dot {
-      background: rgba(0, 0, 0, 0.2);
+      background: rgba(0, 0, 0, 0.22);
+    }
+
+    body.light-theme .sim-stage-dot:hover {
+      background: rgba(0, 0, 0, 0.45);
     }
 
     .sim-stage-dot.active {
-      width: 18px;
-      border-radius: 4px;
+      width: 24px;
+      border-radius: 6px;
       background: var(--apple-blue);
+      box-shadow: 0 0 10px rgba(0, 122, 255, 0.45);
     }
 
     .sim-stage-hint {
@@ -9669,7 +9695,7 @@
       <div id="pane-overview" class="pane-content active">
         <div class="overview-scroll-wrap">
           
-          <!-- Top Header Apple HIG: Title, Subtitle, Segmented Control & Status Pill -->
+          <!-- Top Header Apple HIG: Title, Subtitle & Connection Status Pill -->
           <div class="overview-top-header">
             <div class="overview-header-left">
               <h2 class="pane-title">Início</h2>
@@ -9677,28 +9703,6 @@
             </div>
             
             <div class="overview-header-right">
-              <!-- Apple HIG Segmented Control for Simulator Screens (NSSegmentedControl) -->
-              <div class="mac-segmented-control" role="tablist">
-                <button type="button" class="mac-segment-btn" id="segScreenMusic" onclick="switchSimScreen(0, this)" role="tab" title="StandBy Mídia">
-                  <span>StandBy Mídia</span>
-                </button>
-                <button type="button" class="mac-segment-btn active" id="segScreenDock" onclick="switchSimScreen(1, this)" role="tab" title="Dock Principal">
-                  <span>Dock Principal</span>
-                </button>
-                <button type="button" class="mac-segment-btn" id="segScreenIllustratorCores" onclick="switchSimScreen(2, this)" role="tab" title="Illustrator Cores">
-                  <span>Illustrator Cores</span>
-                </button>
-                <button type="button" class="mac-segment-btn" id="segScreenIllustratorTipo" onclick="switchSimScreen(3, this)" role="tab" title="Illustrator Tipografia">
-                  <span>Illustrator Tipografia</span>
-                </button>
-                <button type="button" class="mac-segment-btn" id="segScreenIllustratorVector" onclick="switchSimScreen(4, this)" role="tab" title="Illustrator Vetor & Pathfinder">
-                  <span>Illustrator Vetor</span>
-                </button>
-                <button type="button" class="mac-segment-btn" id="segScreenPhotoshop" onclick="switchSimScreen(5, this)" role="tab" title="Photoshop Pro Master Deck">
-                  <span>Photoshop Deck</span>
-                </button>
-              </div>
-
               <!-- Discrete Connection Pill -->
               <button type="button" class="overview-badge-conn" onclick="navigateTo('pane-connection')" title="Gerenciar Pareamento e Conexão">
                 <span class="status-dot dot-green"></span>
@@ -12879,21 +12883,15 @@
     }
 
     function renderSimScreenSegments() {
-      const activeScreens = (screensList && screensList.length > 0) ? screensList.filter(s => s.active) : [];
-      
-      const segContainer = document.getElementById('overviewSimSegmentedControl');
-      if (segContainer && activeScreens.length > 0) {
-        segContainer.innerHTML = activeScreens.map((s, idx) => `
-          <button type="button" class="mac-segment-btn ${idx === 0 ? 'active' : ''}" onclick="switchSimScreen(${idx}, this)" role="tab" title="${s.title}">
-            <span>${s.title}</span>
-          </button>
-        `).join('');
-      }
+      renderSimStageDots();
+    }
 
+    function renderSimStageDots() {
+      const activeScreens = (screensList && screensList.length > 0) ? screensList.filter(s => s.active) : DEFAULT_APK_SCREENS.filter(s => s.active);
       const dotsContainer = document.getElementById('simStageDots');
       if (dotsContainer && activeScreens.length > 0) {
         dotsContainer.innerHTML = activeScreens.map((s, idx) => `
-          <span class="sim-stage-dot ${idx === 0 ? 'active' : ''}" onclick="switchSimScreen(${idx})" title="${s.title}"></span>
+          <span class="sim-stage-dot ${idx === currentSimScreenIndex ? 'active' : ''}" onclick="switchSimScreen(${idx})" title="${s.title || ('Tela ' + (idx + 1))}" role="tab" aria-label="${s.title || ('Tela ' + (idx + 1))}"></span>
         `).join('');
       }
     }
@@ -15827,14 +15825,9 @@
       if (chk) chk.checked = isSmartSwitchingActive;
     }
 
-    // Synchronize Segmented Control and Pagination Dots with Active Screen
+    // Synchronize Pagination Dots with Active Screen
     function syncActiveSimScreen(screenIndex) {
       currentSimScreenIndex = screenIndex;
-      const segBtns = document.querySelectorAll('#overviewSimSegmentedControl .mac-segment-btn');
-      segBtns.forEach((btn, idx) => {
-        if (idx === screenIndex) btn.classList.add('active');
-        else btn.classList.remove('active');
-      });
       const dots = document.querySelectorAll('#simStageDots .sim-stage-dot');
       dots.forEach((dot, idx) => {
         if (idx === screenIndex) dot.classList.add('active');
@@ -15844,16 +15837,22 @@
     window.syncActiveSimScreen = syncActiveSimScreen;
 
     // Simulator Screen Switcher (Início Dashboard)
-    function switchSimScreen(screenIndex, btn) {
-      const activeScreens = (screensList && screensList.length > 0) ? screensList.filter(s => s.active) : [];
+    function switchSimScreen(screenIndex) {
+      const activeScreens = (screensList && screensList.length > 0) ? screensList.filter(s => s.active) : DEFAULT_APK_SCREENS.filter(s => s.active);
+      if (screenIndex < 0 || screenIndex >= activeScreens.length) return;
+      
       const simFrame = document.getElementById('simAppFrame');
       if (simFrame && simFrame.contentWindow) {
         try {
           if (typeof simFrame.contentWindow.goToScreen === 'function') {
             simFrame.contentWindow.goToScreen(screenIndex);
+          } else {
+            simFrame.contentWindow.postMessage({ type: 'go_to_screen', index: screenIndex }, '*');
           }
         } catch (e) {
-          console.warn('Simulator goToScreen error:', e);
+          try {
+            simFrame.contentWindow.postMessage({ type: 'go_to_screen', index: screenIndex }, '*');
+          } catch(err) {}
         }
       }
       syncActiveSimScreen(screenIndex);
@@ -16192,6 +16191,13 @@
         } else if (document.getElementById(hash)) {
           navigateTo(hash);
         }
+      }
+    });
+
+    window.addEventListener('message', (event) => {
+      if (!event.data) return;
+      if (event.data.type === 'sim_screen_changed' && typeof event.data.index === 'number') {
+        syncActiveSimScreen(event.data.index);
       }
     });
 
