@@ -1475,6 +1475,96 @@
           </div>
         </section>
 
+        <!-- ====================================================================
+             TELA 4: Gerenciador de Tarefas / Task Manager (Windows Style + Apple Glass)
+             ==================================================================== -->
+        <section class="carousel-screen addon-screen" id="screen-taskmgr">
+          <div class="taskmgr-container glass-panel">
+            
+            <!-- Top Header & Live Telemetry Summary Cards -->
+            <div class="taskmgr-header-bar">
+              <div class="taskmgr-title-group">
+                <div class="taskmgr-badge-icon">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                  </svg>
+                </div>
+                <div>
+                  <h2 class="taskmgr-title">Gerenciador de Tarefas</h2>
+                  <span class="taskmgr-subtitle" id="taskmgr-proc-count">Carregando processos...</span>
+                </div>
+              </div>
+
+              <!-- Top Telemetry 3-Card Cluster -->
+              <div class="taskmgr-telemetry-row">
+                <!-- CPU Metric Card -->
+                <div class="taskmgr-metric-card" id="taskmgr-card-cpu">
+                  <div class="taskmgr-metric-head">
+                    <span class="taskmgr-metric-label">CPU</span>
+                    <span class="taskmgr-metric-val" id="taskmgr-val-cpu">0%</span>
+                  </div>
+                  <div class="taskmgr-progress-track">
+                    <div class="taskmgr-progress-fill" id="taskmgr-fill-cpu" style="width: 0%;"></div>
+                  </div>
+                </div>
+
+                <!-- GPU Metric Card -->
+                <div class="taskmgr-metric-card" id="taskmgr-card-gpu">
+                  <div class="taskmgr-metric-head">
+                    <span class="taskmgr-metric-label">GPU</span>
+                    <span class="taskmgr-metric-val" id="taskmgr-val-gpu">0%</span>
+                  </div>
+                  <div class="taskmgr-progress-track">
+                    <div class="taskmgr-progress-fill gpu-fill" id="taskmgr-fill-gpu" style="width: 0%;"></div>
+                  </div>
+                </div>
+
+                <!-- RAM Metric Card -->
+                <div class="taskmgr-metric-card" id="taskmgr-card-ram">
+                  <div class="taskmgr-metric-head">
+                    <span class="taskmgr-metric-label">Memória</span>
+                    <span class="taskmgr-metric-val" id="taskmgr-val-ram">0 / 0 GB</span>
+                  </div>
+                  <div class="taskmgr-progress-track">
+                    <div class="taskmgr-progress-fill ram-fill" id="taskmgr-fill-ram" style="width: 0%;"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Filter / Mode Toggle & Search -->
+              <div class="taskmgr-actions-bar">
+                <div class="taskmgr-search-box">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                  <input type="text" id="taskmgr-search-input" placeholder="Filtrar..." oninput="onTaskMgrSearch(this.value)" autocomplete="off">
+                </div>
+                <button type="button" class="taskmgr-toggle-btn" id="btn-taskmgr-filter-toggle" onclick="toggleTaskMgrFilterMode()">
+                  <span id="taskmgr-filter-label">Apps</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Process Table Header -->
+            <div class="taskmgr-table-header">
+              <span class="taskmgr-col col-name">Nome do Processo / App</span>
+              <span class="taskmgr-col col-pid">PID</span>
+              <span class="taskmgr-col col-cpu">CPU</span>
+              <span class="taskmgr-col col-mem">Memória</span>
+              <span class="taskmgr-col col-action">Ação</span>
+            </div>
+
+            <!-- Scrollable Process List -->
+            <div class="taskmgr-process-list" id="taskmgr-process-list" data-no-swipe="true">
+              <!-- Dynamically populated rows -->
+            </div>
+
+          </div>
+        </section>
+
       </div>
     </main>
 

@@ -142,7 +142,8 @@
       { id: 'screen-music', title: 'StandBy Música', active: true, isHome: false },
       { id: 'screen-deck', title: 'Dock de Atalhos', active: true, isHome: true },
       { id: 'screen-illustrator', title: 'Illustrator Studio', active: true, isHome: false },
-      { id: 'screen-photoshop', title: 'Photoshop Master Deck', active: true, isHome: false }
+      { id: 'screen-photoshop', title: 'Photoshop Master Deck', active: true, isHome: false },
+      { id: 'screen-taskmgr', title: 'Gerenciador de Tarefas', active: true, isHome: false }
     ],
     transition: 'slide'
   };
@@ -1167,7 +1168,202 @@
     } else if (data.type === 'toast' && data.message) {
       showToast(data.message);
     }
+
+    // Hardware & Process Telemetry for Task Manager Addon
+    if (data.hardware) {
+      state.hardware = data.hardware;
+      renderTaskMgrTelemetry(data.hardware);
+    }
+    if (Array.isArray(data.processes)) {
+      state.taskMgrProcesses = data.processes;
+      renderProcessList(data.processes);
+    }
   }
+
+  // ==========================================================================
+  // Task Manager Addon Engine (Windows Style + Apple Glass)
+  // ==========================================================================
+  state.taskMgrFilterMode = 'apps';
+  state.taskMgrSearchQuery = '';
+  state.taskMgrProcesses = [];
+  state.hardware = {
+    cpu_percent: 0,
+    gpu_percent: 0,
+    ram: { total_gb: 16.0, used_gb: 8.0, free_gb: 8.0, percent: 50.0 }
+  };
+
+  function renderTaskMgrTelemetry(hw) {
+    if (!hw) return;
+    const cpuPct = typeof hw.cpu_percent === 'number' ? hw.cpu_percent : (typeof hw.cpu_pct === 'number' ? hw.cpu_pct : 0);
+    const gpuPct = typeof hw.gpu_percent === 'number' ? hw.gpu_percent : (typeof hw.gpu_pct === 'number' ? hw.gpu_pct : 0);
+    const ramObj = hw.ram || { total_gb: 16.0, used_gb: 8.0, percent: 50.0 };
+
+    // 1. CPU
+    const valCpu = getEl('taskmgr-val-cpu');
+    const fillCpu = getEl('taskmgr-fill-cpu');
+    if (valCpu) valCpu.textContent = `${Math.round(cpuPct)}%`;
+    if (fillCpu) {
+      fillCpu.style.width = `${Math.min(100, Math.max(0, cpuPct))}%`;
+      fillCpu.className = 'taskmgr-progress-fill' + (cpuPct >= 75 ? ' heat-high' : (cpuPct >= 40 ? ' heat-mid' : ''));
+    }
+
+    // 2. GPU
+    const valGpu = getEl('taskmgr-val-gpu');
+    const fillGpu = getEl('taskmgr-fill-gpu');
+    if (valGpu) valGpu.textContent = `${Math.round(gpuPct)}%`;
+    if (fillGpu) {
+      fillGpu.style.width = `${Math.min(100, Math.max(0, gpuPct))}%`;
+      fillGpu.className = 'taskmgr-progress-fill gpu-fill' + (gpuPct >= 75 ? ' heat-high' : (gpuPct >= 40 ? ' heat-mid' : ''));
+    }
+
+    // 3. RAM
+    const valRam = getEl('taskmgr-val-ram');
+    const fillRam = getEl('taskmgr-fill-ram');
+    const ramPct = ramObj.percent || Math.round((ramObj.used_gb / (ramObj.total_gb || 16)) * 100);
+    if (valRam) valRam.textContent = `${ramObj.used_gb} / ${ramObj.total_gb} GB`;
+    if (fillRam) {
+      fillRam.style.width = `${Math.min(100, Math.max(0, ramPct))}%`;
+      fillRam.className = 'taskmgr-progress-fill ram-fill' + (ramPct >= 85 ? ' heat-high' : (ramPct >= 65 ? ' heat-mid' : ''));
+    }
+  }
+
+  function renderProcessList(procs) {
+    const listEl = getEl('taskmgr-process-list');
+    if (!listEl) return;
+
+    const list = Array.isArray(procs) ? procs : state.taskMgrProcesses;
+    const mode = state.taskMgrFilterMode || 'apps';
+    const query = (state.taskMgrSearchQuery || '').toLowerCase().trim();
+
+    const filtered = list.filter(p => {
+      if (mode === 'apps' && !p.is_app) return false;
+      if (query) {
+        const nameMatch = (p.name || '').toLowerCase().includes(query);
+        const pidMatch = String(p.pid).includes(query);
+        return nameMatch || pidMatch;
+      }
+      return true;
+    });
+
+    const countLabel = getEl('taskmgr-proc-count');
+    if (countLabel) {
+      countLabel.textContent = `${filtered.length} ${mode === 'apps' ? 'apps abertos' : 'processos'}`;
+    }
+
+    listEl.innerHTML = '';
+    if (filtered.length === 0) {
+      listEl.innerHTML = '<div style="text-align: center; color: rgba(255,255,255,0.4); padding: 24px; font-size: 11.5px;">Nenhum processo correspondente</div>';
+      return;
+    }
+
+    filtered.forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'taskmgr-row';
+      row.id = `proc-row-${p.pid}`;
+
+      // 1. Identity (Icon + Name)
+      const ident = document.createElement('div');
+      ident.className = 'taskmgr-proc-ident';
+      
+      if (p.icon && p.icon.length > 50) {
+        const img = document.createElement('img');
+        img.className = 'taskmgr-proc-icon';
+        img.src = `data:image/png;base64,${p.icon}`;
+        img.alt = p.name;
+        ident.appendChild(img);
+      } else {
+        const fallback = document.createElement('div');
+        fallback.className = 'taskmgr-proc-icon-fallback';
+        fallback.textContent = p.name ? p.name.charAt(0).toUpperCase() : '⚙️';
+        ident.appendChild(fallback);
+      }
+
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'taskmgr-proc-name';
+      nameSpan.textContent = p.name || 'Processo';
+      nameSpan.title = p.comm || p.name;
+      ident.appendChild(nameSpan);
+
+      // 2. PID
+      const pidSpan = document.createElement('span');
+      pidSpan.className = 'taskmgr-proc-pid';
+      pidSpan.textContent = p.pid;
+
+      // 3. CPU Badge
+      const cpuBadge = document.createElement('div');
+      const cpuVal = typeof p.cpu === 'number' ? p.cpu : 0;
+      cpuBadge.className = 'taskmgr-heat-badge ' + (cpuVal >= 50 ? 'heat-high' : (cpuVal >= 15 ? 'heat-mid' : 'heat-low'));
+      cpuBadge.textContent = `${cpuVal.toFixed(1)}%`;
+
+      // 4. Memory Badge
+      const memBadge = document.createElement('div');
+      const memMb = typeof p.mem_mb === 'number' ? p.mem_mb : 0;
+      const memPct = typeof p.mem_pct === 'number' ? p.mem_pct : 0;
+      memBadge.className = 'taskmgr-heat-badge ' + (memPct >= 10 ? 'heat-high' : (memPct >= 3 ? 'heat-mid' : 'heat-low'));
+      memBadge.textContent = `${memMb >= 1024 ? (memMb/1024).toFixed(1) + ' GB' : Math.round(memMb) + ' MB'}`;
+
+      // 5. Kill Button
+      const actionCell = document.createElement('div');
+      actionCell.style.textAlign = 'right';
+      const killBtn = document.createElement('button');
+      killBtn.type = 'button';
+      killBtn.className = 'btn-kill-proc';
+      killBtn.title = `Encerrar ${p.name} (PID ${p.pid})`;
+      killBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+        <span>Encerrar</span>
+      `;
+      killBtn.onclick = (e) => {
+        e.stopPropagation();
+        killProcess(p.pid, p.name);
+      };
+      actionCell.appendChild(killBtn);
+
+      row.appendChild(ident);
+      row.appendChild(pidSpan);
+      row.appendChild(cpuBadge);
+      row.appendChild(memBadge);
+      row.appendChild(actionCell);
+
+      listEl.appendChild(row);
+    });
+  }
+
+  function killProcess(pid, name) {
+    triggerHaptic();
+    showToast(`Encerrando ${name || pid}...`);
+    const row = getEl(`proc-row-${pid}`);
+    if (row) {
+      row.style.opacity = '0.3';
+      row.style.transform = 'scale(0.96)';
+    }
+    sendMacAction('kill_process', { pid: pid, name: name, force: true });
+    state.taskMgrProcesses = state.taskMgrProcesses.filter(p => p.pid !== pid);
+    setTimeout(() => {
+      renderProcessList();
+    }, 150);
+  }
+  window.killProcess = killProcess;
+
+  function toggleTaskMgrFilterMode() {
+    triggerHaptic();
+    state.taskMgrFilterMode = state.taskMgrFilterMode === 'apps' ? 'all' : 'apps';
+    const label = getEl('taskmgr-filter-label');
+    const btn = getEl('btn-taskmgr-filter-toggle');
+    if (label) label.textContent = state.taskMgrFilterMode === 'apps' ? 'Apps' : 'Todos';
+    if (btn) btn.classList.toggle('active', state.taskMgrFilterMode === 'all');
+    renderProcessList();
+  }
+  window.toggleTaskMgrFilterMode = toggleTaskMgrFilterMode;
+
+  function onTaskMgrSearch(val) {
+    state.taskMgrSearchQuery = val || '';
+    renderProcessList();
+  }
+  window.onTaskMgrSearch = onTaskMgrSearch;
 
   // Native Android Bridge Listeners
   window.onMacConnected = function (ip, name) {
@@ -3025,10 +3221,22 @@
       const savedScreens = localStorage.getItem('mactouchbar_screens_config');
       if (savedScreens) {
         const parsed = JSON.parse(savedScreens);
-        applyScreensOrder(parsed);
+        if (parsed && Array.isArray(parsed.screens)) {
+          DEFAULT_SCREENS_CONFIG.screens.forEach(defScreen => {
+            if (!parsed.screens.some(s => s.id === defScreen.id)) {
+              parsed.screens.push(JSON.parse(JSON.stringify(defScreen)));
+            }
+          });
+          applyScreensOrder(parsed);
+        } else {
+          applyScreensOrder(DEFAULT_SCREENS_CONFIG);
+        }
+      } else {
+        applyScreensOrder(DEFAULT_SCREENS_CONFIG);
       }
     } catch (e) {
       console.warn('Erro ao restaurar screens config:', e);
+      applyScreensOrder(DEFAULT_SCREENS_CONFIG);
     }
 
     // Restore wallpaper configuration if saved

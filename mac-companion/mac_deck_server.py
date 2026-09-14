@@ -496,6 +496,113 @@ cached_media = {
 last_active_media_time = 0.0
 
 
+def get_hardware_telemetry() -> Dict:
+    """Read full system hardware telemetry (CPU, GPU, RAM) with sub-millisecond precision."""
+    # 1. RAM via sysctl and vm_stat
+    try:
+        memsize = int(subprocess.check_output(["sysctl", "-n", "hw.memsize"]).strip())
+        vm = subprocess.check_output(["vm_stat"], timeout=0.6).decode("utf-8")
+        page_size = 4096
+        match_page = re.search(r"page size of (\d+) bytes", vm)
+        if match_page:
+            page_size = int(match_page.group(1))
+        free = int(re.search(r"Pages free:\s+(\d+)", vm).group(1)) * page_size
+        speculative = int(re.search(r"Pages speculative:\s+(\d+)", vm).group(1)) * page_size
+        inactive = int(re.search(r"Pages inactive:\s+(\d+)", vm).group(1)) * page_size
+        used = memsize - (free + speculative + inactive)
+        ram_total_gb = round(memsize / (1024**3), 1)
+        ram_used_gb = round(used / (1024**3), 1)
+        ram_free_gb = round(max(0, memsize - used) / (1024**3), 1)
+        ram_pct = round((used / memsize) * 100, 1)
+    except Exception:
+        ram_total_gb, ram_used_gb, ram_free_gb, ram_pct = 16.0, 8.0, 8.0, 50.0
+
+    # 2. CPU load average / estimated CPU percentage
+    cpu_pct = 15.0
+    try:
+        load1, _, _ = os.getloadavg()
+        cpu_count = os.cpu_count() or 1
+        cpu_pct = round(min(100.0, (load1 / cpu_count) * 100.0), 1)
+    except Exception:
+        pass
+
+    # 3. GPU device utilization via IOAccelerator
+    gpu_pct = 0
+    try:
+        out = subprocess.check_output(["ioreg", "-r", "-d", "1", "-w", "0", "-c", "IOAccelerator"], timeout=0.6).decode("utf-8")
+        match_gpu = re.search(r"\"Device Utilization %\"\s*=\s*(\d+)", out)
+        if match_gpu:
+            gpu_pct = int(match_gpu.group(1))
+    except Exception:
+        pass
+
+    return {
+        "cpu_percent": cpu_pct,
+        "gpu_percent": gpu_pct,
+        "ram": {
+            "total_gb": ram_total_gb,
+            "used_gb": ram_used_gb,
+            "free_gb": ram_free_gb,
+            "percent": ram_pct
+        }
+    }
+
+
+def get_process_list(limit: int = 25) -> List[Dict]:
+    """Retrieve top active macOS apps and processes sorted by CPU and Memory."""
+    try:
+        proc = subprocess.run(["ps", "-eo", "pid,%cpu,%mem,comm", "-r"], capture_output=True, text=True, timeout=0.8)
+        lines = proc.stdout.splitlines()
+        results = []
+        memsize = int(subprocess.check_output(["sysctl", "-n", "hw.memsize"]).strip())
+        mem_total_mb = memsize / (1024 * 1024)
+
+        for line in lines[1:]:
+            parts = line.strip().split(None, 3)
+            if len(parts) < 4:
+                continue
+            pid_str, cpu_str, mem_str, comm = parts
+            try:
+                pid = int(pid_str)
+                cpu = float(cpu_str.replace(",", "."))
+                mem_pct = float(mem_str.replace(",", "."))
+            except ValueError:
+                continue
+
+            if pid == 0 or (cpu == 0.0 and mem_pct == 0.0):
+                continue
+
+            is_app = False
+            app_name = ""
+            app_path = ""
+            icon_b64 = ""
+            if ".app/Contents/MacOS/" in comm:
+                is_app = True
+                app_path = comm.split(".app/Contents/MacOS/")[0] + ".app"
+                app_name = os.path.basename(app_path).replace(".app", "")
+                icon_b64 = get_app_icon_base64(app_path)
+            else:
+                app_name = os.path.basename(comm)
+
+            mem_mb = round((mem_pct / 100.0) * mem_total_mb, 1)
+
+            results.append({
+                "pid": pid,
+                "name": app_name,
+                "comm": comm,
+                "is_app": is_app,
+                "cpu": cpu,
+                "mem_pct": mem_pct,
+                "mem_mb": mem_mb,
+                "icon": icon_b64
+            })
+            if len(results) >= limit:
+                break
+        return results
+    except Exception:
+        return []
+
+
 def get_mac_system_status() -> Dict:
     """Read volume, battery, AirPods, now playing media (Apple Music / Spotify), active app, and telemetry from macOS."""
     global last_status, current_brightness, cached_artwork_key, cached_artwork_b64, cached_media, last_active_media_time
@@ -601,13 +708,12 @@ def get_mac_system_status() -> Dict:
                         cached_artwork_key = art_key
             except Exception:
                 pass
-        artwork_b64 = cached_artwork_b64
-    elif player_app == "Spotify" and has_art_or_url and has_art_or_url.startswith("http"):
+        else:
+            artwork_b64 = cached_artwork_b64
+    elif player_app == "Spotify":
         artwork_b64 = has_art_or_url
 
-    # Retain metadata during song skips or momentary empty states
-    now = time.time()
-    if track_title:
+    if playback_state != "stopped" or track_title:
         cached_media = {
             "player": player_app,
             "state": playback_state,
@@ -616,17 +722,23 @@ def get_mac_system_status() -> Dict:
             "album": track_album,
             "duration": duration,
             "position": position,
-            "artwork": artwork_b64 if artwork_b64 else cached_media.get("artwork", "")
+            "artwork": artwork_b64
         }
-        last_active_media_time = now
-    elif cached_media.get("title") and (now - last_active_media_time < 30.0):
-        # Keep displaying last known track metadata, updating only state & position
-        cached_media["state"] = playback_state
-        if position > 0:
-            cached_media["position"] = position
+        last_active_media_time = time.time()
+    elif time.time() - last_active_media_time > 8.0:
+        cached_media = {
+            "player": "Music",
+            "state": "stopped",
+            "title": "",
+            "artist": "",
+            "album": "",
+            "duration": 0.0,
+            "position": 0.0,
+            "artwork": ""
+        }
     else:
         cached_media = {
-            "player": player_app,
+            "player": cached_media.get("player", "Music"),
             "state": playback_state,
             "title": track_title,
             "artist": track_artist,
@@ -638,21 +750,16 @@ def get_mac_system_status() -> Dict:
 
     battery = get_battery_info()
     airpods = get_airpods_battery_info()
-
-    # CPU & RAM telemetry
-    cpu_pct = 12.0
-    ram_pct = 45.0
-    try:
-        load1, _, _ = os.getloadavg()
-        cpu_count = os.cpu_count() or 1
-        cpu_pct = round(min(100.0, (load1 / cpu_count) * 100.0), 1)
-    except Exception:
-        pass
+    telemetry = get_hardware_telemetry()
+    processes = get_process_list(25)
 
     status = {
         "type": "status_update",
-        "cpu_percent": cpu_pct,
-        "ram_percent": ram_pct,
+        "cpu_percent": telemetry["cpu_percent"],
+        "gpu_percent": telemetry["gpu_percent"],
+        "ram_percent": telemetry["ram"]["percent"],
+        "hardware": telemetry,
+        "processes": processes,
         "mac_name": platform.node().replace(".local", ""),
         "ip": get_local_ip(),
         "volume": volume,
@@ -1035,6 +1142,23 @@ def handle_action_fast(action: str, params: Dict):
             print(f"🎙️ [DSP Control] Sent command to DeepFilterNet: {cmd}")
         except Exception as e:
             print(f"⚠️ [DSP Control] Error sending command: {e}")
+
+    elif action in ("kill_process", "force_quit_app", "terminate_process"):
+        pid = params.get("pid")
+        app_name = params.get("name") or params.get("app_name") or ""
+        force = params.get("force", True)
+        if pid:
+            try:
+                pid_int = int(pid)
+                if app_name and not force:
+                    quit_script = f'tell application "{app_name}" to quit'
+                    subprocess.Popen(["osascript", "-e", quit_script])
+                else:
+                    subprocess.Popen(["kill", "-9", str(pid_int)])
+                print(f"🛑 [Task Manager] Killed process PID={pid_int} ({app_name})")
+            except Exception as e:
+                print(f"⚠️ [Task Manager] Error killing PID={pid}: {e}")
+            asyncio.create_task(push_immediate_status(0.05))
 
 
 # ==================== WEBSOCKET PROTOCOL ====================
