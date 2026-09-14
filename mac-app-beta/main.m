@@ -137,6 +137,7 @@ static BetaAppDelegate *gDelegate = nil;
     self.window.minSize = NSMakeSize(880, 560);
     self.window.opaque = YES;
     self.window.releasedWhenClosed = NO;
+    self.window.movableByWindowBackground = YES;
     self.window.delegate = self;
     
     // HIG: Define appearance da janela de acordo com o tema do sistema.
@@ -423,6 +424,22 @@ static BetaAppDelegate *gDelegate = nil;
         [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:urlStr]];
     } else if ([action isEqualToString:@"restartDaemon"]) {
         [self restartDaemonProcess];
+    } else if ([action isEqualToString:@"saveScreensConfig"]) {
+        NSDictionary *config = body[@"config"];
+        if (config && [config isKindOfClass:[NSDictionary class]]) {
+            NSString *screensPath = [@"~/.mactouchbar_screens.json" stringByExpandingTildeInPath];
+            NSData *saveData = [NSJSONSerialization dataWithJSONObject:config options:NSJSONWritingPrettyPrinted error:nil];
+            if (saveData) [saveData writeToFile:screensPath atomically:YES];
+            NSLog(@"[MacTouchBarBeta] Ordem de telas salva no disco: %@", screensPath);
+        }
+    } else if ([action isEqualToString:@"saveWallpaperConfig"]) {
+        NSDictionary *config = body[@"config"];
+        if (config && [config isKindOfClass:[NSDictionary class]]) {
+            NSString *wallPath = [@"~/.mactouchbar_wallpaper.json" stringByExpandingTildeInPath];
+            NSData *saveData = [NSJSONSerialization dataWithJSONObject:config options:NSJSONWritingPrettyPrinted error:nil];
+            if (saveData) [saveData writeToFile:wallPath atomically:YES];
+            NSLog(@"[MacTouchBarBeta] Configuração de papel de parede salva no disco: %@", wallPath);
+        }
     } else if ([action isEqualToString:@"saveConfig"]) {
         NSLog(@"[MacTouchBarBeta] Ajustes salvos: %@", body);
     } else if ([action isEqualToString:@"checkForUpdates"]) {

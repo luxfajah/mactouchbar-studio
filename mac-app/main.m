@@ -1357,12 +1357,16 @@ static NSDictionary *getMacMediaInfoFull(void) {
 @property (nonatomic, strong) NSNetService *netService;
 @property (nonatomic, strong) dispatch_source_t broadcastTimer;
 @property (nonatomic, copy) NSString *lastWallpaperB64;
+@property (nonatomic, strong) NSDictionary *screensConfig;
+@property (nonatomic, strong) NSDictionary *wallpaperConfig;
 @property (nonatomic, copy) void (^onStatusChange)(NSString *frontApp, NSString *clientIp, int clientCount);
 - (instancetype)initWithPort:(uint16_t)port;
 - (void)start;
 - (void)stop;
 - (void)broadcastStatus:(NSString *)frontApp;
 - (void)broadcastDeckConfig;
+- (void)broadcastScreensConfig:(NSDictionary *)config;
+- (void)broadcastWallpaperConfig:(NSDictionary *)config;
 - (void)broadcastWallpaperIfChanged;
 - (void)broadcastToast:(NSString *)msg;
 - (void)handleIllustratorCommand:(NSString *)cmd;
@@ -1380,6 +1384,24 @@ static int g_serverSocket = -1;
         _port = port;
         _lastWallpaperB64 = @"";
         g_clientSockets = [NSMutableArray array];
+        
+        // Load persistent screens configuration from disk
+        NSString *screensPath = [@"~/.mactouchbar_screens.json" stringByExpandingTildeInPath];
+        if ([[NSFileManager defaultManager] fileExistsAtPath:screensPath]) {
+            NSData *data = [NSData dataWithContentsOfFile:screensPath];
+            if (data) {
+                _screensConfig = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+            }
+        }
+        
+        // Load persistent wallpaper configuration from disk
+        NSString *wallPath = [@"~/.mactouchbar_wallpaper.json" stringByExpandingTildeInPath];
+        if ([[NSFileManager defaultManager] fileExistsAtPath:wallPath]) {
+            NSData *data = [NSData dataWithContentsOfFile:wallPath];
+            if (data) {
+                _wallpaperConfig = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+            }
+        }
     }
     return self;
 }
@@ -1820,9 +1842,21 @@ static int g_serverSocket = -1;
     } else if ([action isEqualToString:@"set_default_mic"]) {
         [VirtualMicManager setDefaultInputToVirtualMic];
         [self broadcastStatus:nil];
+    } else if ([action isEqualToString:@"screens_order_update"]) {
+        NSDictionary *config = params[@"config"] ?: params;
+        [self broadcastScreensConfig:config];
+    } else if ([action isEqualToString:@"wallpaper_config_update"]) {
+        NSDictionary *config = params[@"config"] ?: params;
+        [self broadcastWallpaperConfig:config];
     } else if ([action isEqualToString:@"get_status"]) {
         [self broadcastStatus:nil];
         [self broadcastDeckConfig];
+        if (self.screensConfig) {
+            [self broadcastScreensConfig:self.screensConfig];
+        }
+        if (self.wallpaperConfig) {
+            [self broadcastWallpaperConfig:self.wallpaperConfig];
+        }
         @try {
             NSString *wp = getWallpaperBase64();
             if (wp.length > 50) {
@@ -1960,6 +1994,62 @@ static int g_serverSocket = -1;
         }
     } @catch (NSException *e) {
         NSLog(@"[MacTouchBar] broadcastDeckConfig exception caught: %@", e);
+    }
+}
+
+- (void)broadcastScreensConfig:(NSDictionary *)config {
+    @try {
+        if (config && [config isKindOfClass:[NSDictionary class]]) {
+            self.screensConfig = config;
+            NSString *screensPath = [@"~/.mactouchbar_screens.json" stringByExpandingTildeInPath];
+            NSData *saveData = [NSJSONSerialization dataWithJSONObject:config options:NSJSONWritingPrettyPrinted error:nil];
+            if (saveData) {
+                [saveData writeToFile:screensPath atomically:YES];
+            }
+        }
+        NSDictionary *msg = @{
+            @"type": @"screens_order_update",
+            @"config": self.screensConfig ?: config ?: @{}
+        };
+        NSError *err = nil;
+        NSData *data = [NSJSONSerialization dataWithJSONObject:msg options:0 error:&err];
+        if (!data || err) return;
+        
+        @synchronized (g_clientSockets) {
+            for (NSNumber *sockNum in [g_clientSockets copy]) {
+                [self sendWebSocketFrame:data toSocket:sockNum.intValue];
+            }
+        }
+    } @catch (NSException *e) {
+        NSLog(@"[MacTouchBar] broadcastScreensConfig exception caught: %@", e);
+    }
+}
+
+- (void)broadcastWallpaperConfig:(NSDictionary *)config {
+    @try {
+        if (config && [config isKindOfClass:[NSDictionary class]]) {
+            self.wallpaperConfig = config;
+            NSString *wallPath = [@"~/.mactouchbar_wallpaper.json" stringByExpandingTildeInPath];
+            NSData *saveData = [NSJSONSerialization dataWithJSONObject:config options:NSJSONWritingPrettyPrinted error:nil];
+            if (saveData) {
+                [saveData writeToFile:wallPath atomically:YES];
+            }
+        }
+        NSDictionary *msg = @{
+            @"type": @"wallpaper_config_update",
+            @"config": self.wallpaperConfig ?: config ?: @{}
+        };
+        NSError *err = nil;
+        NSData *data = [NSJSONSerialization dataWithJSONObject:msg options:0 error:&err];
+        if (!data || err) return;
+        
+        @synchronized (g_clientSockets) {
+            for (NSNumber *sockNum in [g_clientSockets copy]) {
+                [self sendWebSocketFrame:data toSocket:sockNum.intValue];
+            }
+        }
+    } @catch (NSException *e) {
+        NSLog(@"[MacTouchBar] broadcastWallpaperConfig exception caught: %@", e);
     }
 }
 

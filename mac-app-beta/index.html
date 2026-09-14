@@ -9161,6 +9161,156 @@
     }
 
     /* =========================================================================
+       Seção de Papel de Parede da TouchBar (Apple Sequoia HIG)
+       ========================================================================= */
+    .wallpaper-config-card {
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 18px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-sizing: border-box;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    body.light-theme .wallpaper-config-card {
+      background: rgba(0, 0, 0, 0.025);
+      border-color: rgba(0, 0, 0, 0.08);
+    }
+
+    .wallpaper-config-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .wallpaper-header-actions {
+      flex-shrink: 0;
+    }
+
+    .wallpaper-presets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
+      gap: 10px;
+      width: 100%;
+    }
+
+    .wallpaper-thumb-card {
+      position: relative;
+      height: 72px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 6px 8px;
+      box-sizing: border-box;
+      background-size: cover;
+      background-position: center;
+      transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    body.light-theme .wallpaper-thumb-card {
+      border-color: rgba(0, 0, 0, 0.12);
+    }
+
+    .wallpaper-thumb-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    }
+
+    .wallpaper-thumb-card.active {
+      border-color: var(--apple-blue);
+      box-shadow: 0 0 0 1px var(--apple-blue), 0 4px 16px rgba(0, 122, 255, 0.35);
+    }
+
+    .wallpaper-thumb-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #ffffff;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+      z-index: 2;
+    }
+
+    .wallpaper-thumb-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, transparent 60%);
+      z-index: 1;
+    }
+
+    .wallpaper-controls-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      padding-top: 12px;
+      border-top: 1px solid var(--separator);
+    }
+
+    @media (max-width: 680px) {
+      .wallpaper-controls-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .wallpaper-slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .wallpaper-slider-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .wallpaper-slider-val {
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 12px;
+    }
+
+    .wallpaper-range-input {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 5px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.15);
+      outline: none;
+      transition: background 0.15s ease;
+    }
+
+    body.light-theme .wallpaper-range-input {
+      background: rgba(0, 0, 0, 0.15);
+    }
+
+    .wallpaper-range-input::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+
+    .wallpaper-range-input::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    /* =========================================================================
        Biblioteca de Telas Inativas (Adicionar)
        ========================================================================= */
     .screens-shelf-section {
@@ -10199,6 +10349,13 @@
 
             <div class="displays-modern-header-actions">
               <span class="displays-counter-pill" id="displaysActiveCount">4 Telas no Carrossel</span>
+              <button type="button" class="displays-reset-btn" onclick="forceSyncScreensWithApk()" title="Enviar ordem e papéis de parede em tempo real para o APK conectado" style="background: rgba(0, 122, 255, 0.15); border-color: rgba(0, 122, 255, 0.35); color: #007AFF;">
+                <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor">
+                  <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/>
+                  <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/>
+                </svg>
+                <span>Sincronizar com APK</span>
+              </button>
               <button type="button" class="displays-reset-btn" onclick="resetScreensToDefault()" title="Restaurar telas e ordem padrão">
                 <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor">
                   <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
@@ -10210,7 +10367,103 @@
           </div>
 
           <!-- ===============================================================
-               SEÇÃO 1: TELA DINÂMICA (SIMPLIFICADA: EXPLICAÇÃO + ATIVAR/DESATIVAR)
+               SEÇÃO 1: PAPEL DE PAREDE DA TOUCHBAR (SELETOR VISUAL & EFEITOS)
+               =============================================================== -->
+          <div class="wallpaper-config-card" id="displaysWallpaperSection">
+            <div class="wallpaper-config-header">
+              <div class="dyn-clean-left">
+                <div class="dyn-clean-icon">
+                  <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor">
+                    <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
+                    <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z"/>
+                  </svg>
+                </div>
+                <div class="dyn-clean-info">
+                  <div class="dyn-clean-title-line">
+                    <h3 class="dyn-clean-heading">Papel de Parede da TouchBar</h3>
+                    <span class="dyn-clean-badge" id="wallpaperActiveBadge">
+                      <span class="status-dot dot-green"></span>
+                      <span id="wallpaperActiveText">Mesa do Mac</span>
+                    </span>
+                  </div>
+                  <p class="dyn-clean-explanation">
+                    Personalize o plano de fundo do dispositivo conectado. Sincronize em tempo real com o wallpaper oficial do seu Mac ou selecione temas escuros projetados para máxima legibilidade e contraste.
+                  </p>
+                </div>
+              </div>
+
+              <div class="wallpaper-header-actions">
+                <button type="button" class="displays-reset-btn" onclick="syncDesktopWallpaperNow()" title="Sincronizar agora com o papel de parede do macOS">
+                  <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor">
+                    <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/>
+                    <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/>
+                  </svg>
+                  <span>Sincronizar Mac</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Grade de Presets e Temas Visuais -->
+            <div class="wallpaper-presets-grid" id="wallpaperPresetsGrid">
+              <!-- Preset 1: Mesa do Mac (Dinâmico) -->
+              <div class="wallpaper-thumb-card active" id="wpPreset-macos" onclick="selectWallpaperPreset('macos_desktop')" style="background-image: url('wallpaper.jpg');" title="Papel de parede oficial do macOS Sequoia">
+                <span class="wallpaper-thumb-title">Mesa do Mac</span>
+              </div>
+
+              <!-- Preset 2: Sequoia Dark -->
+              <div class="wallpaper-thumb-card" id="wpPreset-sequoia-dark" onclick="selectWallpaperPreset('preset', 'sequoia-dark')" style="background: linear-gradient(135deg, #1a1b26 0%, #16161e 50%, #0f141c 100%);" title="Sequoia Night Minimal">
+                <span class="wallpaper-thumb-title">Sequoia Dark</span>
+              </div>
+
+              <!-- Preset 3: Sonoma Night -->
+              <div class="wallpaper-thumb-card" id="wpPreset-sonoma-night" onclick="selectWallpaperPreset('preset', 'sonoma-night')" style="background: linear-gradient(135deg, #2b1b3d 0%, #15102a 50%, #0c0817 100%);" title="Sonoma Twilight">
+                <span class="wallpaper-thumb-title">Sonoma Night</span>
+              </div>
+
+              <!-- Preset 4: Glass Blue -->
+              <div class="wallpaper-thumb-card" id="wpPreset-glass-blue" onclick="selectWallpaperPreset('preset', 'glass-blue')" style="background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);" title="Glassmorphism Deep Blue">
+                <span class="wallpaper-thumb-title">Glass Deep Blue</span>
+              </div>
+
+              <!-- Preset 5: Cyber Aurora -->
+              <div class="wallpaper-thumb-card" id="wpPreset-cyber-aurora" onclick="selectWallpaperPreset('preset', 'cyber-aurora')" style="background: linear-gradient(135deg, #0d324d 0%, #7f5a83 100%);" title="Degradê Vibrante Moderno">
+                <span class="wallpaper-thumb-title">Cyber Aurora</span>
+              </div>
+
+              <!-- Preset 6: Studio Carbon -->
+              <div class="wallpaper-thumb-card" id="wpPreset-studio-carbon" onclick="selectWallpaperPreset('preset', 'studio-carbon')" style="background: radial-gradient(circle at center, #1c1c1e 0%, #000000 100%);" title="Preto Absoluto OLED">
+                <span class="wallpaper-thumb-title">Studio Carbon</span>
+              </div>
+
+              <!-- Preset 7: Personalizado / Upload -->
+              <div class="wallpaper-thumb-card" id="wpPreset-custom" onclick="triggerCustomWallpaperUpload()" style="background: rgba(255, 255, 255, 0.06); border: 2px dashed rgba(255, 255, 255, 0.25);" title="Escolher imagem do seu computador">
+                <span class="wallpaper-thumb-title">+ Imagem...</span>
+                <input type="file" id="inputCustomWallpaperFile" accept="image/jpeg,image/png,image/webp,image/heic" style="display: none;" onchange="handleCustomWallpaperFile(event)">
+              </div>
+            </div>
+
+            <!-- Controles de Efeito: Desfoque (Blur) e Escurecimento (Dimmer) -->
+            <div class="wallpaper-controls-row">
+              <div class="wallpaper-slider-group">
+                <div class="wallpaper-slider-label">
+                  <span>Desfoque de Fundo (Blur)</span>
+                  <span class="wallpaper-slider-val" id="wpBlurValLabel">0px</span>
+                </div>
+                <input type="range" class="wallpaper-range-input" id="sliderWpBlur" min="0" max="45" value="0" step="1" oninput="handleWallpaperBlurChange(this.value)">
+              </div>
+
+              <div class="wallpaper-slider-group">
+                <div class="wallpaper-slider-label">
+                  <span>Escurecimento de Fundo (Dimmer)</span>
+                  <span class="wallpaper-slider-val" id="wpDimValLabel">0%</span>
+                </div>
+                <input type="range" class="wallpaper-range-input" id="sliderWpDim" min="0" max="80" value="0" step="5" oninput="handleWallpaperDimChange(this.value)">
+              </div>
+            </div>
+          </div>
+
+          <!-- ===============================================================
+               SEÇÃO 2: TELA DINÂMICA (SIMPLIFICADA: EXPLICAÇÃO + ATIVAR/DESATIVAR)
                =============================================================== -->
           <div class="dyn-clean-card" id="displaysDynamicSection">
             <div class="dyn-clean-left">
@@ -12490,20 +12743,25 @@
         if (saved) {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed.screens) && parsed.screens.length > 0) {
-            const map = new Map(parsed.screens.map(s => [s.id, s]));
-            screensList = DEFAULT_APK_SCREENS.map(def => {
-              const userItem = map.get(def.id);
-              return userItem ? { ...def, ...userItem } : { ...def };
-            });
-            const activeOrder = parsed.screens.filter(s => s.active).map(s => s.id);
-            screensList.sort((a, b) => {
-              const idxA = activeOrder.indexOf(a.id);
-              const idxB = activeOrder.indexOf(b.id);
-              if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-              if (idxA !== -1) return -1;
-              if (idxB !== -1) return 1;
-              return 0;
-            });
+            const defMap = new Map(DEFAULT_APK_SCREENS.map(s => [s.id, s]));
+            const savedIds = new Set();
+            const list = [];
+            
+            // 1. Add saved screens in their exact user-defined order
+            for (const s of parsed.screens) {
+              const def = defMap.get(s.id);
+              if (def) {
+                list.push({ ...def, ...s });
+                savedIds.add(s.id);
+              }
+            }
+            // 2. Append any new default screens not in saved
+            for (const def of DEFAULT_APK_SCREENS) {
+              if (!savedIds.has(def.id)) {
+                list.push({ ...def });
+              }
+            }
+            screensList = list;
             globalTransition = parsed.transition || 'slide';
             return;
           }
@@ -12524,6 +12782,7 @@
         };
         localStorage.setItem('mactouchbar_screens_config', JSON.stringify(payload));
 
+        // 1. Post to Interactive Simulator Preview Frame
         const frame = document.getElementById('simAppFrame');
         if (frame && frame.contentWindow) {
           frame.contentWindow.postMessage({
@@ -12532,12 +12791,23 @@
           }, '*');
         }
 
+        // 2. Broadcast to connected WebSocket Android APKs
         if (ws && ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify({
             action: 'screens_order_update',
             config: payload
           }));
         }
+
+        // 3. Persist via Native Mac Cocoa bridge
+        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.macNative) {
+          window.webkit.messageHandlers.macNative.postMessage({
+            action: 'saveScreensConfig',
+            config: payload
+          });
+        }
+
+        renderSimScreenSegments();
       } catch (e) {
         console.error('Erro ao salvar screens config:', e);
       }
@@ -12600,6 +12870,32 @@
       saveScreensConfig();
       renderDisplaysArrangement();
       showToast('Telas restauradas para a configuração original.');
+    }
+
+    function forceSyncScreensWithApk() {
+      saveScreensConfig();
+      saveWallpaperConfig();
+      showToast('⚡️ Ordem de telas e ajustes sincronizados com o APK!');
+    }
+
+    function renderSimScreenSegments() {
+      const activeScreens = (screensList && screensList.length > 0) ? screensList.filter(s => s.active) : [];
+      
+      const segContainer = document.getElementById('overviewSimSegmentedControl');
+      if (segContainer && activeScreens.length > 0) {
+        segContainer.innerHTML = activeScreens.map((s, idx) => `
+          <button type="button" class="mac-segment-btn ${idx === 0 ? 'active' : ''}" onclick="switchSimScreen(${idx}, this)" role="tab" title="${s.title}">
+            <span>${s.title}</span>
+          </button>
+        `).join('');
+      }
+
+      const dotsContainer = document.getElementById('simStageDots');
+      if (dotsContainer && activeScreens.length > 0) {
+        dotsContainer.innerHTML = activeScreens.map((s, idx) => `
+          <span class="sim-stage-dot ${idx === 0 ? 'active' : ''}" onclick="switchSimScreen(${idx})" title="${s.title}"></span>
+        `).join('');
+      }
     }
 
     function renderDisplaysArrangement() {
@@ -12697,6 +12993,154 @@
           }
         }
       }
+    }
+
+    // =========================================================================
+    // Wallpaper Settings & Customization Engine (Apple HIG)
+    // =========================================================================
+    let wallpaperConfig = {
+      type: 'macos_desktop',
+      presetId: 'sequoia-dark',
+      base64: '',
+      blur: 0,
+      dimmer: 0
+    };
+
+    function initWallpaperConfig() {
+      try {
+        const saved = localStorage.getItem('mactouchbar_wallpaper_config');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          wallpaperConfig = { ...wallpaperConfig, ...parsed };
+        }
+      } catch (e) {
+        console.warn('Erro ao carregar wallpaper config:', e);
+      }
+      renderWallpaperConfigUI();
+    }
+
+    function saveWallpaperConfig() {
+      try {
+        localStorage.setItem('mactouchbar_wallpaper_config', JSON.stringify(wallpaperConfig));
+        
+        // 1. Send to Simulator Frame
+        const frame = document.getElementById('simAppFrame');
+        if (frame && frame.contentWindow) {
+          frame.contentWindow.postMessage({
+            type: 'wallpaper_config_update',
+            config: wallpaperConfig
+          }, '*');
+        }
+
+        // 2. Broadcast to connected WebSocket APK devices
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({
+            action: 'wallpaper_config_update',
+            config: wallpaperConfig
+          }));
+        }
+      } catch (e) {
+        console.error('Erro ao salvar wallpaper config:', e);
+      }
+    }
+
+    function renderWallpaperConfigUI() {
+      const sliderBlur = document.getElementById('sliderWpBlur');
+      const labelBlur = document.getElementById('wpBlurValLabel');
+      if (sliderBlur) sliderBlur.value = wallpaperConfig.blur || 0;
+      if (labelBlur) labelBlur.textContent = `${wallpaperConfig.blur || 0}px`;
+
+      const sliderDim = document.getElementById('sliderWpDim');
+      const labelDim = document.getElementById('wpDimValLabel');
+      if (sliderDim) sliderDim.value = wallpaperConfig.dimmer || 0;
+      if (labelDim) labelDim.textContent = `${wallpaperConfig.dimmer || 0}%`;
+
+      const cards = document.querySelectorAll('.wallpaper-thumb-card');
+      cards.forEach(card => card.classList.remove('active'));
+
+      const activeBadgeTxt = document.getElementById('wallpaperActiveText');
+
+      if (wallpaperConfig.type === 'macos_desktop') {
+        const card = document.getElementById('wpPreset-macos');
+        if (card) card.classList.add('active');
+        if (activeBadgeTxt) activeBadgeTxt.textContent = 'Mesa do Mac';
+      } else if (wallpaperConfig.type === 'preset') {
+        const card = document.getElementById(`wpPreset-${wallpaperConfig.presetId}`);
+        if (card) card.classList.add('active');
+        if (activeBadgeTxt) activeBadgeTxt.textContent = wallpaperConfig.presetId;
+      } else if (wallpaperConfig.type === 'custom') {
+        const card = document.getElementById('wpPreset-custom');
+        if (card) card.classList.add('active');
+        if (activeBadgeTxt) activeBadgeTxt.textContent = 'Personalizado';
+      }
+    }
+
+    function selectWallpaperPreset(type, presetId = '') {
+      wallpaperConfig.type = type;
+      if (presetId) wallpaperConfig.presetId = presetId;
+      renderWallpaperConfigUI();
+      saveWallpaperConfig();
+      showToast(type === 'macos_desktop' ? 'Papel de Parede: Mesa do Mac' : `Papel de Parede: ${presetId}`);
+    }
+
+    function handleWallpaperBlurChange(val) {
+      const num = parseInt(val, 10) || 0;
+      wallpaperConfig.blur = num;
+      const label = document.getElementById('wpBlurValLabel');
+      if (label) label.textContent = `${num}px`;
+      saveWallpaperConfig();
+    }
+
+    function handleWallpaperDimChange(val) {
+      const num = parseInt(val, 10) || 0;
+      wallpaperConfig.dimmer = num;
+      const label = document.getElementById('wpDimValLabel');
+      if (label) label.textContent = `${num}%`;
+      saveWallpaperConfig();
+    }
+
+    function triggerCustomWallpaperUpload() {
+      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.macNative) {
+        window.webkit.messageHandlers.macNative.postMessage({ action: 'chooseCustomWallpaper' });
+      } else {
+        const fileInp = document.getElementById('inputCustomWallpaperFile');
+        if (fileInp) fileInp.click();
+      }
+    }
+
+    function handleCustomWallpaperFile(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const base64 = e.target.result.split(',')[1];
+        wallpaperConfig.type = 'custom';
+        wallpaperConfig.base64 = base64;
+        const customCard = document.getElementById('wpPreset-custom');
+        if (customCard) {
+          customCard.style.backgroundImage = `url(data:image/jpeg;base64,${base64})`;
+          customCard.style.border = '2px solid var(--apple-blue)';
+        }
+        renderWallpaperConfigUI();
+        saveWallpaperConfig();
+        showToast('Papel de parede personalizado carregado com sucesso.');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    window.onCustomWallpaperChosen = function (path) {
+      wallpaperConfig.type = 'macos_desktop';
+      renderWallpaperConfigUI();
+      saveWallpaperConfig();
+      showToast('Papel de parede personalizado aplicado com sucesso.');
+    };
+
+    function syncDesktopWallpaperNow() {
+      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.macNative) {
+        window.webkit.messageHandlers.macNative.postMessage({ action: 'syncWallpaperNow' });
+      }
+      selectWallpaperPreset('macos_desktop');
+      showToast('Sincronizado com papel de parede do macOS.');
     }
 
     // =========================================================================
@@ -15379,14 +15823,12 @@
     // Synchronize Segmented Control and Pagination Dots with Active Screen
     function syncActiveSimScreen(screenIndex) {
       currentSimScreenIndex = screenIndex;
-      // Update segmented buttons
-      const segBtns = document.querySelectorAll('.mac-segment-btn');
+      const segBtns = document.querySelectorAll('#overviewSimSegmentedControl .mac-segment-btn');
       segBtns.forEach((btn, idx) => {
         if (idx === screenIndex) btn.classList.add('active');
         else btn.classList.remove('active');
       });
-      // Update pagination dots
-      const dots = document.querySelectorAll('.sim-stage-dot');
+      const dots = document.querySelectorAll('#simStageDots .sim-stage-dot');
       dots.forEach((dot, idx) => {
         if (idx === screenIndex) dot.classList.add('active');
         else dot.classList.remove('active');
@@ -15396,39 +15838,21 @@
 
     // Simulator Screen Switcher (Início Dashboard)
     function switchSimScreen(screenIndex, btn) {
+      const activeScreens = (screensList && screensList.length > 0) ? screensList.filter(s => s.active) : [];
       const simFrame = document.getElementById('simAppFrame');
       if (simFrame && simFrame.contentWindow) {
         try {
-          if (screenIndex === 0) {
-            if (typeof simFrame.contentWindow.goToScreen === 'function') simFrame.contentWindow.goToScreen(0);
-          } else if (screenIndex === 1) {
-            if (typeof simFrame.contentWindow.goToScreen === 'function') simFrame.contentWindow.goToScreen(1);
-          } else if (screenIndex === 2) {
-            if (typeof simFrame.contentWindow.goToScreen === 'function') simFrame.contentWindow.goToScreen(2);
-            if (typeof simFrame.contentWindow.scrollAddonSubPage === 'function') simFrame.contentWindow.scrollAddonSubPage('ai-vertical-scroll', 0);
-          } else if (screenIndex === 3) {
-            if (typeof simFrame.contentWindow.goToScreen === 'function') simFrame.contentWindow.goToScreen(2);
-            if (typeof simFrame.contentWindow.scrollAddonSubPage === 'function') simFrame.contentWindow.scrollAddonSubPage('ai-vertical-scroll', 1);
-          } else if (screenIndex === 4) {
-            if (typeof simFrame.contentWindow.goToScreen === 'function') simFrame.contentWindow.goToScreen(2);
-            if (typeof simFrame.contentWindow.scrollAddonSubPage === 'function') simFrame.contentWindow.scrollAddonSubPage('ai-vertical-scroll', 2);
-          } else if (screenIndex === 5) {
-            if (typeof simFrame.contentWindow.goToScreen === 'function') simFrame.contentWindow.goToScreen(3);
+          if (typeof simFrame.contentWindow.goToScreen === 'function') {
+            simFrame.contentWindow.goToScreen(screenIndex);
           }
         } catch (e) {
           console.warn('Simulator goToScreen error:', e);
         }
       }
       syncActiveSimScreen(screenIndex);
-      const names = { 
-        0: 'StandBy Mídia', 
-        1: 'Dock Principal (2x6)', 
-        2: 'Illustrator Cores & Roda Cromática', 
-        3: 'Illustrator Tipografia & Texto', 
-        4: 'Illustrator Vetor & Pathfinder Studio', 
-        5: 'Photoshop Pro Master Deck' 
-      };
-      showToast(`Tela Simulada: ${names[screenIndex] || 'Tela ' + screenIndex}`);
+      const targetScreen = activeScreens[screenIndex];
+      const title = targetScreen ? targetScreen.title : `Tela ${screenIndex + 1}`;
+      showToast(`Tela Simulada: ${title}`);
     }
     window.switchSimScreen = switchSimScreen;
 
@@ -15633,6 +16057,10 @@
       initDockConfig();
       renderDockEditor();
       initAddonsState();
+      initScreensConfig();
+      renderDisplaysArrangement();
+      renderSimScreenSegments();
+      initWallpaperConfig();
       updateIpPortDisplay();
       updateSimClock();
       setInterval(updateSimClock, 1000);
@@ -15641,12 +16069,16 @@
       connectMonitor();
       startPingTicker();
 
-      // Sync dock configuration with iPhone preview frame when loaded
+      // Sync dock and screens/wallpaper configuration with preview frame when loaded
       const simFrame = document.getElementById('simAppFrame');
       if (simFrame) {
         simFrame.addEventListener('load', () => {
           updateSimScale();
-          setTimeout(saveAndSyncDock, 200);
+          setTimeout(() => {
+            saveAndSyncDock();
+            saveScreensConfig();
+            saveWallpaperConfig();
+          }, 200);
           if (window.location.hash.includes('sim-screen-4') || window.location.hash.includes('sliders') || window.location.hash.includes('tateis')) {
             setTimeout(() => { switchSimScreen(4); }, 350);
           }

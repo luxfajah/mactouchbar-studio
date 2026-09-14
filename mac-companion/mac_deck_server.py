@@ -987,6 +987,44 @@ def handle_action_fast(action: str, params: Dict):
     elif action in ("get_deck_config", "get_deck_buttons"):
         asyncio.create_task(push_immediate_deck_update(0.01))
 
+    elif action in ("screens_order_update", "save_screens_config"):
+        cfg = params.get("config", params)
+        if cfg and isinstance(cfg, dict):
+            screens_path = os.path.expanduser("~/.mactouchbar_screens.json")
+            try:
+                with open(screens_path, "w", encoding="utf-8") as f:
+                    json.dump(cfg, f, indent=2, ensure_ascii=False)
+                print(f"💾 Saved screens order to {screens_path}")
+            except Exception as e:
+                print(f"⚠️ Failed to write screens config: {e}")
+            
+            msg = json.dumps({"type": "screens_order_update", "config": cfg})
+            frame = encode_ws_frame(msg)
+            for client in list(connected_clients):
+                try:
+                    client.write(frame)
+                except Exception:
+                    pass
+
+    elif action in ("wallpaper_config_update", "save_wallpaper_config"):
+        cfg = params.get("config", params)
+        if cfg and isinstance(cfg, dict):
+            wall_path = os.path.expanduser("~/.mactouchbar_wallpaper.json")
+            try:
+                with open(wall_path, "w", encoding="utf-8") as f:
+                    json.dump(cfg, f, indent=2, ensure_ascii=False)
+                print(f"💾 Saved wallpaper config to {wall_path}")
+            except Exception as e:
+                print(f"⚠️ Failed to write wallpaper config: {e}")
+            
+            msg = json.dumps({"type": "wallpaper_config_update", "config": cfg})
+            frame = encode_ws_frame(msg)
+            for client in list(connected_clients):
+                try:
+                    client.write(frame)
+                except Exception:
+                    pass
+
     elif action in ("set_mic_dsp", "toggle_mic_dsp"):
         enabled = params.get("enabled", True)
         if isinstance(enabled, str):
@@ -1147,6 +1185,34 @@ async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWrit
                     "wallpaperBase64": wallpaper_b64
                 }
                 writer.write(encode_ws_frame(json.dumps(wp_msg)))
+
+            # 4. Send persistent screens order configuration
+            screens_path = os.path.expanduser("~/.mactouchbar_screens.json")
+            if os.path.exists(screens_path):
+                try:
+                    with open(screens_path, "r", encoding="utf-8") as f:
+                        saved_screens = json.load(f)
+                    if saved_screens:
+                        writer.write(encode_ws_frame(json.dumps({
+                            "type": "screens_order_update",
+                            "config": saved_screens
+                        })))
+                except Exception as e:
+                    print(f"⚠️ Error loading screens config: {e}")
+
+            # 5. Send persistent wallpaper configuration
+            wall_path = os.path.expanduser("~/.mactouchbar_wallpaper.json")
+            if os.path.exists(wall_path):
+                try:
+                    with open(wall_path, "r", encoding="utf-8") as f:
+                        saved_wall = json.load(f)
+                    if saved_wall:
+                        writer.write(encode_ws_frame(json.dumps({
+                            "type": "wallpaper_config_update",
+                            "config": saved_wall
+                        })))
+                except Exception as e:
+                    print(f"⚠️ Error loading wallpaper config: {e}")
 
             await writer.drain()
 

@@ -135,54 +135,69 @@
 
   // ==========================================================================
   // ==========================================================================
-  // 1. 4-Screen Carousel Navigation & Control Center Pull-Down System
-  //    Screen 0: StandBy Apple Music Player (Esquerda)
-  //    Screen 1: Deck de Atalhos 2x6 (Centro)
-  //    Screen 2: Adobe Illustrator Studio - Cores & Vetor (Direita 1)
-  //    Screen 3: Adobe Illustrator Studio - Tipografia & Texto (Direita 2)
+  // 1. Dynamic Screens Carousel Navigation & Arrangement Engine
   // ==========================================================================
+  const DEFAULT_SCREENS_CONFIG = {
+    screens: [
+      { id: 'screen-music', title: 'StandBy Música', active: true, isHome: false },
+      { id: 'screen-deck', title: 'Dock de Atalhos', active: true, isHome: true },
+      { id: 'screen-illustrator', title: 'Illustrator Studio', active: true, isHome: false },
+      { id: 'screen-photoshop', title: 'Photoshop Master Deck', active: true, isHome: false }
+    ],
+    transition: 'slide'
+  };
+
+  let currentScreensConfig = JSON.parse(JSON.stringify(DEFAULT_SCREENS_CONFIG));
+
+  function getVisibleScreens() {
+    const track = el.track || getEl('carousel-track');
+    if (!track) return [];
+    return Array.from(track.children).filter(child => {
+      return child.classList.contains('carousel-screen') && child.style.display !== 'none';
+    });
+  }
+
   function goToScreen(index) {
-    const screens = document.querySelectorAll('.carousel-screen');
-    const totalScreens = Math.max(screens.length, 4);
+    const track = el.track || getEl('carousel-track');
+    if (!track) return;
+
+    const visibleScreens = getVisibleScreens();
+    const totalScreens = Math.max(visibleScreens.length, 1);
     if (index < 0 || index >= totalScreens) return;
     state.currentScreen = index;
 
-    // Shift Carousel Track dynamically: 0 -> 0%, 1 -> -25%, 2 -> -50%, 3 -> -75%
+    // Shift Carousel Track dynamically based on visible active screens
     const translatePercent = -(index * (100 / totalScreens));
-    const track = el.track || getEl('carousel-track');
-    if (track) {
-      track.style.transform = `translateX(${translatePercent}%)`;
-    }
+    track.style.transform = `translateX(${translatePercent}%)`;
+
+    const currentScreenEl = visibleScreens[index];
+    const isMusicScreen = currentScreenEl && currentScreenEl.id === 'screen-music';
 
     // Dynamic Apple Album Gradient on Music (Screen 0)
     const overlay = el.screenBackdropOverlay || getEl('screen-backdrop-overlay');
     if (overlay) {
-      if (index === 0) {
+      if (isMusicScreen) {
         overlay.classList.add('active-music');
       } else {
         overlay.classList.remove('active-music');
       }
     }
 
-    // Update Minimalist Apple Page Dots (0 to 3)
-    const dots = [
-      el.dotPage0 || getEl('dot-page-0'),
-      el.dotPage1 || getEl('dot-page-1'),
-      el.dotPage2 || getEl('dot-page-2'),
-      el.dotPage3 || getEl('dot-page-3')
-    ];
-    dots.forEach((dot, i) => {
-      if (dot) {
+    // Update Minimalist Apple Page Dots
+    const dotsContainer = getEl('screen-page-dots');
+    if (dotsContainer) {
+      const dots = dotsContainer.querySelectorAll('.page-dot');
+      dots.forEach((dot, i) => {
         if (i === index) dot.classList.add('active');
         else dot.classList.remove('active');
-      }
-    });
+      });
+    }
 
-    if (index === 2) {
+    if (currentScreenEl && currentScreenEl.id === 'screen-illustrator') {
       setTimeout(() => {
-        updateCursorPosition();
-        updateColorDisplay(aiState.currentHex, hsvToRgb(aiState.currentHue / 360, aiState.currentSat, aiState.currentVal));
-        renderRecentIllustratorColors();
+        if (typeof updateCursorPosition === 'function') updateCursorPosition();
+        if (typeof updateColorDisplay === 'function') updateColorDisplay(aiState.currentHex, hsvToRgb(aiState.currentHue / 360, aiState.currentSat, aiState.currentVal));
+        if (typeof renderRecentIllustratorColors === 'function') renderRecentIllustratorColors();
         const isRunning = (state.runningApps || []).some(a => typeof a === 'string' && a.toLowerCase().includes('illustrator'));
         if (isRunning) {
           sendMacAction('illustrator_command', { command: 'get_recent_colors' });
@@ -193,6 +208,76 @@
     triggerHaptic();
   }
   window.goToScreen = goToScreen;
+
+  function applyScreensOrder(config) {
+    if (!config || !Array.isArray(config.screens) || config.screens.length === 0) return;
+    currentScreensConfig = config;
+
+    const track = el.track || getEl('carousel-track');
+    if (!track) return;
+
+    const allScreenEls = {
+      'screen-music': getEl('screen-music'),
+      'screen-deck': getEl('screen-deck'),
+      'screen-illustrator': getEl('screen-illustrator'),
+      'screen-photoshop': getEl('screen-photoshop')
+    };
+
+    const activeScreens = config.screens.filter(s => s.active);
+    const count = Math.max(activeScreens.length, 1);
+    const pct = (100 / count).toFixed(4);
+
+    // 1. Reorder and style active screens
+    activeScreens.forEach(s => {
+      const screenEl = allScreenEls[s.id] || getEl(s.id);
+      if (screenEl) {
+        screenEl.style.display = 'flex';
+        screenEl.style.width = `${pct}%`;
+        screenEl.style.flex = `0 0 ${pct}%`;
+        track.appendChild(screenEl);
+      }
+    });
+
+    // 2. Hide inactive screens
+    config.screens.filter(s => !s.active).forEach(s => {
+      const screenEl = allScreenEls[s.id] || getEl(s.id);
+      if (screenEl) {
+        screenEl.style.display = 'none';
+      }
+    });
+
+    // 3. Adjust track width
+    track.style.width = `${count * 100}%`;
+
+    // 4. Rebuild Page Dots
+    const dotsContainer = getEl('screen-page-dots');
+    if (dotsContainer) {
+      dotsContainer.innerHTML = '';
+      activeScreens.forEach((s, idx) => {
+        const dot = document.createElement('span');
+        dot.id = `dot-page-${idx}`;
+        dot.className = `page-dot ${idx === state.currentScreen ? 'active' : ''}`;
+        dot.title = s.title || `Tela ${idx + 1}`;
+        dot.onclick = () => goToScreen(idx);
+        dotsContainer.appendChild(dot);
+      });
+    }
+
+    // 5. Determine home screen index
+    const homeIdx = activeScreens.findIndex(s => s.isHome);
+    const targetScreen = (homeIdx >= 0 && homeIdx < count) ? homeIdx : 0;
+
+    try {
+      localStorage.setItem('mactouchbar_screens_config', JSON.stringify(config));
+    } catch (e) {}
+
+    if (state.currentScreen >= count) {
+      goToScreen(targetScreen);
+    } else {
+      goToScreen(state.currentScreen);
+    }
+  }
+  window.applyScreensOrder = applyScreensOrder;
 
   // Vertical Sub-Page Scrolling for Modular Add-ons (e.g. Illustrator with 3 sub-pages)
   function scrollAddonSubPage(containerId, subPageIndex) {
@@ -439,8 +524,8 @@
 
         // Ensure horizontal drag is natural and responsive (45px)
         if (Math.abs(deltaX) > Math.abs(deltaY) * 1.2 && Math.abs(deltaX) > 45) {
-          const screens = document.querySelectorAll('.carousel-screen');
-          const totalScreens = Math.max(screens.length, 4);
+          const visibleScreens = getVisibleScreens();
+          const totalScreens = Math.max(visibleScreens.length, 1);
           if (deltaX < 0) {
             // Drag Left -> Move to Next Screen
             if (state.currentScreen < totalScreens - 1) goToScreen(state.currentScreen + 1);
@@ -878,6 +963,10 @@
       if (data.wallpaperBase64 && data.wallpaperBase64.length > 50) {
         setGlobalWallpaper(`url(data:image/jpeg;base64,${data.wallpaperBase64})`);
       }
+    } else if (data.type === 'screens_order_update' && data.config) {
+      applyScreensOrder(data.config);
+    } else if (data.type === 'wallpaper_config_update' && data.config) {
+      applyWallpaperConfiguration(data.config);
     } else if (data.type === 'deck_config_update') {
       if (data.rows && data.cols) {
         state.deckRows = data.rows;
@@ -2719,14 +2808,38 @@
       });
     }
 
-    // Restore cached wallpaper if available
-    const cachedWallpaper = localStorage.getItem('mac_touchbar_custom_wallpaper');
-    if (cachedWallpaper) {
-      setGlobalWallpaper(cachedWallpaper);
+    // Restore screens order configuration if saved
+    try {
+      const savedScreens = localStorage.getItem('mactouchbar_screens_config');
+      if (savedScreens) {
+        const parsed = JSON.parse(savedScreens);
+        applyScreensOrder(parsed);
+      }
+    } catch (e) {
+      console.warn('Erro ao restaurar screens config:', e);
     }
 
-    // Start on Screen 1 (Central Deck 2x6)
-    goToScreen(1);
+    // Restore wallpaper configuration if saved
+    try {
+      const savedWp = localStorage.getItem('mactouchbar_wallpaper_config');
+      if (savedWp) {
+        const parsed = JSON.parse(savedWp);
+        applyWallpaperConfiguration(parsed);
+      } else {
+        const cachedWallpaper = localStorage.getItem('mac_touchbar_custom_wallpaper');
+        if (cachedWallpaper) {
+          setGlobalWallpaper(cachedWallpaper);
+        }
+      }
+    } catch (e) {
+      console.warn('Erro ao restaurar wallpaper config:', e);
+    }
+
+    // Start on Screen 1 (Central Deck 2x6) or configured Home Screen
+    const homeIdx = currentScreensConfig && Array.isArray(currentScreensConfig.screens)
+      ? currentScreensConfig.screens.filter(s => s.active).findIndex(s => s.isHome)
+      : 1;
+    goToScreen(homeIdx !== -1 ? homeIdx : 0);
 
     // If running in Android, get IP from bridge if available
     if (window.AndroidBridge) {
@@ -2745,6 +2858,63 @@
     initPhoneBattery();
   }
 
+  const WALLPAPER_PRESETS = {
+    'sequoia-dark': 'linear-gradient(135deg, #1a1b26 0%, #16161e 50%, #0f141c 100%)',
+    'sonoma-night': 'linear-gradient(135deg, #2b1b3d 0%, #15102a 50%, #0c0817 100%)',
+    'glass-blue': 'linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)',
+    'cyber-aurora': 'linear-gradient(135deg, #0d324d 0%, #7f5a83 100%)',
+    'studio-carbon': 'radial-gradient(circle at center, #1c1c1e 0%, #000000 100%)',
+    'titanium-gray': 'linear-gradient(180deg, #2c2c2e 0%, #1c1c1e 100%)',
+    'sunset-glass': 'linear-gradient(135deg, #3a1c71 0%, #d76d77 50%, #ffaf7b 100%)'
+  };
+
+  function applyWallpaperConfiguration(config) {
+    if (!config) return;
+
+    let bgValue = '';
+    if (config.type === 'macos_desktop' || config.type === 'system') {
+      bgValue = config.wallpaperUrl || config.url || 'url(wallpaper.jpg)';
+    } else if (config.type === 'preset') {
+      bgValue = WALLPAPER_PRESETS[config.presetId] || config.presetStyle || 'url(wallpaper.jpg)';
+    } else if (config.type === 'custom') {
+      if (config.base64) {
+        bgValue = `url(data:image/jpeg;base64,${config.base64})`;
+      } else if (config.url) {
+        bgValue = `url(${config.url})`;
+      }
+    } else if (config.type === 'color') {
+      bgValue = config.color || '#000000';
+    } else if (typeof config === 'string') {
+      bgValue = config;
+    }
+
+    if (bgValue) {
+      document.documentElement.style.setProperty('--app-wallpaper', bgValue);
+      document.body.style.backgroundImage = bgValue;
+      const screenCc = getEl('screen-cc');
+      if (screenCc) screenCc.style.backgroundImage = bgValue;
+    }
+
+    // Blur adjustment
+    if (config.blur !== undefined) {
+      const blurPx = typeof config.blur === 'number' ? `${config.blur}px` : config.blur;
+      document.documentElement.style.setProperty('--app-wallpaper-blur', blurPx);
+    }
+
+    // Dimmer adjustment (0 to 80%)
+    if (config.dimmer !== undefined) {
+      const dimOpacity = typeof config.dimmer === 'number' ? (config.dimmer / 100) : config.dimmer;
+      document.documentElement.style.setProperty('--app-wallpaper-dim', dimOpacity);
+    }
+
+    try {
+      localStorage.setItem('mactouchbar_wallpaper_config', JSON.stringify(config));
+    } catch (e) {}
+
+    console.log('[TouchBar] Papel de parede e efeitos configurados com sucesso');
+  }
+  window.applyWallpaperConfiguration = applyWallpaperConfiguration;
+
   function setGlobalWallpaper(bgUrl) {
     if (!bgUrl) return;
     document.documentElement.style.setProperty('--app-wallpaper', bgUrl);
@@ -2758,6 +2928,23 @@
     } catch (e) {}
   }
   window.setGlobalWallpaper = setGlobalWallpaper;
+
+  // Window message listener for Mac Simulator (iframe postMessage)
+  window.addEventListener('message', function (event) {
+    if (!event.data) return;
+    const data = event.data;
+    if (data.type === 'screens_order_update' && data.config) {
+      applyScreensOrder(data.config);
+    } else if (data.type === 'wallpaper_config_update' && data.config) {
+      applyWallpaperConfiguration(data.config);
+    } else if (data.type === 'wallpaper_update') {
+      if (data.wallpaperBase64) {
+        setGlobalWallpaper(`url(data:image/jpeg;base64,${data.wallpaperBase64})`);
+      }
+    } else if (data.type === 'go_to_screen' && typeof data.index === 'number') {
+      goToScreen(data.index);
+    }
+  });
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', bootstrap);

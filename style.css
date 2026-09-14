@@ -39,6 +39,8 @@
 
   /* Global Wallpaper Variable (Sincronizado automaticamente em todas as telas) */
   --app-wallpaper: url('wallpaper.jpg');
+  --app-wallpaper-blur: 0px;
+  --app-wallpaper-dim: 0;
 
   /* Realistic Liquid Glass (Translúcido Natural, Vidro Escuro sem Gelo Branco) */
   --glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0.04) 100%);
@@ -85,6 +87,19 @@ html, body {
   image-rendering: high-quality;
   transition: background-image 0.4s ease-in-out;
   touch-action: pan-y pinch-zoom;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  backdrop-filter: blur(var(--app-wallpaper-blur, 0px));
+  -webkit-backdrop-filter: blur(var(--app-wallpaper-blur, 0px));
+  background-color: rgba(0, 0, 0, var(--app-wallpaper-dim, 0));
+  transition: backdrop-filter 0.3s ease, -webkit-backdrop-filter 0.3s ease, background-color 0.3s ease;
 }
 
 #app-viewport {
@@ -224,6 +239,7 @@ html, body {
 
 .carousel-screen {
   width: 25%;
+  flex: 0 0 25%;
   height: 100%;
   padding: 0 6px calc(38px + env(safe-area-inset-bottom, 6px)) 6px;
   display: flex;
@@ -242,6 +258,7 @@ html, body {
   overflow: hidden;
   height: 100%;
   width: 25%;
+  flex: 0 0 25%;
 }
 
 .addon-vertical-scroll {
