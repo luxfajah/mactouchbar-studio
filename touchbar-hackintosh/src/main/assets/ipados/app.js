@@ -1218,55 +1218,75 @@
     if (!hw) return;
     state.hardware = hw;
 
-    // Header Info
-    const subModel = getEl('hud-mac-model-sub');
-    if (subModel && hw.mac_model) {
-      subModel.textContent = hw.mac_model;
-    }
-
-    // 1. CPU
+    // 1. CPU (Uso % + Temperatura + Cores)
     const cpuPct = typeof hw.cpu_percent === 'number' ? hw.cpu_percent : 0;
+    const cpuTemp = typeof hw.cpu_temp === 'number' && hw.cpu_temp > 0 ? `${Math.round(hw.cpu_temp)}°C` : '--°C';
     const valCpu = getEl('hud-val-cpu');
     const fillCpu = getEl('hud-fill-cpu');
-    const cpuLoadEl = getEl('hud-detail-cpu-load');
+    const cpuInfoEl = getEl('hud-detail-cpu-info');
 
     if (valCpu) valCpu.textContent = `${Math.round(cpuPct)}%`;
     if (fillCpu) fillCpu.style.width = `${Math.min(100, Math.max(0, cpuPct))}%`;
-    if (cpuLoadEl) {
-      cpuLoadEl.textContent = `${hw.cpu_cores || 8} Cores`;
+    if (cpuInfoEl) {
+      cpuInfoEl.textContent = `${cpuTemp} • ${hw.cpu_cores || 8} Cores`;
     }
 
-    // 2. GPU
+    // 2. GPU (Uso % + Temperatura + Engine)
     const gpuPct = typeof hw.gpu_percent === 'number' ? hw.gpu_percent : 0;
+    const gpuTemp = typeof hw.gpu_temp === 'number' && hw.gpu_temp > 0 ? `${Math.round(hw.gpu_temp)}°C` : '--°C';
     const valGpu = getEl('hud-val-gpu');
     const fillGpu = getEl('hud-fill-gpu');
-    const gpuStateEl = getEl('hud-detail-gpu-state');
+    const gpuInfoEl = getEl('hud-detail-gpu-info');
+
     if (valGpu) valGpu.textContent = `${Math.round(gpuPct)}%`;
     if (fillGpu) fillGpu.style.width = `${Math.min(100, Math.max(0, gpuPct))}%`;
-    if (gpuStateEl) gpuStateEl.textContent = 'Metal 3';
+    if (gpuInfoEl) {
+      gpuInfoEl.textContent = `${gpuTemp} • Metal 3`;
+    }
 
-    // 3. RAM
+    // 3. RAM (Uso % + Usado / Total)
     const ramObj = hw.ram || { total_gb: 16.0, used_gb: 8.0, free_gb: 8.0, percent: 50.0 };
     const ramPct = ramObj.percent || Math.round((ramObj.used_gb / (ramObj.total_gb || 16)) * 100);
     const valRam = getEl('hud-val-ram');
     const fillRam = getEl('hud-fill-ram');
-    const ramUsedEl = getEl('hud-detail-ram-used');
+    const ramInfoEl = getEl('hud-detail-ram-info');
 
     if (valRam) valRam.textContent = `${Math.round(ramPct)}%`;
     if (fillRam) fillRam.style.width = `${Math.min(100, Math.max(0, ramPct))}%`;
-    if (ramUsedEl) ramUsedEl.textContent = `${ramObj.used_gb} / ${ramObj.total_gb} GB`;
+    if (ramInfoEl) ramInfoEl.textContent = `${ramObj.used_gb} / ${ramObj.total_gb} GB`;
 
-    // 4. Armazenamento SSD/HD
-    const diskObj = hw.disk || { total_gb: 500.0, used_gb: 250.0, free_gb: 250.0, percent: 50.0 };
-    const valDisk = getEl('hud-val-disk');
-    const fillDisk = getEl('hud-fill-disk');
-    const diskFreeEl = getEl('hud-detail-disk-free');
+    // 4. Discos (Interno Macintosh HD + Todos os HDs/SSDs Externos Conectados)
+    const disksWrapper = getEl('hud-dynamic-disks');
+    const disksList = Array.isArray(hw.disks) && hw.disks.length > 0 ? hw.disks : (hw.disk ? [hw.disk] : [{ name: 'Macintosh HD', total_gb: 500.0, used_gb: 250.0, free_gb: 250.0, percent: 50.0, is_internal: true }]);
+    
+    if (disksWrapper) {
+      let disksHtml = '';
+      disksList.forEach(d => {
+        const isInternal = d.is_internal !== false;
+        const tagClass = isInternal ? 'tag-disk' : 'tag-disk-ext';
+        const tagLabel = isInternal ? 'SSD' : 'HD EXT';
+        const fillClass = isInternal ? 'fill-disk' : 'fill-disk-ext';
+        const dPct = Math.round(d.percent || 0);
+        const freeTxt = `${d.free_gb || 0} GB Livre`;
+        const driveName = d.name || (isInternal ? 'Macintosh HD' : 'HD Externo');
 
-    if (valDisk) valDisk.textContent = `${Math.round(diskObj.percent || 0)}%`;
-    if (fillDisk) fillDisk.style.width = `${Math.min(100, Math.max(0, diskObj.percent || 0))}%`;
-    if (diskFreeEl) diskFreeEl.textContent = `${diskObj.free_gb} GB Livre`;
+        disksHtml += `
+          <div class="hud-stat-card">
+            <div class="hud-stat-head">
+              <span class="hud-stat-tag ${tagClass}">${tagLabel}</span>
+              <span class="hud-stat-val">${dPct}%</span>
+            </div>
+            <div class="hud-stat-bar-track">
+              <div class="hud-stat-bar-fill ${fillClass}" style="width: ${Math.min(100, Math.max(0, dPct))}%;"></div>
+            </div>
+            <div class="hud-stat-sub">${driveName} • ${freeTxt}</div>
+          </div>
+        `;
+      });
+      disksWrapper.innerHTML = disksHtml;
+    }
 
-    // 5. Rede (Throughput & Conexão)
+    // 5. Rede (Throughput Download & Upload)
     const netObj = hw.network || { down_kbs: 0.0, up_kbs: 0.0, ip: '192.168.1.5', interface: 'Wi-Fi' };
     const valNetDown = getEl('hud-val-net-down');
     const fillNet = getEl('hud-fill-net');

@@ -550,22 +550,78 @@ def get_net_speed() -> Tuple[float, float]:
         return 0.0, 0.0
 
 
-def get_disk_telemetry() -> Dict:
-    """Read root SSD/HD storage capacity, used space and free space."""
+def get_hardware_temperatures() -> Tuple[float, float]:
+    """Read instant CPU and GPU temperatures using native SMC binary."""
+    smc_bin = os.path.join(os.path.dirname(__file__), "mac_smc")
+    try:
+        if os.path.exists(smc_bin):
+            res = subprocess.check_output([smc_bin], timeout=0.2).decode('utf-8').strip()
+            data = json.loads(res)
+            return float(data.get('cpu_temp', 0.0)), float(data.get('gpu_temp', 0.0))
+    except Exception:
+        pass
+    return 0.0, 0.0
+
+
+def get_all_disks() -> List[Dict]:
+    """Read root internal SSD and all connected external HDs/SSDs in /Volumes."""
+    disks = []
+    # 1. Internal Root Macintosh HD
     try:
         st = os.statvfs('/')
         total_gb = round((st.f_blocks * st.f_frsize) / (1024**3), 1)
         free_gb = round((st.f_bavail * st.f_frsize) / (1024**3), 1)
         used_gb = round(max(0.0, total_gb - free_gb), 1)
         pct = round((used_gb / total_gb) * 100, 1) if total_gb > 0 else 0.0
-        return {
+        disks.append({
+            "name": "Macintosh HD",
+            "mount": "/",
             "total_gb": total_gb,
             "used_gb": used_gb,
             "free_gb": free_gb,
-            "percent": pct
-        }
+            "percent": pct,
+            "is_internal": True
+        })
     except Exception:
-        return {"total_gb": 500.0, "used_gb": 250.0, "free_gb": 250.0, "percent": 50.0}
+        disks.append({"name": "Macintosh HD", "mount": "/", "total_gb": 500.0, "used_gb": 250.0, "free_gb": 250.0, "percent": 50.0, "is_internal": True})
+
+    # 2. External / Connected Volumes in /Volumes
+    if os.path.exists('/Volumes'):
+        try:
+            for item in sorted(os.listdir('/Volumes')):
+                vpath = os.path.join('/Volumes', item)
+                if os.path.islink(vpath) and os.path.realpath(vpath) == '/':
+                    continue
+                if os.path.ismount(vpath):
+                    try:
+                        st = os.statvfs(vpath)
+                        total_gb = round((st.f_blocks * st.f_frsize) / (1024**3), 1)
+                        if total_gb <= 0.1:
+                            continue
+                        free_gb = round((st.f_bavail * st.f_frsize) / (1024**3), 1)
+                        used_gb = round(max(0.0, total_gb - free_gb), 1)
+                        pct = round((used_gb / total_gb) * 100, 1) if total_gb > 0 else 0.0
+                        disks.append({
+                            "name": item,
+                            "mount": vpath,
+                            "total_gb": total_gb,
+                            "used_gb": used_gb,
+                            "free_gb": free_gb,
+                            "percent": pct,
+                            "is_internal": False
+                        })
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+
+    return disks
+
+
+def get_disk_telemetry() -> Dict:
+    """Read root SSD/HD storage capacity, used space and free space."""
+    disks = get_all_disks()
+    return disks[0] if disks else {"name": "Macintosh HD", "total_gb": 500.0, "used_gb": 250.0, "free_gb": 250.0, "percent": 50.0}
 
 
 def get_real_cpu_usage() -> float:
@@ -597,7 +653,7 @@ def get_real_cpu_usage() -> float:
 
 
 def get_hardware_telemetry() -> Dict:
-    """Read full system hardware telemetry (CPU, GPU, RAM, SSD, Network) with high precision."""
+    """Read full system hardware telemetry (CPU, GPU, RAM, SSDs, Network, Temperatures)."""
     global _cached_cpu_brand, _cached_hw_model
     # 1. RAM via sysctl and vm_stat (active + wired + compressed)
     try:
@@ -653,24 +709,28 @@ def get_hardware_telemetry() -> Dict:
     except Exception:
         pass
 
-    # 4. Storage & Network Throughput
-    disk = get_disk_telemetry()
+    # 4. Storage (All Drives: Internal + External) & Network Throughput & Temperatures
+    disks = get_all_disks()
     net_down_kb, net_up_kb = get_net_speed()
+    cpu_temp, gpu_temp = get_hardware_temperatures()
 
     return {
         "cpu_percent": cpu_pct,
+        "cpu_temp": cpu_temp,
         "cpu_model": _cached_cpu_brand,
         "cpu_cores": os.cpu_count() or 8,
         "cpu_load": f"{load1:.2f} / {load5:.2f}",
         "mac_model": _cached_hw_model,
         "gpu_percent": gpu_pct,
+        "gpu_temp": gpu_temp,
         "ram": {
             "total_gb": ram_total_gb,
             "used_gb": ram_used_gb,
             "free_gb": ram_free_gb,
             "percent": ram_pct
         },
-        "disk": disk,
+        "disk": disks[0] if disks else {"name": "Macintosh HD", "total_gb": 500.0, "used_gb": 250.0, "free_gb": 250.0, "percent": 50.0},
+        "disks": disks,
         "network": {
             "down_kbs": net_down_kb,
             "up_kbs": net_up_kb,

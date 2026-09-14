@@ -1476,106 +1476,77 @@
         </section>
 
         <!-- ====================================================================
-             ADDON TELA 6: Telemetria Minimalista de Hardware & Rede
-             Visão Compacta & Elegante: CPU, GPU, Memória RAM, SSD e Throughput
+             ADDON TELA 6: Telemetria Minimalista de Hardware & Rede (3 Colunas)
+             CPU (com Temp), GPU (com Temp), RAM, Discos (Interno + Externos), Rede
              ==================================================================== -->
         <section class="carousel-screen addon-screen" id="screen-taskmgr">
-          <div class="hud-mini-screen-container">
-            <div class="hud-mini-glass-panel">
-              
-              <!-- Mini Header Row -->
-              <div class="hud-mini-header">
-                <div class="hud-mini-title-wrap">
-                  <div class="hud-mini-icon-chip">
-                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                      <rect x="4" y="4" width="16" height="16" rx="3"></rect>
-                      <rect x="9" y="9" width="6" height="6" rx="1"></rect>
-                      <path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"></path>
-                    </svg>
-                  </div>
-                  <span class="hud-mini-title">Telemetria</span>
-                  <span class="hud-mini-sep">•</span>
-                  <span class="hud-mini-model" id="hud-mac-model-sub">MacBook Pro</span>
-                </div>
-                <div class="hud-mini-status-wrap">
-                  <div class="hud-mini-live-badge">
-                    <span class="hud-pulse-dot"></span>
-                    <span class="hud-live-text">AO VIVO</span>
-                  </div>
-                  <button type="button" class="hud-mini-refresh" onclick="requestHardwareTelemetryNow()" title="Atualizar">
-                    <svg viewBox="0 0 16 16" width="11" height="11" fill="currentColor">
-                      <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
-                      <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <!-- 5 Minimalist Stat Columns / Pills (Single Slim Row) -->
-              <div class="hud-mini-grid">
+          <div class="hud-3col-screen-container">
+            <div class="hud-3col-glass-panel">
+              <div class="hud-3col-grid" id="hud-telemetry-grid">
                 
-                <!-- [1] CPU -->
-                <div class="hud-mini-card">
-                  <div class="hud-mini-card-head">
-                    <span class="hud-mini-tag tag-cpu">CPU</span>
-                    <span class="hud-mini-val" id="hud-val-cpu">0%</span>
+                <!-- [1] CPU (Uso + Temp + Cores) -->
+                <div class="hud-stat-card">
+                  <div class="hud-stat-head">
+                    <span class="hud-stat-tag tag-cpu">CPU</span>
+                    <span class="hud-stat-val" id="hud-val-cpu">0%</span>
                   </div>
-                  <div class="hud-mini-bar-track">
-                    <div class="hud-mini-bar-fill fill-cpu" id="hud-fill-cpu" style="width: 0%;"></div>
+                  <div class="hud-stat-bar-track">
+                    <div class="hud-stat-bar-fill fill-cpu" id="hud-fill-cpu" style="width: 0%;"></div>
                   </div>
-                  <div class="hud-mini-card-sub" id="hud-detail-cpu-load">8 Cores</div>
+                  <div class="hud-stat-sub" id="hud-detail-cpu-info">--°C • 8 Cores</div>
                 </div>
 
-                <!-- [2] GPU -->
-                <div class="hud-mini-card">
-                  <div class="hud-mini-card-head">
-                    <span class="hud-mini-tag tag-gpu">GPU</span>
-                    <span class="hud-mini-val" id="hud-val-gpu">0%</span>
+                <!-- [2] GPU (Uso + Temp + Engine) -->
+                <div class="hud-stat-card">
+                  <div class="hud-stat-head">
+                    <span class="hud-stat-tag tag-gpu">GPU</span>
+                    <span class="hud-stat-val" id="hud-val-gpu">0%</span>
                   </div>
-                  <div class="hud-mini-bar-track">
-                    <div class="hud-mini-bar-fill fill-gpu" id="hud-fill-gpu" style="width: 0%;"></div>
+                  <div class="hud-stat-bar-track">
+                    <div class="hud-stat-bar-fill fill-gpu" id="hud-fill-gpu" style="width: 0%;"></div>
                   </div>
-                  <div class="hud-mini-card-sub" id="hud-detail-gpu-state">Metal 3</div>
+                  <div class="hud-stat-sub" id="hud-detail-gpu-info">--°C • Metal 3</div>
                 </div>
 
-                <!-- [3] RAM -->
-                <div class="hud-mini-card">
-                  <div class="hud-mini-card-head">
-                    <span class="hud-mini-tag tag-ram">RAM</span>
-                    <span class="hud-mini-val" id="hud-val-ram">0%</span>
+                <!-- [3] RAM (Uso + Usado / Total) -->
+                <div class="hud-stat-card">
+                  <div class="hud-stat-head">
+                    <span class="hud-stat-tag tag-ram">RAM</span>
+                    <span class="hud-stat-val" id="hud-val-ram">0%</span>
                   </div>
-                  <div class="hud-mini-bar-track">
-                    <div class="hud-mini-bar-fill fill-ram" id="hud-fill-ram" style="width: 0%;"></div>
+                  <div class="hud-stat-bar-track">
+                    <div class="hud-stat-bar-fill fill-ram" id="hud-fill-ram" style="width: 0%;"></div>
                   </div>
-                  <div class="hud-mini-card-sub" id="hud-detail-ram-used">0.0 / 0.0 GB</div>
+                  <div class="hud-stat-sub" id="hud-detail-ram-info">0.0 / 0.0 GB</div>
                 </div>
 
-                <!-- [4] SSD -->
-                <div class="hud-mini-card">
-                  <div class="hud-mini-card-head">
-                    <span class="hud-mini-tag tag-disk">SSD</span>
-                    <span class="hud-mini-val" id="hud-val-disk">0%</span>
+                <!-- [4+] Discos (Interno Macintosh HD + HDs Externos) - Injetados Dinamicamente via display: contents -->
+                <div id="hud-dynamic-disks" class="hud-disks-wrapper">
+                  <div class="hud-stat-card">
+                    <div class="hud-stat-head">
+                      <span class="hud-stat-tag tag-disk">SSD</span>
+                      <span class="hud-stat-val" id="hud-val-disk">0%</span>
+                    </div>
+                    <div class="hud-stat-bar-track">
+                      <div class="hud-stat-bar-fill fill-disk" id="hud-fill-disk" style="width: 0%;"></div>
+                    </div>
+                    <div class="hud-stat-sub" id="hud-detail-disk-info">Macintosh HD • 0 GB Livre</div>
                   </div>
-                  <div class="hud-mini-bar-track">
-                    <div class="hud-mini-bar-fill fill-disk" id="hud-fill-disk" style="width: 0%;"></div>
-                  </div>
-                  <div class="hud-mini-card-sub" id="hud-detail-disk-free">0 GB Livre</div>
                 </div>
 
-                <!-- [5] REDE -->
-                <div class="hud-mini-card">
-                  <div class="hud-mini-card-head">
-                    <span class="hud-mini-tag tag-net">REDE</span>
-                    <span class="hud-mini-val" id="hud-val-net-down">↓ 0 KB/s</span>
+                <!-- [5] REDE (Throughput Download / Upload) -->
+                <div class="hud-stat-card">
+                  <div class="hud-stat-head">
+                    <span class="hud-stat-tag tag-net">REDE</span>
+                    <span class="hud-stat-val" id="hud-val-net-down">↓ 0 KB/s</span>
                   </div>
-                  <div class="hud-mini-bar-track">
-                    <div class="hud-mini-bar-fill fill-net" id="hud-fill-net" style="width: 0%;"></div>
+                  <div class="hud-stat-bar-track">
+                    <div class="hud-stat-bar-fill fill-net" id="hud-fill-net" style="width: 0%;"></div>
                   </div>
-                  <div class="hud-mini-card-sub" id="hud-net-up-txt">↑ 0.0 KB/s</div>
+                  <div class="hud-stat-sub" id="hud-net-up-txt">↑ 0.0 KB/s</div>
                 </div>
 
               </div>
-
             </div>
           </div>
         </section>
