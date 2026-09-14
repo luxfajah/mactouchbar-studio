@@ -11,7 +11,7 @@
             <sparkle:version>13</sparkle:version>
             <sparkle:shortVersionString>1.0.12</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/luxfajah/mactouchbar-studio/releases/download/v1.0.12/MacTouchBarBeta.zip" length="13392622" type="application/octet-stream"/>
+            <enclosure url="https://github.com/luxfajah/mactouchbar-studio/releases/download/v1.0.12/MacTouchBarBeta.zip" length="18505916" type="application/octet-stream" sparkle:edSignature="XxH0O0lZ+zR5vFzx0X94vXhC3OY6xeFD7jBain5eytiCR5hYk3SKmnOWgmOvVo2Z4n1VFNV3cmt0IFVPq1SpCA=="/>
         </item>
         <item>
             <title>1.0.11</title>
