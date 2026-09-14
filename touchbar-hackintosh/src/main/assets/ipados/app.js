@@ -273,6 +273,81 @@
   }
   window.handleDynamicAppSwitch = handleDynamicAppSwitch;
 
+  function createDynamicAddonScreen(s) {
+    if (!s || !s.id) return null;
+    let existing = getEl(s.id);
+    if (existing) return existing;
+
+    const track = el.track || getEl('carousel-track');
+    if (!track) return null;
+
+    const sec = document.createElement('section');
+    sec.className = 'carousel-screen addon-screen dynamic-addon-screen';
+    sec.id = s.id;
+    sec.style.display = 'none';
+
+    const badgeBg = s.badgeBg || '#1c1c1e';
+    const badgeColor = s.badgeColor || '#ffffff';
+    const badgeText = s.badgeText || (s.title ? s.title.slice(0, 2) : 'Ad');
+    const title = s.title || s.appName || 'Estúdio';
+    const desc = s.desc || 'Controles profissionais dedicados para seu fluxo de trabalho.';
+    const appName = s.appName || s.title;
+
+    sec.innerHTML = `
+      <div class="addon-stage-wrapper" style="width: 100%; height: 100%; display: flex; flex-direction: column; padding: 12px 20px; box-sizing: border-box; justify-content: space-between;">
+        <div class="dynamic-addon-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 36px; height: 36px; border-radius: 9px; background: ${badgeBg}; color: ${badgeColor}; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+              ${badgeText}
+            </div>
+            <div>
+              <div style="font-size: 15px; font-weight: 600; color: #ffffff; letter-spacing: -0.2px;">${title}</div>
+              <div style="font-size: 11px; color: rgba(255,255,255,0.6);">${appName} • Addon Ativo</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button type="button" class="addon-quick-btn" onclick="sendMacAction('launch_app', { name: '${appName}' })" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer;">
+              Abrir App
+            </button>
+            <button type="button" class="addon-quick-btn" onclick="goToScreenById('screen-deck')" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer;">
+              Início
+            </button>
+          </div>
+        </div>
+
+        <div class="dynamic-addon-body" style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 16px 0;">
+          <div class="dynamic-addon-card" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 20px 24px; text-align: center; max-width: 520px; width: 100%; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);">
+            <div style="font-size: 13px; color: rgba(255,255,255,0.85); line-height: 1.5; margin-bottom: 16px;">
+              ${desc}
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+              <button type="button" class="deck-btn-tactile" onclick="sendMacAction('hotkey', { hotkey: 'cmd+s' })" style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; color: #fff; padding: 12px 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                <span style="font-size: 16px;">💾</span>
+                <span>Salvar</span>
+              </button>
+              <button type="button" class="deck-btn-tactile" onclick="sendMacAction('hotkey', { hotkey: 'cmd+z' })" style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; color: #fff; padding: 12px 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                <span style="font-size: 16px;">↩️</span>
+                <span>Desfazer</span>
+              </button>
+              <button type="button" class="deck-btn-tactile" onclick="sendMacAction('hotkey', { hotkey: 'cmd+shift+z' })" style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; color: #fff; padding: 12px 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                <span style="font-size: 16px;">↪️</span>
+                <span>Refazer</span>
+              </button>
+              <button type="button" class="deck-btn-tactile" onclick="sendMacAction('hotkey', { hotkey: 'space' })" style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; color: #fff; padding: 12px 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                <span style="font-size: 16px;">⏯️</span>
+                <span>Play/Pause</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    track.appendChild(sec);
+    return sec;
+  }
+  window.createDynamicAddonScreen = createDynamicAddonScreen;
+
   function applyScreensOrder(config) {
     if (!config || !Array.isArray(config.screens) || config.screens.length === 0) return;
     currentScreensConfig = config;
@@ -280,44 +355,47 @@
     const track = el.track || getEl('carousel-track');
     if (!track) return;
 
-    const allScreenEls = {
-      'screen-music': getEl('screen-music'),
-      'screen-deck': getEl('screen-deck'),
-      'screen-illustrator': getEl('screen-illustrator'),
-      'screen-photoshop': getEl('screen-photoshop')
-    };
+    // 1. Gather active configs and ensure valid DOM element for each
+    const activeConfigs = config.screens.filter(s => s.active);
+    const validActiveScreens = [];
 
-    const activeScreens = config.screens.filter(s => s.active);
-    const count = Math.max(activeScreens.length, 1);
-    const pct = (100 / count).toFixed(4);
-
-    // 1. Reorder and style active screens
-    activeScreens.forEach(s => {
-      const screenEl = allScreenEls[s.id] || getEl(s.id);
+    activeConfigs.forEach(s => {
+      let screenEl = getEl(s.id);
+      if (!screenEl) {
+        screenEl = createDynamicAddonScreen(s);
+      }
       if (screenEl) {
-        screenEl.style.display = 'flex';
-        screenEl.style.width = `${pct}%`;
-        screenEl.style.flex = `0 0 ${pct}%`;
-        track.appendChild(screenEl);
+        validActiveScreens.push({ config: s, el: screenEl });
       }
     });
 
+    const count = Math.max(validActiveScreens.length, 1);
+    const pct = (100 / count).toFixed(4);
+
     // 2. Hide inactive screens
     config.screens.filter(s => !s.active).forEach(s => {
-      const screenEl = allScreenEls[s.id] || getEl(s.id);
+      const screenEl = getEl(s.id);
       if (screenEl) {
         screenEl.style.display = 'none';
       }
     });
 
-    // 3. Adjust track width
+    // 3. Reorder and style active screens
+    validActiveScreens.forEach(({ el: screenEl }) => {
+      screenEl.style.display = 'flex';
+      screenEl.style.width = `${pct}%`;
+      screenEl.style.flex = `0 0 ${pct}%`;
+      track.appendChild(screenEl);
+    });
+
+    // 4. Adjust track width strictly to match valid active count
     track.style.width = `${count * 100}%`;
 
-    // 4. Rebuild Page Dots
+    // 5. Rebuild Page Dots
     const dotsContainer = getEl('screen-page-dots');
     if (dotsContainer) {
       dotsContainer.innerHTML = '';
-      activeScreens.forEach((s, idx) => {
+      validActiveScreens.forEach(({ config: s }, idx) => {
         const dot = document.createElement('span');
         dot.id = `dot-page-${idx}`;
         dot.className = `page-dot ${idx === state.currentScreen ? 'active' : ''}`;
@@ -327,8 +405,8 @@
       });
     }
 
-    // 5. Determine home screen index
-    const homeIdx = activeScreens.findIndex(s => s.isHome);
+    // 6. Determine home screen index
+    const homeIdx = validActiveScreens.findIndex(({ config: s }) => s.isHome);
     const targetScreen = (homeIdx >= 0 && homeIdx < count) ? homeIdx : 0;
 
     try {
