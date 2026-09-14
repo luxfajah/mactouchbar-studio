@@ -1112,7 +1112,11 @@
       aiState.lastFrontApp = front;
       if (!isAiFront) {
         aiState.userDismissedThisSession = false;
-      }
+    const msgType = data.type || data.action || '';
+    const msgConfig = data.config || (data.params && data.params.config);
+
+    if (data.type === 'status_update') {
+      renderStatus(data);
       if (data.wallpaperBase64 && data.wallpaperBase64.length > 50) {
         window._cachedMacWallpaper = `url(data:image/jpeg;base64,${data.wallpaperBase64})`;
         const curConfig = localStorage.getItem('mactouchbar_wallpaper_config');
@@ -1121,37 +1125,40 @@
           setGlobalWallpaper(window._cachedMacWallpaper);
         }
       }
-    } else if (data.type === 'active_app_changed') {
+    } else if (msgType === 'active_app_changed') {
       if (data.app) {
         handleDynamicAppSwitch(data.app);
       } else if (typeof data.targetScreen === 'number') {
         goToScreen(data.targetScreen);
       }
-    } else if (data.type === 'smart_switching_toggle') {
+    } else if (msgType === 'smart_switching_toggle') {
       try {
-        localStorage.setItem('mactouchbar_smart_switching', data.enabled ? 'true' : 'false');
+        localStorage.setItem('mactouchbar_smart_switching', (data.enabled || data.params?.enabled) ? 'true' : 'false');
       } catch (e) {}
-    } else if (data.type === 'go_to_screen' && typeof data.index === 'number') {
+    } else if (msgType === 'go_to_screen' && typeof data.index === 'number') {
       goToScreen(data.index);
-    } else if (data.type === 'screens_order_update' && data.config) {
-      applyScreensOrder(data.config);
-    } else if (data.type === 'wallpaper_config_update' && data.config) {
-      applyWallpaperConfiguration(data.config);
-    } else if (data.type === 'deck_config_update') {
-      if (data.rows && data.cols) {
-        state.deckRows = data.rows;
-        state.deckCols = data.cols;
+    } else if (msgType === 'screens_order_update' && (data.config || msgConfig)) {
+      applyScreensOrder(data.config || msgConfig);
+    } else if (msgType === 'wallpaper_config_update' && (data.config || msgConfig)) {
+      applyWallpaperConfiguration(data.config || msgConfig);
+    } else if (msgType === 'deck_config_update' || msgType === 'save_deck_config') {
+      const dRows = data.rows || (data.params && data.params.rows);
+      const dCols = data.cols || (data.params && data.params.cols);
+      const dButtons = data.buttons || (data.params && data.params.buttons);
+      if (dRows && dCols) {
+        state.deckRows = dRows;
+        state.deckCols = dCols;
         const grid = el.deckGrid || getEl('deck-grid');
         if (grid) {
-          grid.style.gridTemplateColumns = `repeat(${data.cols}, 1fr)`;
-          grid.style.gridTemplateRows = `repeat(${data.rows}, 1fr)`;
+          grid.style.gridTemplateColumns = `repeat(${dCols}, 1fr)`;
+          grid.style.gridTemplateRows = `repeat(${dRows}, 1fr)`;
         }
       }
-      if (Array.isArray(data.buttons) && data.buttons.length > 0) {
-        state.buttons = data.buttons;
+      if (Array.isArray(dButtons) && dButtons.length > 0) {
+        state.buttons = dButtons;
         renderDeckButtons(state.buttons);
       }
-    } else if (data.type === 'wallpaper_update') {
+    } else if (msgType === 'wallpaper_update') {
       if (data.wallpaperBase64 && data.wallpaperBase64.length > 50) {
         window._cachedMacWallpaper = `url(data:image/jpeg;base64,${data.wallpaperBase64})`;
         const curConfig = localStorage.getItem('mactouchbar_wallpaper_config');
@@ -1161,11 +1168,11 @@
         }
         console.log('[TouchBar] Papel de parede sincronizado com o Mac');
       }
-    } else if (data.type === 'illustrator_recent_colors' && Array.isArray(data.colors)) {
+    } else if (msgType === 'illustrator_recent_colors' && Array.isArray(data.colors)) {
       if (typeof handleImportedAiColors === 'function') {
         handleImportedAiColors(data.colors);
       }
-    } else if (data.type === 'toast' && data.message) {
+    } else if (msgType === 'toast' && data.message) {
       showToast(data.message);
     }
 
