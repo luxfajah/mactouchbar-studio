@@ -142,8 +142,8 @@
       { id: 'screen-music', title: 'StandBy Música', active: true, isHome: false },
       { id: 'screen-deck', title: 'Dock de Atalhos', active: true, isHome: true },
       { id: 'screen-illustrator', title: 'Illustrator Studio', active: true, isHome: false },
-      { id: 'screen-photoshop', title: 'Photoshop Master Deck', active: true, isHome: false },
-      { id: 'screen-taskmgr', title: 'Gerenciador de Tarefas', active: true, isHome: false }
+      { id: 'screen-photoshop', title: 'Photoshop Master Deck', active: false, isHome: false },
+      { id: 'screen-taskmgr', title: 'Gerenciador de Tarefas', active: false, isHome: false }
     ],
     transition: 'slide'
   };
