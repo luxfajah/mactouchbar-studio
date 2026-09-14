@@ -6,6 +6,14 @@
         <description>Atualizações mais recentes do MacTouchBar Studio Beta</description>
         <language>pt-BR</language>
         <item>
+            <title>1.0.14</title>
+            <pubDate>Mon, 14 Sep 2026 02:05:30 +0000</pubDate>
+            <sparkle:version>15</sparkle:version>
+            <sparkle:shortVersionString>1.0.14</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/luxfajah/mactouchbar-studio/releases/download/v1.0.14/MacTouchBarBeta.zip" length="13407364" type="application/octet-stream" sparkle:edSignature="oGf99SUQh1bEfTwmR7EYmmktmTuY8/cSqXTzVKWH6SDGQEI/GQM6nj2MvkmgZ4FZw4mSOJRBG82qVralPoOXAA=="/>
+        </item>
+        <item>
             <title>1.0.13</title>
             <pubDate>Mon, 14 Sep 2026 01:57:19 +0000</pubDate>
             <sparkle:version>14</sparkle:version>
@@ -20,14 +28,6 @@
             <sparkle:shortVersionString>1.0.12</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
             <enclosure url="https://github.com/luxfajah/mactouchbar-studio/releases/download/v1.0.12/MacTouchBarBeta.zip" length="13399783" type="application/octet-stream" sparkle:edSignature="NUc6KLS9lkDTWWbo9f8+Zs3HAk4EB8Vuch35iczOTwnJS9mK1sowYtivf9fDicNmizhF4SqEpvQCXYEj16PQAw=="/>
-        </item>
-        <item>
-            <title>1.0.11</title>
-            <pubDate>Sun, 13 Sep 2026 22:45:00 +0000</pubDate>
-            <sparkle:version>12</sparkle:version>
-            <sparkle:shortVersionString>1.0.11</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/luxfajah/mactouchbar-studio/releases/download/v1.0.11/MacTouchBarBeta.zip" length="13392622" type="application/octet-stream"/>
         </item>
         <item>
             <title>1.0.1</title>
