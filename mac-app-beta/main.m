@@ -620,15 +620,19 @@ static BetaAppDelegate *gDelegate = nil;
 
 - (void)updaterDidNotFindUpdate:(SPUUpdater *)updater error:(NSError *)error {
     NSLog(@"[MacTouchBarBeta] Sparkle: Nenhuma nova atualização encontrada (Erro: %@)", error);
+    NSString *currentVer = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] ?: @"1.0.15";
     dispatch_async(dispatch_get_main_queue(), ^{
-        [self.webView evaluateJavaScript:@"window.onUpdateStatus && window.onUpdateStatus({ hasUpdate: false, latestVersion: '1.0.11' });" completionHandler:nil];
+        NSString *js = [NSString stringWithFormat:@"window.onUpdateStatus && window.onUpdateStatus({ hasUpdate: false, latestVersion: '%@' });", currentVer];
+        [self.webView evaluateJavaScript:js completionHandler:nil];
     });
 }
 
 - (void)updater:(SPUUpdater *)updater didAbortWithError:(NSError *)error {
     NSLog(@"[MacTouchBarBeta] Sparkle: Erro ou cancelamento na busca de atualizações: %@", error);
+    NSString *currentVer = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] ?: @"1.0.15";
     dispatch_async(dispatch_get_main_queue(), ^{
-        [self.webView evaluateJavaScript:@"window.onUpdateStatus && window.onUpdateStatus({ hasUpdate: false, latestVersion: '1.0.11' });" completionHandler:nil];
+        NSString *js = [NSString stringWithFormat:@"window.onUpdateStatus && window.onUpdateStatus({ hasUpdate: false, latestVersion: '%@' });", currentVer];
+        [self.webView evaluateJavaScript:js completionHandler:nil];
     });
 }
 
