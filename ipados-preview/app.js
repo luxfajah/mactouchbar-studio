@@ -209,6 +209,70 @@
   }
   window.goToScreen = goToScreen;
 
+  function goToScreenById(screenId) {
+    if (!screenId) return false;
+    const visibleScreens = getVisibleScreens();
+    const idx = visibleScreens.findIndex(el => el && el.id === screenId);
+    if (idx !== -1) {
+      goToScreen(idx);
+      return true;
+    }
+    return false;
+  }
+  window.goToScreenById = goToScreenById;
+
+  let lastDynamicFrontApp = '';
+
+  function handleDynamicAppSwitch(frontApp) {
+    if (!frontApp) return;
+    const front = frontApp.toLowerCase().trim();
+    if (front === lastDynamicFrontApp) return;
+    lastDynamicFrontApp = front;
+
+    // Check if smart switching is enabled in settings (default: true)
+    const savedSetting = localStorage.getItem('mactouchbar_smart_switching');
+    if (savedSetting === 'false') return;
+
+    let targetScreenId = null;
+    if (front.includes('illustrator')) {
+      targetScreenId = 'screen-illustrator';
+    } else if (front.includes('photoshop')) {
+      targetScreenId = 'screen-photoshop';
+    } else if (front.includes('premiere')) {
+      targetScreenId = 'screen-premiere';
+    } else if (front.includes('figma')) {
+      targetScreenId = 'screen-figma';
+    } else if (front.includes('affinity')) {
+      targetScreenId = 'screen-affinity';
+    } else if (front.includes('after effects') || front.includes('aftereffects')) {
+      targetScreenId = 'screen-aftereffects';
+    } else if (front.includes('capcut')) {
+      targetScreenId = 'screen-capcut';
+    } else if (front.includes('indesign')) {
+      targetScreenId = 'screen-indesign';
+    } else if (front.includes('music') || front.includes('spotify') || front.includes('deezer') || front.includes('tidal')) {
+      targetScreenId = 'screen-music';
+    } else if (front.includes('finder') || front.includes('desktop')) {
+      // Return to home or deck
+      const homeScreen = (currentScreensConfig && currentScreensConfig.screens) ? currentScreensConfig.screens.find(s => s.active && s.isHome) : null;
+      targetScreenId = homeScreen ? homeScreen.id : 'screen-deck';
+    } else {
+      // Switched to general unmapped app (e.g. Chrome, Safari, Terminal, VS Code, Notes)
+      // If currently on a specialized app addon (Illustrator, Photoshop, Premiere, Figma, etc.), return to Deck/Home
+      const visibleScreens = getVisibleScreens();
+      const currentEl = visibleScreens[state.currentScreen];
+      if (currentEl && (currentEl.id === 'screen-illustrator' || currentEl.id === 'screen-photoshop' || currentEl.id === 'screen-premiere' || currentEl.id === 'screen-figma' || currentEl.id === 'screen-affinity' || currentEl.id === 'screen-aftereffects' || currentEl.id === 'screen-capcut' || currentEl.id === 'screen-indesign')) {
+        const homeScreen = (currentScreensConfig && currentScreensConfig.screens) ? currentScreensConfig.screens.find(s => s.active && s.isHome) : null;
+        targetScreenId = homeScreen ? homeScreen.id : 'screen-deck';
+      }
+    }
+
+    if (targetScreenId) {
+      goToScreenById(targetScreenId);
+    }
+  }
+  window.handleDynamicAppSwitch = handleDynamicAppSwitch;
+
   function applyScreensOrder(config) {
     if (!config || !Array.isArray(config.screens) || config.screens.length === 0) return;
     currentScreensConfig = config;
@@ -955,7 +1019,8 @@
         }
       }
 
-      // Illustrator status tracking (DO NOT auto-open: only open when user clicks shortcut)
+      // Dynamic Profile & Contextual Addon Smart Switching
+      handleDynamicAppSwitch(front);
       aiState.lastFrontApp = front;
       if (!isAiFront) {
         aiState.userDismissedThisSession = false;
@@ -968,6 +1033,18 @@
           setGlobalWallpaper(window._cachedMacWallpaper);
         }
       }
+    } else if (data.type === 'active_app_changed') {
+      if (data.app) {
+        handleDynamicAppSwitch(data.app);
+      } else if (typeof data.targetScreen === 'number') {
+        goToScreen(data.targetScreen);
+      }
+    } else if (data.type === 'smart_switching_toggle') {
+      try {
+        localStorage.setItem('mactouchbar_smart_switching', data.enabled ? 'true' : 'false');
+      } catch (e) {}
+    } else if (data.type === 'go_to_screen' && typeof data.index === 'number') {
+      goToScreen(data.index);
     } else if (data.type === 'screens_order_update' && data.config) {
       applyScreensOrder(data.config);
     } else if (data.type === 'wallpaper_config_update' && data.config) {
@@ -2951,6 +3028,16 @@
       if (data.wallpaperBase64) {
         setGlobalWallpaper(`url(data:image/jpeg;base64,${data.wallpaperBase64})`);
       }
+    } else if (data.type === 'active_app_changed') {
+      if (data.app) {
+        handleDynamicAppSwitch(data.app);
+      } else if (typeof data.targetScreen === 'number') {
+        goToScreen(data.targetScreen);
+      }
+    } else if (data.type === 'smart_switching_toggle') {
+      try {
+        localStorage.setItem('mactouchbar_smart_switching', data.enabled ? 'true' : 'false');
+      } catch (e) {}
     } else if (data.type === 'go_to_screen' && typeof data.index === 'number') {
       goToScreen(data.index);
     }

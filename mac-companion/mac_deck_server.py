@@ -1025,6 +1025,16 @@ def handle_action_fast(action: str, params: Dict):
                 except Exception:
                     pass
 
+    elif action in ("smart_switching_toggle", "set_smart_switching"):
+        enabled = params.get("enabled", True) if isinstance(params, dict) else True
+        msg = json.dumps({"type": "smart_switching_toggle", "enabled": enabled})
+        frame = encode_ws_frame(msg)
+        for client in list(connected_clients):
+            try:
+                client.write(frame)
+            except Exception:
+                pass
+
     elif action in ("set_mic_dsp", "toggle_mic_dsp"):
         enabled = params.get("enabled", True)
         if isinstance(enabled, str):
@@ -1249,7 +1259,7 @@ async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWrit
                             handle_action_fast(action, params)
 
                             # Broadcast client-to-client control messages (like simulator navigation or deck layout sync)
-                            if msg_type in ("switch_sim_screen", "eval_js", "deck_config_update", "screens_order_update", "wallpaper_config_update") or action in ("switch_sim_screen", "eval_js", "deck_config_update", "save_deck_config", "screens_order_update", "wallpaper_config_update", "save_wallpaper_config", "save_screens_config"):
+                            if msg_type in ("switch_sim_screen", "eval_js", "deck_config_update", "screens_order_update", "wallpaper_config_update", "active_app_changed", "smart_switching_toggle", "go_to_screen") or action in ("switch_sim_screen", "eval_js", "deck_config_update", "save_deck_config", "screens_order_update", "wallpaper_config_update", "save_wallpaper_config", "save_screens_config", "active_app_changed", "smart_switching_toggle", "go_to_screen"):
                                 forward_frame = encode_ws_frame(json.dumps(msg_json))
                                 for other_client in connected_clients:
                                     if other_client != writer:

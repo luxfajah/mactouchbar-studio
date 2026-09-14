@@ -13168,6 +13168,13 @@
         localStorage.setItem('mactouchbar_smart_switching', checked ? 'true' : 'false');
       } catch (e) {}
 
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          action: 'smart_switching_toggle',
+          enabled: checked
+        }));
+      }
+
       showToast(checked ? 'Tela Dinâmica Ativada' : 'Tela Dinâmica Desativada');
     }
 
