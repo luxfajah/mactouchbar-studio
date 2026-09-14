@@ -988,7 +988,7 @@ def handle_action_fast(action: str, params: Dict):
         asyncio.create_task(push_immediate_deck_update(0.01))
 
     elif action in ("screens_order_update", "save_screens_config"):
-        cfg = params.get("config", params)
+        cfg = params.get("config") if (isinstance(params, dict) and "config" in params) else params
         if cfg and isinstance(cfg, dict):
             screens_path = os.path.expanduser("~/.mactouchbar_screens.json")
             try:
@@ -1007,7 +1007,7 @@ def handle_action_fast(action: str, params: Dict):
                     pass
 
     elif action in ("wallpaper_config_update", "save_wallpaper_config"):
-        cfg = params.get("config", params)
+        cfg = params.get("config") if (isinstance(params, dict) and "config" in params) else params
         if cfg and isinstance(cfg, dict):
             wall_path = os.path.expanduser("~/.mactouchbar_wallpaper.json")
             try:
@@ -1241,15 +1241,15 @@ async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWrit
                             msg_json = json.loads(payload.decode('utf-8'))
                             msg_type = msg_json.get("type", "")
                             action = msg_json.get("action", "") or msg_type
-                            params = msg_json.get("params", {})
-                            if not params and (msg_json.get("buttons") or msg_json.get("rows")):
+                            params = msg_json.get("params")
+                            if not params or not isinstance(params, dict):
                                 params = msg_json
                             
                             # Execute action instantly (< 1ms)
                             handle_action_fast(action, params)
 
                             # Broadcast client-to-client control messages (like simulator navigation or deck layout sync)
-                            if msg_type in ("switch_sim_screen", "eval_js", "deck_config_update") or action in ("switch_sim_screen", "eval_js", "deck_config_update", "save_deck_config"):
+                            if msg_type in ("switch_sim_screen", "eval_js", "deck_config_update", "screens_order_update", "wallpaper_config_update") or action in ("switch_sim_screen", "eval_js", "deck_config_update", "save_deck_config", "screens_order_update", "wallpaper_config_update", "save_wallpaper_config", "save_screens_config"):
                                 forward_frame = encode_ws_frame(json.dumps(msg_json))
                                 for other_client in connected_clients:
                                     if other_client != writer:

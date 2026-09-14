@@ -961,7 +961,12 @@
         aiState.userDismissedThisSession = false;
       }
       if (data.wallpaperBase64 && data.wallpaperBase64.length > 50) {
-        setGlobalWallpaper(`url(data:image/jpeg;base64,${data.wallpaperBase64})`);
+        window._cachedMacWallpaper = `url(data:image/jpeg;base64,${data.wallpaperBase64})`;
+        const curConfig = localStorage.getItem('mactouchbar_wallpaper_config');
+        const parsed = curConfig ? JSON.parse(curConfig) : null;
+        if (!parsed || parsed.type === 'macos_desktop' || parsed.type === 'system') {
+          setGlobalWallpaper(window._cachedMacWallpaper);
+        }
       }
     } else if (data.type === 'screens_order_update' && data.config) {
       applyScreensOrder(data.config);
@@ -983,7 +988,12 @@
       }
     } else if (data.type === 'wallpaper_update') {
       if (data.wallpaperBase64 && data.wallpaperBase64.length > 50) {
-        setGlobalWallpaper(`url(data:image/jpeg;base64,${data.wallpaperBase64})`);
+        window._cachedMacWallpaper = `url(data:image/jpeg;base64,${data.wallpaperBase64})`;
+        const curConfig = localStorage.getItem('mactouchbar_wallpaper_config');
+        const parsed = curConfig ? JSON.parse(curConfig) : null;
+        if (!parsed || parsed.type === 'macos_desktop' || parsed.type === 'system') {
+          setGlobalWallpaper(window._cachedMacWallpaper);
+        }
         console.log('[TouchBar] Papel de parede sincronizado com o Mac');
       }
     } else if (data.type === 'illustrator_recent_colors' && Array.isArray(data.colors)) {
@@ -2873,7 +2883,7 @@
 
     let bgValue = '';
     if (config.type === 'macos_desktop' || config.type === 'system') {
-      bgValue = config.wallpaperUrl || config.url || 'url(wallpaper.jpg)';
+      bgValue = config.wallpaperUrl || config.url || window._cachedMacWallpaper || 'url(wallpaper.jpg)';
     } else if (config.type === 'preset') {
       bgValue = WALLPAPER_PRESETS[config.presetId] || config.presetStyle || 'url(wallpaper.jpg)';
     } else if (config.type === 'custom') {
