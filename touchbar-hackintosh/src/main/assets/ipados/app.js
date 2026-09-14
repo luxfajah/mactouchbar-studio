@@ -1059,6 +1059,9 @@
 
   // Handle Server Message
   function handleServerMessage(data) {
+    const msgType = data.type || data.action || '';
+    const msgConfig = data.config || (data.params && data.params.config);
+
     if (data.type === 'status_update') {
       if (data.cpu_percent !== undefined) {
         const cpuEl = getEl('cockpit-cpu-val');
@@ -1110,13 +1113,10 @@
       // Dynamic Profile & Contextual Addon Smart Switching
       handleDynamicAppSwitch(front);
       aiState.lastFrontApp = front;
+
       if (!isAiFront) {
         aiState.userDismissedThisSession = false;
-    const msgType = data.type || data.action || '';
-    const msgConfig = data.config || (data.params && data.params.config);
-
-    if (data.type === 'status_update') {
-      renderStatus(data);
+      }
       if (data.wallpaperBase64 && data.wallpaperBase64.length > 50) {
         window._cachedMacWallpaper = `url(data:image/jpeg;base64,${data.wallpaperBase64})`;
         const curConfig = localStorage.getItem('mactouchbar_wallpaper_config');
