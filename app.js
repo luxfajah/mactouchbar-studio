@@ -143,7 +143,7 @@
       { id: 'screen-deck', title: 'Dock de Atalhos', active: true, isHome: true },
       { id: 'screen-illustrator', title: 'Illustrator Studio', active: true, isHome: false },
       { id: 'screen-photoshop', title: 'Photoshop Master Deck', active: false, isHome: false },
-      { id: 'screen-taskmgr', title: 'Telemetria do Sistema', active: false, isHome: false }
+      { id: 'screen-taskmgr', title: 'Monitor de Recursos', active: false, isHome: false }
     ],
     transition: 'slide'
   };
