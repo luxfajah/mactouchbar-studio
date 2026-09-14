@@ -527,6 +527,61 @@ body::before {
   padding: 0 1px;
 }
 
+/* StandBy Music Tactile Volume Slider */
+.music-volume-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 6px;
+}
+
+.btn-vol-icon-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 50%;
+  transition: transform 0.12s ease, color 0.12s ease, background 0.12s ease;
+  flex-shrink: 0;
+}
+
+.btn-vol-icon-btn:active {
+  transform: scale(0.85);
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.music-vol-slider-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 8px 0;
+  touch-action: none;
+}
+
+.music-vol-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.music-vol-fill {
+  width: 50%;
+  height: 100%;
+  background: #FFFFFF;
+  border-radius: 4px;
+  transition: width 0.05s linear;
+}
+
 /* TELA 2: Deck 2x6 (Ícones com Dobro de Tamanho, Bordas Mínimas e Vidro Líquido Realista) */
 .deck-screen-container {
   width: 100%;

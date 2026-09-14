@@ -755,10 +755,10 @@ def handle_action_fast(action: str, params: Dict):
     global last_action_times
     now = time.time()
 
-    # Debounce rapid duplicate media actions within 300ms
+    # Debounce rapid duplicate media actions within 60ms
     if action in ("media_play_pause", "media_next", "media_prev", "toggle_favorite"):
         last_t = last_action_times.get(action, 0.0)
-        if now - last_t < 0.30:
+        if now - last_t < 0.06:
             print(f"⏩ Throttled duplicate action: {action}")
             return
         last_action_times[action] = now
@@ -790,37 +790,25 @@ def handle_action_fast(action: str, params: Dict):
         subprocess.Popen(["osascript", "-e", "set volume output muted (not (output muted of (get volume settings)))"])
 
     elif action == "media_play_pause":
-        running = get_running_apps()
-        if "Spotify" in running:
-            subprocess.Popen(["osascript", "-e", 'tell application "Spotify" to playpause'])
-        else:
-            subprocess.Popen(["osascript", "-e", 'tell application "Music" to playpause'])
-        asyncio.create_task(push_immediate_status(0.15))
+        script = 'try\nif application "Spotify" is running then\ntell application "Spotify" to playpause\nelse\ntell application "Music" to playpause\nend if\nend try'
+        subprocess.Popen(["osascript", "-e", script])
+        asyncio.create_task(push_immediate_status(0.05))
 
     elif action == "media_next":
-        running = get_running_apps()
-        if "Spotify" in running:
-            subprocess.Popen(["osascript", "-e", 'tell application "Spotify" to next track'])
-        else:
-            subprocess.Popen(["osascript", "-e", 'tell application "Music" to next track'])
-        asyncio.create_task(push_immediate_status(0.25))
+        script = 'try\nif application "Spotify" is running then\ntell application "Spotify" to next track\nelse\ntell application "Music" to next track\nend if\nend try'
+        subprocess.Popen(["osascript", "-e", script])
+        asyncio.create_task(push_immediate_status(0.08))
 
     elif action == "media_prev":
-        running = get_running_apps()
-        if "Spotify" in running:
-            subprocess.Popen(["osascript", "-e", 'tell application "Spotify" to previous track'])
-        else:
-            subprocess.Popen(["osascript", "-e", 'tell application "Music" to previous track'])
-        asyncio.create_task(push_immediate_status(0.25))
+        script = 'try\nif application "Spotify" is running then\ntell application "Spotify" to previous track\nelse\ntell application "Music" to previous track\nend if\nend try'
+        subprocess.Popen(["osascript", "-e", script])
+        asyncio.create_task(push_immediate_status(0.08))
 
     elif action == "set_player_position":
         pos = float(params.get("position", 0))
-        running = get_running_apps()
-        if "Spotify" in running:
-            subprocess.Popen(["osascript", "-e", f'tell application "Spotify" to set player position to {pos}'])
-        else:
-            subprocess.Popen(["osascript", "-e", f'tell application "Music" to set player position to {pos}'])
-        asyncio.create_task(push_immediate_status(0.10))
+        script = f'try\nif application "Spotify" is running then\ntell application "Spotify" to set player position to {pos}\nelse\ntell application "Music" to set player position to {pos}\nend if\nend try'
+        subprocess.Popen(["osascript", "-e", script])
+        asyncio.create_task(push_immediate_status(0.05))
 
     elif action == "toggle_favorite":
         subprocess.Popen(["osascript", "-e", 'tell application "Music" to set favorited of current track to not (favorited of current track)'])

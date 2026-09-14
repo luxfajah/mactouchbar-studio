@@ -845,7 +845,7 @@
 
   // Send Action to Mac with Zero Overhead & Smart Debouncing
   let lastActionTime = 0;
-  const ACTION_COOLDOWN_MS = 300;
+  const ACTION_COOLDOWN_MS = 60;
 
   function sendMacAction(action, params = {}) {
     const now = Date.now();
@@ -1613,6 +1613,44 @@
       if (scrubberTimer) clearInterval(scrubberTimer);
     }
   }
+
+  // Optimistic Instant Feedback Playback Handlers
+  function handlePlayPauseClick(e) {
+    if (e) e.stopPropagation();
+    triggerHaptic();
+    const currentPlaying = (state.media && state.media.state === 'playing') || (lastKnownMedia && lastKnownMedia.state === 'playing');
+    const newState = currentPlaying ? 'paused' : 'playing';
+    if (state.media) state.media.state = newState;
+    if (lastKnownMedia) lastKnownMedia.state = newState;
+
+    const glyph = el.glyphPlay || getEl('glyph-play');
+    if (glyph) {
+      glyph.innerHTML = (newState === 'playing') ?
+        '<svg viewBox="0 0 24 24" width="42" height="42" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1.5"/><rect x="14" y="4" width="4" height="16" rx="1.5"/></svg>' :
+        '<svg viewBox="0 0 24 24" width="42" height="42" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+    }
+    if (newState === 'playing') {
+      startScrubberTicker();
+    } else {
+      if (scrubberTimer) clearInterval(scrubberTimer);
+    }
+    sendMacAction('media_play_pause');
+  }
+  window.handlePlayPauseClick = handlePlayPauseClick;
+
+  function handleMediaNextClick(e) {
+    if (e) e.stopPropagation();
+    triggerHaptic();
+    sendMacAction('media_next');
+  }
+  window.handleMediaNextClick = handleMediaNextClick;
+
+  function handleMediaPrevClick(e) {
+    if (e) e.stopPropagation();
+    triggerHaptic();
+    sendMacAction('media_prev');
+  }
+  window.handleMediaPrevClick = handleMediaPrevClick;
 
   function initScrubber() {
     const scrubberTrack = el.musicScrubberTrack || getEl('music-scrubber-track');
