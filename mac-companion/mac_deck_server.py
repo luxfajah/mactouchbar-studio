@@ -22,7 +22,21 @@ import struct
 import subprocess
 import sys
 import time
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Tuple, Optional, Any
+
+# Mach kernel host statistics for sub-millisecond real CPU measurement
+libc = ctypes.CDLL(None)
+HOST_CPU_LOAD_INFO = 3
+CPU_STATE_USER = 0
+CPU_STATE_SYSTEM = 1
+CPU_STATE_IDLE = 2
+CPU_STATE_NICE = 3
+CPU_STATE_MAX = 4
+
+class HostCpuLoadInfo(ctypes.Structure):
+    _fields_ = [('cpu_ticks', ctypes.c_uint * CPU_STATE_MAX)]
+
+_prev_cpu_ticks = None
 
 PORT = 9876
 WS_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
@@ -554,10 +568,38 @@ def get_disk_telemetry() -> Dict:
         return {"total_gb": 500.0, "used_gb": 250.0, "free_gb": 250.0, "percent": 50.0}
 
 
+def get_real_cpu_usage() -> float:
+    """Read instant real CPU utilization via Mach kernel host_statistics."""
+    global _prev_cpu_ticks
+    try:
+        host = libc.mach_host_self()
+        info = HostCpuLoadInfo()
+        count = ctypes.c_uint(ctypes.sizeof(info) // 4)
+        ret = libc.host_statistics(host, HOST_CPU_LOAD_INFO, ctypes.byref(info), ctypes.byref(count))
+        if ret != 0:
+            return 0.0
+        ticks = list(info.cpu_ticks)
+        if _prev_cpu_ticks is None:
+            _prev_cpu_ticks = ticks
+            return 12.0
+        d_user = ticks[CPU_STATE_USER] - _prev_cpu_ticks[CPU_STATE_USER]
+        d_sys = ticks[CPU_STATE_SYSTEM] - _prev_cpu_ticks[CPU_STATE_SYSTEM]
+        d_idle = ticks[CPU_STATE_IDLE] - _prev_cpu_ticks[CPU_STATE_IDLE]
+        d_nice = ticks[CPU_STATE_NICE] - _prev_cpu_ticks[CPU_STATE_NICE]
+        _prev_cpu_ticks = ticks
+        tot = d_user + d_sys + d_idle + d_nice
+        if tot <= 0:
+            return 0.0
+        pct = (d_user + d_sys + d_nice) / tot * 100.0
+        return round(min(100.0, max(0.0, pct)), 1)
+    except Exception:
+        return 0.0
+
+
 def get_hardware_telemetry() -> Dict:
     """Read full system hardware telemetry (CPU, GPU, RAM, SSD, Network) with high precision."""
     global _cached_cpu_brand, _cached_hw_model
-    # 1. RAM via sysctl and vm_stat
+    # 1. RAM via sysctl and vm_stat (active + wired + compressed)
     try:
         memsize = int(subprocess.check_output(["sysctl", "-n", "hw.memsize"]).strip())
         vm = subprocess.check_output(["vm_stat"], timeout=0.6).decode("utf-8")
@@ -565,24 +607,27 @@ def get_hardware_telemetry() -> Dict:
         match_page = re.search(r"page size of (\d+) bytes", vm)
         if match_page:
             page_size = int(match_page.group(1))
-        free = int(re.search(r"Pages free:\s+(\d+)", vm).group(1)) * page_size
-        speculative = int(re.search(r"Pages speculative:\s+(\d+)", vm).group(1)) * page_size
-        inactive = int(re.search(r"Pages inactive:\s+(\d+)", vm).group(1)) * page_size
-        used = memsize - (free + speculative + inactive)
+        
+        def _get_pages(name: str) -> int:
+            m = re.search(r'' + name + r':\s+(\d+)', vm)
+            return int(m.group(1)) if m else 0
+
+        active = _get_pages('Pages active') * page_size
+        wired = _get_pages('Pages wired down') * page_size
+        compressed = _get_pages('Pages occupied by compressor') * page_size
+        used = active + wired + compressed
         ram_total_gb = round(memsize / (1024**3), 1)
         ram_used_gb = round(used / (1024**3), 1)
-        ram_free_gb = round(max(0, memsize - used) / (1024**3), 1)
+        ram_free_gb = round(max(0.0, ram_total_gb - ram_used_gb), 1)
         ram_pct = round((used / memsize) * 100, 1)
     except Exception:
         ram_total_gb, ram_used_gb, ram_free_gb, ram_pct = 16.0, 8.0, 8.0, 50.0
 
-    # 2. CPU load average & estimated CPU percentage
-    cpu_pct = 15.0
+    # 2. Real CPU % via Mach Kernel host_statistics & Load Average
+    cpu_pct = get_real_cpu_usage()
     load1, load5, load15 = 0.0, 0.0, 0.0
     try:
         load1, load5, load15 = os.getloadavg()
-        cpu_count = os.cpu_count() or 1
-        cpu_pct = round(min(100.0, (load1 / cpu_count) * 100.0), 1)
     except Exception:
         pass
 
@@ -1246,6 +1291,16 @@ def handle_action_fast(action: str, params: Dict):
             except Exception as e:
                 print(f"⚠️ [Task Manager] Error killing PID={pid}: {e}")
             asyncio.create_task(push_immediate_status(0.05))
+
+    elif action in ("get_hardware_telemetry", "get_telemetry"):
+        telemetry = get_hardware_telemetry()
+        msg = json.dumps({"type": "hardware_telemetry", "hardware": telemetry})
+        frame = encode_ws_frame(msg)
+        for client in list(connected_clients):
+            try:
+                client.write(frame)
+            except Exception:
+                pass
 
 
 # ==================== WEBSOCKET PROTOCOL ====================

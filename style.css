@@ -3315,78 +3315,92 @@ img {
 /* ==========================================================================
    HUD HARDWARE TELEMETRY DASHBOARD (Apple Glassmorphism + High Tech HUD)
    ========================================================================== */
-.hud-telemetry-container {
-  width: 98%;
-  max-width: 980px;
-  height: calc(100vh - 44px);
-  margin: 0 auto;
+/* ==========================================================================
+   TELA 4 (ADDON): TELEMETRIA MINIMALISTA DE HARDWARE & REDE (Apple HUD Widget)
+   ========================================================================== */
+.hud-mini-screen-container {
+  width: 100%;
+  max-width: 950px;
+  height: 100%;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.hud-mini-glass-panel {
+  width: 98%;
+  max-width: 920px;
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border: var(--glass-border);
-  border-radius: 20px;
-  padding: 10px 14px 10px 14px;
+  border-radius: clamp(16px, 3.5vh, 22px);
+  padding: clamp(8px, 1.8vh, 12px) clamp(12px, 2vw, 18px);
+  box-shadow: var(--glass-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1.2vh, 10px);
   box-sizing: border-box;
-  overflow: hidden;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
 }
 
-.hud-telemetry-header {
+.hud-mini-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 8px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  flex-shrink: 0;
+  padding-bottom: 6px;
 }
 
-.hud-header-left {
+.hud-mini-title-wrap {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 7px;
 }
 
-.hud-header-icon-badge {
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
+.hud-mini-icon-chip {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
   background: linear-gradient(135deg, #007AFF, #5856D6);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  box-shadow: 0 2px 10px rgba(0, 122, 255, 0.35);
+  box-shadow: 0 2px 6px rgba(0, 122, 255, 0.35);
 }
 
-.hud-header-title {
-  font-size: 14px;
+.hud-mini-title {
+  font-size: 13px;
   font-weight: 700;
   color: #ffffff;
-  margin: 0;
-  line-height: 1.15;
+  letter-spacing: -0.2px;
 }
 
-.hud-header-sub {
-  font-size: 10.5px;
+.hud-mini-sep {
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 11px;
+}
+
+.hud-mini-model {
+  font-size: 11px;
+  font-weight: 500;
   color: rgba(255, 255, 255, 0.55);
 }
 
-.hud-header-right {
+.hud-mini-status-wrap {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.hud-live-pill {
+.hud-mini-live-badge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   background: rgba(52, 199, 89, 0.15);
   border: 1px solid rgba(52, 199, 89, 0.3);
-  border-radius: 12px;
-  padding: 3px 8px;
+  border-radius: 10px;
+  padding: 2px 7px;
 }
 
 .hud-pulse-dot {
@@ -3405,19 +3419,19 @@ img {
 }
 
 .hud-live-text {
-  font-size: 9.5px;
+  font-size: 9px;
   font-weight: 800;
   color: #34C759;
   letter-spacing: 0.4px;
 }
 
-.hud-refresh-btn {
+.hud-mini-refresh {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 8px;
+  border-radius: 6px;
   color: rgba(255, 255, 255, 0.8);
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3425,61 +3439,45 @@ img {
   transition: all 0.15s ease;
 }
 
-.hud-refresh-btn:active {
+.hud-mini-refresh:active {
   transform: scale(0.92);
   background: #007AFF;
   color: #fff;
 }
 
-/* 5-Card HUD Grid */
-.hud-cards-grid {
+/* 5 Minimalist Stat Columns / Pills (Single Slim Row) */
+.hud-mini-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-auto-rows: 1fr;
-  gap: 8px;
-  flex: 1;
-  margin-top: 8px;
-  min-height: 0;
+  grid-template-columns: repeat(5, 1fr);
+  gap: clamp(6px, 1vw, 10px);
+  align-items: stretch;
 }
 
-.hud-card {
-  background: rgba(255, 255, 255, 0.045);
-  border: 1px solid rgba(255, 255, 255, 0.085);
+.hud-mini-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 8px 10px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  gap: 5px;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
-.hud-card:hover {
+.hud-mini-card:hover {
   background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
-.hud-card-disk {
-  grid-column: span 1;
-}
-
-.hud-card-net {
-  grid-column: span 2;
-}
-
-.hud-card-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 6px;
-}
-
-.hud-card-label-wrap {
+.hud-mini-card-head {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
+  gap: 4px;
 }
 
-.hud-card-tag {
+.hud-mini-tag {
   font-size: 8.5px;
   font-weight: 800;
   padding: 2px 5px;
@@ -3494,37 +3492,25 @@ img {
 .tag-disk { background: rgba(255, 149, 0, 0.2); color: #FF9500; border: 1px solid rgba(255, 149, 0, 0.3); }
 .tag-net { background: rgba(52, 199, 89, 0.2); color: #34C759; border: 1px solid rgba(52, 199, 89, 0.3); }
 
-.hud-card-title {
-  font-size: 11px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.hud-card-main-val {
-  font-size: 16px;
-  font-weight: 800;
+.hud-mini-val {
+  font-size: 15px;
+  font-weight: 700;
   color: #ffffff;
   font-variant-numeric: tabular-nums;
-  line-height: 1;
+  letter-spacing: -0.3px;
 }
 
-.hud-net-speed-val {
-  color: #34C759;
-  font-size: 13.5px;
-}
-
-.hud-gauge-bar-wrap {
+.hud-mini-bar-track {
   width: 100%;
-  height: 5px;
+  height: 4px;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
+  border-radius: 2px;
   overflow: hidden;
-  margin: 4px 0;
 }
 
-.hud-gauge-bar-fill {
+.hud-mini-bar-fill {
   height: 100%;
-  border-radius: 3px;
+  border-radius: 2px;
   transition: width 0.35s ease, background 0.35s ease;
 }
 
@@ -3532,68 +3518,15 @@ img {
 .fill-gpu { background: linear-gradient(90deg, #5856D6, #AF52DE); }
 .fill-ram { background: linear-gradient(90deg, #AF52DE, #FF2D55); }
 .fill-disk { background: linear-gradient(90deg, #FF9500, #FFCC00); }
+.fill-net { background: linear-gradient(90deg, #34C759, #30B0C7); }
 
-.hud-net-split-bars {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin: 4px 0;
-  background: rgba(255, 255, 255, 0.04);
-  padding: 3px 8px;
-  border-radius: 6px;
-}
-
-.hud-net-bar-col {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.hud-net-arrow {
+.hud-mini-card-sub {
   font-size: 10px;
-  font-weight: 700;
-}
-
-.down-arrow { color: #34C759; }
-.up-arrow { color: #007AFF; }
-
-.hud-net-kbs {
-  font-size: 11px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: #ffffff;
-}
-
-.hud-card-details {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-top: 2px;
-}
-
-.hud-detail-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 9.5px;
-}
-
-.hud-detail-key {
-  color: rgba(255, 255, 255, 0.45);
-}
-
-.hud-detail-val {
-  color: rgba(255, 255, 255, 0.85);
-  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 500;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 130px;
-  text-align: right;
 }
 
-.btn-kill-proc:active {
-  transform: scale(0.92);
-}
 

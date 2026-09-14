@@ -1476,172 +1476,107 @@
         </section>
 
         <!-- ====================================================================
-             TELA 4 (ADDON): MONITOR DE HARDWARE & TELEMETRIA DO SISTEMA
-             Visão Geral em Tempo Real: CPU, GPU, Memória RAM, SSD/HD e Velocidade de Rede
+             ADDON TELA 6: Telemetria Minimalista de Hardware & Rede
+             Visão Compacta & Elegante: CPU, GPU, Memória RAM, SSD e Throughput
              ==================================================================== -->
         <section class="carousel-screen addon-screen" id="screen-taskmgr">
-          <div class="hud-telemetry-container glass-panel">
-            
-            <!-- Top Header: Título, Modelo do Mac e Badge Ao Vivo -->
-            <div class="hud-telemetry-header">
-              <div class="hud-header-left">
-                <div class="hud-header-icon-badge">
-                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                    <path d="M4 6h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2zm0 2v8h16V8H4zm4 2h2v4H8v-4zm4 0h4v4h-4v-4z"/>
-                  </svg>
-                </div>
-                <div>
-                  <h2 class="hud-header-title">Telemetria do Sistema</h2>
-                  <span class="hud-header-sub" id="hud-mac-model-sub">MacBook Pro • Telemetria Ativa</span>
-                </div>
-              </div>
-
-              <div class="hud-header-right">
-                <div class="hud-live-pill">
-                  <span class="hud-pulse-dot"></span>
-                  <span class="hud-live-text">AO VIVO</span>
-                </div>
-                <button type="button" class="hud-refresh-btn" onclick="requestHardwareTelemetryNow()" title="Atualizar Métricas">
-                  <svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor">
-                    <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
-                    <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <!-- 5-Card Telemetry Grid -->
-            <div class="hud-cards-grid">
+          <div class="hud-mini-screen-container">
+            <div class="hud-mini-glass-panel">
               
-              <!-- [1] Card CPU -->
-              <div class="hud-card hud-card-cpu">
-                <div class="hud-card-top">
-                  <div class="hud-card-label-wrap">
-                    <span class="hud-card-tag tag-cpu">CPU</span>
-                    <span class="hud-card-title">Processador</span>
+              <!-- Mini Header Row -->
+              <div class="hud-mini-header">
+                <div class="hud-mini-title-wrap">
+                  <div class="hud-mini-icon-chip">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="4" y="4" width="16" height="16" rx="3"></rect>
+                      <rect x="9" y="9" width="6" height="6" rx="1"></rect>
+                      <path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"></path>
+                    </svg>
                   </div>
-                  <span class="hud-card-main-val" id="hud-val-cpu">0%</span>
+                  <span class="hud-mini-title">Telemetria</span>
+                  <span class="hud-mini-sep">•</span>
+                  <span class="hud-mini-model" id="hud-mac-model-sub">MacBook Pro</span>
                 </div>
-                <div class="hud-gauge-bar-wrap">
-                  <div class="hud-gauge-bar-fill fill-cpu" id="hud-fill-cpu" style="width: 0%;"></div>
-                </div>
-                <div class="hud-card-details">
-                  <div class="hud-detail-row">
-                    <span class="hud-detail-key">Chip:</span>
-                    <span class="hud-detail-val" id="hud-detail-cpu-model">Apple Silicon</span>
+                <div class="hud-mini-status-wrap">
+                  <div class="hud-mini-live-badge">
+                    <span class="hud-pulse-dot"></span>
+                    <span class="hud-live-text">AO VIVO</span>
                   </div>
-                  <div class="hud-detail-row">
-                    <span class="hud-detail-key">Cores / Carga:</span>
-                    <span class="hud-detail-val" id="hud-detail-cpu-load">8 Cores • 0.00</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- [2] Card GPU -->
-              <div class="hud-card hud-card-gpu">
-                <div class="hud-card-top">
-                  <div class="hud-card-label-wrap">
-                    <span class="hud-card-tag tag-gpu">GPU</span>
-                    <span class="hud-card-title">Gráficos Metal</span>
-                  </div>
-                  <span class="hud-card-main-val" id="hud-val-gpu">0%</span>
-                </div>
-                <div class="hud-gauge-bar-wrap">
-                  <div class="hud-gauge-bar-fill fill-gpu" id="hud-fill-gpu" style="width: 0%;"></div>
-                </div>
-                <div class="hud-card-details">
-                  <div class="hud-detail-row">
-                    <span class="hud-detail-key">Acelerador:</span>
-                    <span class="hud-detail-val" id="hud-detail-gpu-engine">Metal 3 HW</span>
-                  </div>
-                  <div class="hud-detail-row">
-                    <span class="hud-detail-key">Taxa:</span>
-                    <span class="hud-detail-val" id="hud-detail-gpu-state">60 FPS Render</span>
-                  </div>
+                  <button type="button" class="hud-mini-refresh" onclick="requestHardwareTelemetryNow()" title="Atualizar">
+                    <svg viewBox="0 0 16 16" width="11" height="11" fill="currentColor">
+                      <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                      <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                    </svg>
+                  </button>
                 </div>
               </div>
 
-              <!-- [3] Card RAM -->
-              <div class="hud-card hud-card-ram">
-                <div class="hud-card-top">
-                  <div class="hud-card-label-wrap">
-                    <span class="hud-card-tag tag-ram">RAM</span>
-                    <span class="hud-card-title">Memória</span>
+              <!-- 5 Minimalist Stat Columns / Pills (Single Slim Row) -->
+              <div class="hud-mini-grid">
+                
+                <!-- [1] CPU -->
+                <div class="hud-mini-card">
+                  <div class="hud-mini-card-head">
+                    <span class="hud-mini-tag tag-cpu">CPU</span>
+                    <span class="hud-mini-val" id="hud-val-cpu">0%</span>
                   </div>
-                  <span class="hud-card-main-val" id="hud-val-ram">0%</span>
-                </div>
-                <div class="hud-gauge-bar-wrap">
-                  <div class="hud-gauge-bar-fill fill-ram" id="hud-fill-ram" style="width: 0%;"></div>
-                </div>
-                <div class="hud-card-details">
-                  <div class="hud-detail-row">
-                    <span class="hud-detail-key">Em Uso:</span>
-                    <span class="hud-detail-val" id="hud-detail-ram-used">0.0 / 0.0 GB</span>
+                  <div class="hud-mini-bar-track">
+                    <div class="hud-mini-bar-fill fill-cpu" id="hud-fill-cpu" style="width: 0%;"></div>
                   </div>
-                  <div class="hud-detail-row">
-                    <span class="hud-detail-key">Disponível:</span>
-                    <span class="hud-detail-val" id="hud-detail-ram-free">0.0 GB Livre</span>
-                  </div>
+                  <div class="hud-mini-card-sub" id="hud-detail-cpu-load">8 Cores</div>
                 </div>
-              </div>
 
-              <!-- [4] Card Armazenamento (SSD/HD) -->
-              <div class="hud-card hud-card-disk">
-                <div class="hud-card-top">
-                  <div class="hud-card-label-wrap">
-                    <span class="hud-card-tag tag-disk">SSD</span>
-                    <span class="hud-card-title">Macintosh HD</span>
+                <!-- [2] GPU -->
+                <div class="hud-mini-card">
+                  <div class="hud-mini-card-head">
+                    <span class="hud-mini-tag tag-gpu">GPU</span>
+                    <span class="hud-mini-val" id="hud-val-gpu">0%</span>
                   </div>
-                  <span class="hud-card-main-val" id="hud-val-disk">0%</span>
-                </div>
-                <div class="hud-gauge-bar-wrap">
-                  <div class="hud-gauge-bar-fill fill-disk" id="hud-fill-disk" style="width: 0%;"></div>
-                </div>
-                <div class="hud-card-details">
-                  <div class="hud-detail-row">
-                    <span class="hud-detail-key">Capacidade:</span>
-                    <span class="hud-detail-val" id="hud-detail-disk-used">0.0 / 0.0 GB</span>
+                  <div class="hud-mini-bar-track">
+                    <div class="hud-mini-bar-fill fill-gpu" id="hud-fill-gpu" style="width: 0%;"></div>
                   </div>
-                  <div class="hud-detail-row">
-                    <span class="hud-detail-key">Livre:</span>
-                    <span class="hud-detail-val" id="hud-detail-disk-free">0.0 GB Livre</span>
-                  </div>
+                  <div class="hud-mini-card-sub" id="hud-detail-gpu-state">Metal 3</div>
                 </div>
-              </div>
 
-              <!-- [5] Card Velocidade de Rede (Throughput) -->
-              <div class="hud-card hud-card-net">
-                <div class="hud-card-top">
-                  <div class="hud-card-label-wrap">
-                    <span class="hud-card-tag tag-net">REDE</span>
-                    <span class="hud-card-title">Velocidade ao Vivo</span>
+                <!-- [3] RAM -->
+                <div class="hud-mini-card">
+                  <div class="hud-mini-card-head">
+                    <span class="hud-mini-tag tag-ram">RAM</span>
+                    <span class="hud-mini-val" id="hud-val-ram">0%</span>
                   </div>
-                  <span class="hud-card-main-val hud-net-speed-val" id="hud-val-net-down">↓ 0 KB/s</span>
+                  <div class="hud-mini-bar-track">
+                    <div class="hud-mini-bar-fill fill-ram" id="hud-fill-ram" style="width: 0%;"></div>
+                  </div>
+                  <div class="hud-mini-card-sub" id="hud-detail-ram-used">0.0 / 0.0 GB</div>
                 </div>
-                <div class="hud-net-split-bars">
-                  <div class="hud-net-bar-col">
-                    <span class="hud-net-arrow down-arrow">↓ Down:</span>
-                    <span class="hud-net-kbs" id="hud-net-down-txt">0.0 KB/s</span>
+
+                <!-- [4] SSD -->
+                <div class="hud-mini-card">
+                  <div class="hud-mini-card-head">
+                    <span class="hud-mini-tag tag-disk">SSD</span>
+                    <span class="hud-mini-val" id="hud-val-disk">0%</span>
                   </div>
-                  <div class="hud-net-bar-col">
-                    <span class="hud-net-arrow up-arrow">↑ Up:</span>
-                    <span class="hud-net-kbs" id="hud-net-up-txt">0.0 KB/s</span>
+                  <div class="hud-mini-bar-track">
+                    <div class="hud-mini-bar-fill fill-disk" id="hud-fill-disk" style="width: 0%;"></div>
                   </div>
+                  <div class="hud-mini-card-sub" id="hud-detail-disk-free">0 GB Livre</div>
                 </div>
-                <div class="hud-card-details">
-                  <div class="hud-detail-row">
-                    <span class="hud-detail-key">Conexão:</span>
-                    <span class="hud-detail-val" id="hud-detail-net-iface">Wi-Fi • LAN</span>
+
+                <!-- [5] REDE -->
+                <div class="hud-mini-card">
+                  <div class="hud-mini-card-head">
+                    <span class="hud-mini-tag tag-net">REDE</span>
+                    <span class="hud-mini-val" id="hud-val-net-down">↓ 0 KB/s</span>
                   </div>
-                  <div class="hud-detail-row">
-                    <span class="hud-detail-key">IP Mac:</span>
-                    <span class="hud-detail-val" id="hud-detail-net-ip">192.168.1.5</span>
+                  <div class="hud-mini-bar-track">
+                    <div class="hud-mini-bar-fill fill-net" id="hud-fill-net" style="width: 0%;"></div>
                   </div>
+                  <div class="hud-mini-card-sub" id="hud-net-up-txt">↑ 0.0 KB/s</div>
                 </div>
+
               </div>
 
             </div>
-
           </div>
         </section>
 

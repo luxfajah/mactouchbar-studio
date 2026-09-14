@@ -206,6 +206,10 @@
       }, 40);
     }
 
+    if (currentScreenEl && currentScreenEl.id === 'screen-taskmgr') {
+      sendMacAction('get_hardware_telemetry');
+    }
+
     triggerHaptic();
 
     try {
@@ -1217,33 +1221,29 @@
     // Header Info
     const subModel = getEl('hud-mac-model-sub');
     if (subModel && hw.mac_model) {
-      subModel.textContent = `${hw.mac_model} • Telemetria Ativa`;
+      subModel.textContent = hw.mac_model;
     }
 
     // 1. CPU
     const cpuPct = typeof hw.cpu_percent === 'number' ? hw.cpu_percent : 0;
     const valCpu = getEl('hud-val-cpu');
     const fillCpu = getEl('hud-fill-cpu');
-    const cpuModelEl = getEl('hud-detail-cpu-model');
     const cpuLoadEl = getEl('hud-detail-cpu-load');
 
     if (valCpu) valCpu.textContent = `${Math.round(cpuPct)}%`;
     if (fillCpu) fillCpu.style.width = `${Math.min(100, Math.max(0, cpuPct))}%`;
-    if (cpuModelEl && hw.cpu_model) {
-      const cleanBrand = hw.cpu_model.replace('Intel(R) Core(TM) ', '').replace(' CPU @', ' @');
-      cpuModelEl.textContent = cleanBrand;
-      cpuModelEl.title = hw.cpu_model;
-    }
     if (cpuLoadEl) {
-      cpuLoadEl.textContent = `${hw.cpu_cores || 8} Cores • ${hw.cpu_load || '0.00'}`;
+      cpuLoadEl.textContent = `${hw.cpu_cores || 8} Cores`;
     }
 
     // 2. GPU
     const gpuPct = typeof hw.gpu_percent === 'number' ? hw.gpu_percent : 0;
     const valGpu = getEl('hud-val-gpu');
     const fillGpu = getEl('hud-fill-gpu');
+    const gpuStateEl = getEl('hud-detail-gpu-state');
     if (valGpu) valGpu.textContent = `${Math.round(gpuPct)}%`;
     if (fillGpu) fillGpu.style.width = `${Math.min(100, Math.max(0, gpuPct))}%`;
+    if (gpuStateEl) gpuStateEl.textContent = 'Metal 3';
 
     // 3. RAM
     const ramObj = hw.ram || { total_gb: 16.0, used_gb: 8.0, free_gb: 8.0, percent: 50.0 };
@@ -1251,41 +1251,33 @@
     const valRam = getEl('hud-val-ram');
     const fillRam = getEl('hud-fill-ram');
     const ramUsedEl = getEl('hud-detail-ram-used');
-    const ramFreeEl = getEl('hud-detail-ram-free');
 
     if (valRam) valRam.textContent = `${Math.round(ramPct)}%`;
     if (fillRam) fillRam.style.width = `${Math.min(100, Math.max(0, ramPct))}%`;
     if (ramUsedEl) ramUsedEl.textContent = `${ramObj.used_gb} / ${ramObj.total_gb} GB`;
-    if (ramFreeEl) ramFreeEl.textContent = `${ramObj.free_gb} GB Livre`;
 
     // 4. Armazenamento SSD/HD
     const diskObj = hw.disk || { total_gb: 500.0, used_gb: 250.0, free_gb: 250.0, percent: 50.0 };
     const valDisk = getEl('hud-val-disk');
     const fillDisk = getEl('hud-fill-disk');
-    const diskUsedEl = getEl('hud-detail-disk-used');
     const diskFreeEl = getEl('hud-detail-disk-free');
 
     if (valDisk) valDisk.textContent = `${Math.round(diskObj.percent || 0)}%`;
     if (fillDisk) fillDisk.style.width = `${Math.min(100, Math.max(0, diskObj.percent || 0))}%`;
-    if (diskUsedEl) diskUsedEl.textContent = `${diskObj.used_gb} / ${diskObj.total_gb} GB`;
     if (diskFreeEl) diskFreeEl.textContent = `${diskObj.free_gb} GB Livre`;
 
     // 5. Rede (Throughput & Conexão)
     const netObj = hw.network || { down_kbs: 0.0, up_kbs: 0.0, ip: '192.168.1.5', interface: 'Wi-Fi' };
     const valNetDown = getEl('hud-val-net-down');
-    const netDownTxt = getEl('hud-net-down-txt');
+    const fillNet = getEl('hud-fill-net');
     const netUpTxt = getEl('hud-net-up-txt');
-    const netIfaceEl = getEl('hud-detail-net-iface');
-    const netIpEl = getEl('hud-detail-net-ip');
 
     const formattedDown = formatNetSpeed(netObj.down_kbs);
     const formattedUp = formatNetSpeed(netObj.up_kbs);
 
     if (valNetDown) valNetDown.textContent = `↓ ${formattedDown}`;
-    if (netDownTxt) netDownTxt.textContent = formattedDown;
-    if (netUpTxt) netUpTxt.textContent = formattedUp;
-    if (netIfaceEl) netIfaceEl.textContent = netObj.interface || 'Wi-Fi • LAN';
-    if (netIpEl) netIpEl.textContent = netObj.ip || '192.168.1.5';
+    if (fillNet) fillNet.style.width = `${Math.min(100, Math.max(4, Math.round((netObj.down_kbs / 500) * 100)))}%`;
+    if (netUpTxt) netUpTxt.textContent = `↑ ${formattedUp}`;
   }
   window.renderTaskMgrTelemetry = renderTaskMgrTelemetry;
 
