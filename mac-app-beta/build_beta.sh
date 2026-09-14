@@ -23,7 +23,10 @@ mkdir -p "$RESOURCES_DIR"
 mkdir -p "$FRAMEWORKS_DIR"
 
 cp -f "$DIR/Info.plist"   "$CONTENTS_DIR/Info.plist"
-cp -f "$DIR/index.html"   "$RESOURCES_DIR/index.html"
+cp -f "$ROOT_DIR/index.html"      "$RESOURCES_DIR/index.html"
+cp -f "$ROOT_DIR/app.js"          "$RESOURCES_DIR/app.js"
+cp -f "$ROOT_DIR/style.css"        "$RESOURCES_DIR/style.css"
+cp -f "$ROOT_DIR/tailwind.cdn.js" "$RESOURCES_DIR/tailwind.cdn.js"
 [ -f "$ROOT_DIR/mac-companion-studio.html" ] && cp -f "$ROOT_DIR/mac-companion-studio.html" "$RESOURCES_DIR/mac-companion-studio.html"
 
 if [ -f "$ROOT_DIR/mac-app/AppIcon.icns" ]; then
@@ -33,7 +36,7 @@ fi
 [ -d "$ROOT_DIR/icons" ]          && cp -rf "$ROOT_DIR/icons"          "$RESOURCES_DIR/icons"
 [ -d "$ROOT_DIR/fonts" ]          && cp -rf "$ROOT_DIR/fonts"          "$RESOURCES_DIR/fonts"
 [ -f "$ROOT_DIR/wallpaper.jpg" ]  && cp -f  "$ROOT_DIR/wallpaper.jpg"  "$RESOURCES_DIR/wallpaper.jpg"
-[ -d "$DIR/ipados-preview" ]      && cp -rf "$DIR/ipados-preview"      "$RESOURCES_DIR/ipados-preview"
+[ -d "$ROOT_DIR/ipados-preview" ] && cp -rf "$ROOT_DIR/ipados-preview" "$RESOURCES_DIR/ipados-preview"
 
 # Copiar Sparkle.framework se existir
 if [ -d "$DIR/Frameworks/Sparkle.framework" ]; then
